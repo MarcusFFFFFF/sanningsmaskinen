@@ -1,4 +1,18 @@
-# SANNINGSMASKINEN v4
+# SANNINGSMASKINEN
+
+Sanningsmaskinen är ett AI-drivet analysverktyg som granskar påståenden genom flera lager av resonemang.
+
+Systemet använder flera AI-motorer (Claude och GPT) i en strukturerad process för att:
+
+- analysera hypoteser
+- hitta motsägelser
+- utsätta resonemang för kritisk granskning
+- identifiera svagheter och bias
+- producera en reviderad slutsats
+
+Målet är att skapa mer transparent och robust informationsanalys.
+
+---# SANNINGSMASKINEN v4
 ## Steg-för-steg guide — så enkel som möjligt
 
 ---
