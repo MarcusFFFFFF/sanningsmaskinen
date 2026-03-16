@@ -213,6 +213,24 @@ div.stMarkdown p{margin:0}
 .primary-intro{padding:.95rem 1rem .7rem;background:var(--bg2);border-bottom:1px solid var(--border)}
 .primary-intro-k{font-family:var(--mono);font-size:.48rem;letter-spacing:.25em;color:var(--ink4);margin-bottom:.4rem;text-transform:uppercase}
 .primary-intro-t{font-family:var(--sans);font-size:.82rem;color:var(--ink2);line-height:1.7}
+.primary-article{
+  padding:1.05rem 1.1rem;
+  background:var(--bg1);
+  border-top:1px solid var(--border);
+}
+.primary-article p{
+  font-family:var(--sans);
+  font-size:.84rem;
+  line-height:1.9;
+  color:var(--ink2);
+  margin:0 0 1rem 0;
+}
+.primary-article p:last-child{
+  margin-bottom:0;
+}
+.primary-article-lead{
+  color:var(--ink);
+}
 .analysis-text{font-family:var(--sans);font-size:.82rem;line-height:1.86;color:var(--ink2)}
 .analysis-text a{color:#6ca9ef;text-decoration:underline}
 
@@ -659,67 +677,136 @@ def _normalize_text_for_render(text: str) -> str:
         return normalize_references(text)
     except Exception:
         return text
+    
+    def _split_into_paragraphs(text: str):
+        text = (text or "").strip()
+    if not text:
+        return []
+
+    parts = re.split(r"\n\s*\n", text)
+    out = []
+    for p in parts:
+        s = " ".join(p.split()).strip()
+        if s:
+            out.append(s)
+    return out
 
 
-def _render_primary_analysis_block(ranked, claude_answer):
+def _extract_primary_narrative(primary_text: str) -> str:
+    text = _normalize_text_for_render(primary_text)
+    if not text:
+        return ""
+
+    lines = text.splitlines()
+    kept = []
+
+    stop_patterns = [
+        r"^\s*(#+\s*)?H1\b",
+        r"^\s*(#+\s*)?H2\b",
+        r"^\s*(#+\s*)?H3\b",
+    ]
+
+    for line in lines:
+        s = line.strip()
+
+        if not s:
+            kept.append("")
+            continue
+
+        if any(re.match(p, s, re.IGNORECASE) for p in stop_patterns):
+            break
+
+        kept.append(s)
+
+    cleaned = "\n".join(kept).strip()
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+
+    return cleaned
+
+def _split_into_paragraphs(text: str):
+    text = (text or "").strip()
+    if not text:
+        return []
+
+    parts = re.split(r"\n\s*\n", text)
+
+    out = []
+    for p in parts:
+        s = " ".join(p.split()).strip()
+        if s:
+            out.append(s)
+
+    return out
+def _build_article_from_ranked(ranked, primary_text: str) -> str:
+    narrative = _extract_primary_narrative(primary_text)
+    paragraphs = _split_into_paragraphs(narrative)
+
+    if paragraphs and sum(len(p) for p in paragraphs) > 200:
+        html_parts = []
+        for i, p in enumerate(paragraphs[:5]):
+            cls = "primary-article-lead" if i == 0 else ""
+            html_parts.append(f'<p class="{cls}">{_safe_links(p)}</p>')
+        return '<div class="primary-article">' + "".join(html_parts) + '</div>'
+
+    if not ranked:
+        fallback = _normalize_text_for_render(primary_text) or "Ingen primäranalys returnerades."
+        return f'<div class="primary-article"><p class="primary-article-lead">{_safe_links(fallback)}</p></div>'
+
+    winner = ranked[0]
+    runner = ranked[1] if len(ranked) > 1 else None
+
+    p1 = f"Den starkaste tolkningen i materialet är just nu {winner.get('key','')} — {winner.get('title','')}."
+    p2 = winner.get("tes", "")
+
+    if runner:
+        p3 = f"En konkurrerande tolkning är {runner.get('key','')} — {runner.get('title','')}."
+    else:
+        p3 = "Det finns också alternativa tolkningar, men de förklarar inte materialet lika väl."
+
+    p4 = "Analysen är därför en syntes av evidens, konkurrerande hypoteser och deras falsifieringstester."
+
+    return (
+        '<div class="primary-article">'
+        f'<p class="primary-article-lead">{_safe_links(p1)}</p>'
+        f'<p>{_safe_links(p2)}</p>'
+        f'<p>{_safe_links(p3)}</p>'
+        f'<p>{_safe_links(p4)}</p>'
+        '</div>'
+    )
+
+
+
+def _render_primary_analysis_block(ranked, primary_text):
+
     intro = """
 <div class="primary-card">
-  <div class="primary-head">📄 Primäranalys — Claude Opus råtext</div>
-  <div class="primary-intro">
-    <div class="primary-intro-k">Primäranalys · Claude Opus · steg 1</div>
-    <div class="primary-intro-t">Analysen identifierar konkurrerande hypoteser, väger evidens, testar motargument och försöker falsifiera alternativa förklaringar. Här visas både strukturerad hypotesöversikt och den fulla råtexten längre ner.</div>
-  </div>
+<div class="primary-head">Analytisk syntes</div>
+<div class="primary-intro">
+<div class="primary-intro-k">Primäranalys · Claude Opus · steg 1</div>
+<div class="primary-intro-t">
+Analysen identifierar konkurrerande hypoteser, väger evidens, testar motargument och försöker falsifiera alternativa förklaringar.
+</div>
+</div>
 </div>
 """
+
     st.markdown(intro, unsafe_allow_html=True)
 
-    if ranked:
-        for hyp in ranked:
-            key = hyp.get("key", "")
-            lbl = hyp.get("label", "")
-            title = hyp.get("title", "")
-            styrka = (hyp.get("styrka") or "MEDEL").upper()
-            tes = hyp.get("tes", "")
-            bevis = hyp.get("bevis", []) or []
-            motarg = hyp.get("motarg", []) or []
-            falsif = hyp.get("falsifiering", "")
-            conf = hyp.get("conf", 0.5)
-            pct = int(hyp.get("conf_pct", int(conf * 100)))
-            color = STYRKA_COLOR.get(styrka, "#6eb6ff")
+    text = _normalize_text_for_render(primary_text)
 
-            ev_html = (
-                '<ul class="hyp-ev-list">' + "".join(f"<li>{_safe_links(b)}</li>" for b in bevis[:5]) + "</ul>"
-            ) if bevis else '<div class="hyp-sec-empty">Ingen evidens identifierad.</div>'
-            mo_html = (
-                "".join(f'<div class="hyp-mo">{_safe_links(m)}</div>' for m in motarg[:3])
-            ) if motarg else '<div class="hyp-sec-empty">Inga motargument identifierade.</div>'
-            fl_html = f'<div class="hyp-fl">{_safe_links(falsif)}</div>' if falsif else '<div class="hyp-sec-empty">Inget falsifieringstest identifierat.</div>'
-            hyp_links_html = _links_strip_html(_collect_links_from_hyp(hyp), max_links=5)
-
-            st.markdown(f"""
-<div class="zone" style="margin-top:0;border-left:3px solid {color}">
-  <div class="hyp-det-header">
-    <div class="hyp-det-key" style="color:{color}">{_safe(key)}  {_safe(lbl)}</div>
-    <div class="hyp-det-title">{_safe(title)}</div>
-    <div class="hyp-det-scores">
-      <div class="hyp-det-bar-track"><div class="hyp-det-bar-fill" style="width:{pct}%;background:{color}"></div></div>
-      <span class="hyp-det-score" style="color:{color}">{conf:.2f} ({pct}%)</span>
-      <span class="hyp-det-styrka">{_safe(styrka)}</span>
-      <span style="font-family:var(--mono);font-size:.5rem;color:var(--ink4)">{len(bevis)} bevis · {len(motarg)} motarg</span>
-    </div>
-  </div>
-  <div class="zone-body" style="padding:.8rem .9rem">
-    <div style="margin-bottom:.7rem"><div class="hyp-sec-lbl">TES</div>{('<div class="hyp-tes">' + _safe_links(tes) + '</div>') if tes else '<div class="hyp-sec-empty">Ingen tes identifierad.</div>'}</div>
-    <div style="margin-bottom:.7rem"><div class="hyp-sec-lbl">EVIDENS</div>{ev_html}{hyp_links_html}</div>
-    <div style="margin-bottom:.7rem"><div class="hyp-sec-lbl">MOTARGUMENT</div>{mo_html}</div>
-    <div><div class="hyp-sec-lbl">FALSIFIERINGSTEST</div>{fl_html}</div>
-  </div>
+    if text:
+        st.markdown(
+            f"""
+<div class="primary-text">
+{_safe_links(text)}
 </div>
-""", unsafe_allow_html=True)
+""",
+            unsafe_allow_html=True,
+        )
 
     with st.expander("Visa full råtext från primäranalysen", expanded=False):
         st.markdown(
-            f'<div class="analysis-text">{_safe_links(_normalize_text_for_render(claude_answer))}</div>',
+            f'<div class="analysis-text">{_safe_links(_normalize_text_for_render(primary_text))}</div>',
             unsafe_allow_html=True,
         )
 
@@ -1185,7 +1272,12 @@ if st.session_state.result:
 </div>
 """, unsafe_allow_html=True)
 
-    _render_primary_analysis_block(ranked, r.get("claude_answer", ""))
+    primary_text = r.get("claude_answer", "")
+
+    if not primary_text:
+        primary_text = "Ingen primäranalys returnerades."
+
+    _render_primary_analysis_block(ranked, primary_text)
 
     rr = r.get("red_team_report", "")
     vc, vi, vt = _verdict_from_red_team(rr)
