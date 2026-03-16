@@ -41,6 +41,24 @@ H3[AKTÖRPSYKOLOGI]: ledarens världsbild, erfarenheter, analogier (Jervis)
 Format per hypotes: TES | BEVIS1-3[E-nivå källa URL] | MOTARG1-2 | FALSIFIERINGSTEST | STYRKA[HÖG/MEDEL/LÅG]
 RANKING efter att alla tre testats. Avgörande test: vad krävs för att nr2 slår nr1?"""
 
+# ── STRENGTHENED URL INSTRUCTION ──────────────────────────────────────────────
+URL_INSTRUCTION = """
+KRITISK LÄNKREGEL — OBLIGATORISK:
+För varje BEVIS du anger MÅSTE du inkludera en klickbar länk i exakt detta format:
+  [Källnamn](https://exakt-url-till-artikeln.com/artikel)
+
+Exempel RÄTT:
+  BEVIS 1: BGH fastslår ukrainskt ansvar. [E5 — BGH](https://www.bundesgerichtshof.de/SharedDocs/Pressemitteilungen/DE/2025/2025312.html)
+  BEVIS 2: Der Spiegel namngav Zaluzhnyj. [E4 — Der Spiegel](https://www.spiegel.de/politik/ausland/nord-stream-a-dec2025.html)
+
+Exempel FEL (aldrig göra):
+  BEVIS 1: BGH fastslår ukrainskt ansvar. [E5 — primärkälla, BGH]
+  BEVIS 2: Der Spiegel namngav Zaluzhnyj. [E4 — Der Spiegel, feb 2026]
+
+Om du inte hittar exakt URL via websökning: skriv [URL ej tillgänglig] — gissa ALDRIG en URL.
+Minst 3 av dina bevis totalt MÅSTE ha riktiga https://-länkar.
+"""
+
 SYSTEM_PROMPT = (
     f"Du är SANNINGSMASKINEN v8.13. Datum: {TODAY}. "
     "Alien-perspektiv: ingen lojalitet, börja med vad aktören GÖR inte vad den SÄGER. "
@@ -49,6 +67,7 @@ SYSTEM_PROMPT = (
     "med den faktiska URL:en från sökresultatet. Utan URL: skriv bara källnamn+datum. "
     + SOURCE_HIERARCHY + "\n"
     + THREE_LENSES + "\n"
+    + URL_INSTRUCTION + "\n"
     "Sanningen favoriserar ingen sida."
 )
 
@@ -73,7 +92,6 @@ def _classify_question(question: str) -> str:
     if any(kw in q for kw in HYPOTHETICAL_KEYWORDS):
         return "HYPOTHETICAL"
 
-    # Endast vissa frågor som börjar med "om" ska räknas som hypotetiska.
     if q.startswith("om "):
         if any(x in q for x in ["vad skulle", "vad händer om", "hur skulle", "föreställ", "antag"]):
             return "HYPOTHETICAL"
@@ -220,7 +238,18 @@ def ask_claude(question: str, reality_check: dict) -> str:
     elif q_type == "ANALYTICAL":
         rc_note += "\n[Strukturell fråga — fokusera på mönster och mekanismer, inte enskild händelse]"
 
-    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 3}]
+    # ── CRITICAL: Explicit URL reminder in the user message ──────────────────
+    rc_note += (
+        "\n\nKRITISK PÅMINNELSE — OBLIGATORISKA LÄNKAR:\n"
+        "Varje BEVIS MÅSTE ha en klickbar länk: [Källnamn](https://url-till-artikeln.com)\n"
+        "Använd websökning för att hitta exakta artikel-URLs.\n"
+        "Minst 4 bevis totalt MÅSTE ha riktiga https://-länkar.\n"
+        "SKRIV ALDRIG bara [E4 — Der Spiegel] utan URL — det är oanvändbart.\n"
+        "RÄTT: [E4 — Der Spiegel](https://www.spiegel.de/politik/artikel-123.html)\n"
+        "FEL:  [E4 — Der Spiegel, feb 2026]"
+    )
+
+    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 4}]
     response = anthropic_client.messages.create(
         model="claude-opus-4-6",
         max_tokens=4000,
@@ -235,10 +264,6 @@ def ask_claude(question: str, reality_check: dict) -> str:
 
 
 def _extract_structured_summary(claude_answer: str) -> str:
-    """
-    Extraherar H1/H2/H3-ranking + nyckelbevis + slutsats från Claude-svaret.
-    Ger GPT-kritikern en komplett bild på ~600 tokens istället för trunkerad råtext.
-    """
     lines = claude_answer.split('\n')
     summary_parts = []
 
@@ -398,7 +423,9 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
         f"ORIGINAL:\n{claude_answer[:2000]}\n"
         f"RED TEAM:\n{red_team_report[:800]}\n"
         f"Förbättra: kör tre linser om, degradera svaga påståenden [HYPOTES], "
-        f"inkludera ALT-H1/H2/H3. Märk [REVIDERAD VERSION]."
+        f"inkludera ALT-H1/H2/H3. Märk [REVIDERAD VERSION].\n"
+        f"VIKTIGT: Behåll alla källänkar från originalet och lägg till nya där möjligt. "
+        f"Format: [Källnamn](https://url)"
     )
     tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 2}]
     try:
