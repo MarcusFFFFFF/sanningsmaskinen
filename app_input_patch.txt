@@ -1,0 +1,55 @@
+ÄNDRING I app.py — Ersätt input-sektionen
+==========================================
+
+HITTA detta block (börjar med "# ── Input ──"):
+
+    if not st.session_state.result and not st.session_state.running:
+        # Empty state — full input
+        question = st.text_area("", placeholder="Skriv en fråga ...",
+                                height=84, label_visibility="collapsed")
+        c1,c2,_ = st.columns([1.5,1,5])
+        with c1: run_btn = st.button("Analysera →", disabled=False)
+        with c2: run_btn = run_btn  # placeholder
+    else:
+        # Result or running — compact bar, Rensa prominent
+        col_q, col_r = st.columns([5, 1])
+        with col_q:
+            question = st.text_area("", placeholder="Ställ en ny fråga...",
+                                    height=52, label_visibility="collapsed",
+                                    key="question_compact")
+        with col_r:
+            st.markdown('<div style="height:.35rem"></div>', unsafe_allow_html=True)
+            if st.session_state.result and st.button("✕ Rensa", use_container_width=True):
+                st.session_state.result = None; st.session_state.layers_generated = False
+                st.session_state.deep_generated = False; st.rerun()
+        run_btn = st.button("Analysera →", disabled=st.session_state.running)
+
+ERSÄTT MED detta block:
+
+    col_q, col_btn, col_r = st.columns([5, 1.2, 0.8])
+
+    with col_q:
+        question = st.text_area("",
+            placeholder="Skriv en fråga — t.ex. Vem sprängde Nord Stream? eller Varför invaderade Ryssland Ukraina 2022?",
+            height=68, label_visibility="collapsed",
+            key="question_main")
+
+    with col_btn:
+        st.markdown('<div style="height:.4rem"></div>', unsafe_allow_html=True)
+        run_btn = st.button("Analysera →", disabled=st.session_state.running,
+                            use_container_width=True)
+
+    with col_r:
+        st.markdown('<div style="height:.4rem"></div>', unsafe_allow_html=True)
+        if st.session_state.result:
+            if st.button("✕ Rensa", use_container_width=True):
+                st.session_state.result = None
+                st.session_state.layers_generated = False
+                st.session_state.deep_generated = False
+                st.rerun()
+        else:
+            st.empty()
+
+EFFEKT: Frågerutan visas alltid överst — ett enda inputfält, 
+Analysera-knapp bredvid, Rensa dyker upp till höger när det finns ett resultat.
+Inga dubletter, ingen kompakt/full-växling.
