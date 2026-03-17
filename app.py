@@ -57,12 +57,22 @@ div.stMarkdown p{margin:0}
 .stButton>button:hover{opacity:.84!important}
 .stButton>button:disabled{opacity:.3!important}
 
-.step-row{display:flex;gap:.3rem;flex-wrap:wrap;margin:.8rem 0 1.15rem}
-.step{font-family:var(--mono);font-size:.58rem;padding:.18rem .55rem;border:1px solid var(--border);color:var(--ink4);letter-spacing:.04em;background:transparent;transition:all .25s ease}
+.step-row{display:flex;gap:.4rem;flex-wrap:wrap;margin:.8rem 0 1.15rem;align-items:center}
+.step{font-family:var(--mono);font-size:.6rem;padding:.28rem .75rem;border:1px solid var(--border);color:var(--ink4);letter-spacing:.06em;background:transparent;transition:all .3s ease;position:relative}
 .step-done{border-color:var(--grn-dim);color:var(--grn);background:var(--grn-bg)}
-.step-active{border-color:#6eb6ff;color:#d9ecff;background:#0b1220;animation:stepPulse 1.4s ease-in-out infinite}
+.step-done::before{content:"✓ ";font-size:.55rem}
+.step-active{
+  border-color:#6eb6ff;color:#ffffff;background:#0d1828;
+  animation:stepPulse 1.1s ease-in-out infinite;
+  box-shadow:0 0 12px rgba(110,182,255,0.4), 0 0 4px rgba(110,182,255,0.6) inset;
+  font-weight:600;
+}
 .step-warn{border-color:var(--red-dim);color:var(--red);background:var(--red-bg)}
-@keyframes stepPulse{0%,100%{opacity:1}50%{opacity:.68}}
+@keyframes stepPulse{
+  0%{opacity:1;box-shadow:0 0 12px rgba(110,182,255,0.4),0 0 4px rgba(110,182,255,0.6) inset;border-color:#6eb6ff}
+  50%{opacity:.75;box-shadow:0 0 22px rgba(110,182,255,0.7),0 0 8px rgba(110,182,255,0.8) inset;border-color:#a8d8ff}
+  100%{opacity:1;box-shadow:0 0 12px rgba(110,182,255,0.4),0 0 4px rgba(110,182,255,0.6) inset;border-color:#6eb6ff}
+}
 
 .zone{border:1px solid var(--border);margin:.45rem 0;overflow:hidden;background:var(--bg1)}
 .zone-header{font-family:var(--mono);font-size:.52rem;font-weight:600;letter-spacing:.28em;text-transform:uppercase;padding:.5rem 1rem;background:var(--bg2);border-bottom:1px solid var(--border);color:var(--ink3);display:flex;align-items:center;justify-content:space-between;gap:1rem}
@@ -824,34 +834,132 @@ def _sources_footer_html(sources):
     )
 
 
-def _render_primary_analysis(primary_text, ranked=None, today_str="", url_pool=None):
-    """Render primary analysis as a premium formatted article."""
-    if url_pool is None: url_pool = {}
+def _extract_briefing(raw: str, ranked=None) -> dict:
+    """Extract magazine-style briefing — explosive facts first, then hypotheses."""
+    import re as _re
+    lines = raw.split('\n')
+    skip_patterns = [
+        r'^#', r'^SANNINGSMASKINEN', r'^Datum:', r'^Status:',
+        r'^Låt mig', r'^Jag behöver', r'^##', r'^⚠',
+        r'^\*\*⚠', r'^\[PÅGÅENDE\]', r'^\[FAKTA\]',
+        r'^TES', r'^BEVIS', r'^MOTARG', r'^STYRKA', r'^FALSIF',
+        r'^RANKING', r'^DEL \d', r'^---',
+    ]
 
-    # Use RAW text for article body — preserves [Source](https://...) inline links
-    # Only strip markdown headers/bold, NOT source references
+    # ── Analytisk syntes: sharpest opening paragraph ──
+    syntes_lines = []
+    for line in lines:
+        s = line.strip()
+        if not s: continue
+        if any(_re.match(p, s, _re.IGNORECASE) for p in skip_patterns): continue
+        if _re.match(r'^H[1-4]\s*[\[\(—]', s, _re.IGNORECASE): continue
+        s = _re.sub(r'^\*{1,3}"?', '', s)
+        s = _re.sub(r'"?\*{1,3}$', '', s).strip()
+        s = _re.sub(r'^\*\*([^*]+)\*\*', r'\1', s).strip()
+        if len(s) > 80:
+            syntes_lines.append(s)
+            if len(syntes_lines) >= 3: break
+
+    syntes_raw = " ".join(syntes_lines)
+    if len(syntes_raw) > 420:
+        cut = syntes_raw[:420].rfind('. ')
+        syntes = syntes_raw[:cut+1] if cut > 150 else syntes_raw[:420].rstrip() + "…"
+    else:
+        syntes = syntes_raw
+
+    # ── Nyckelfakta: explosive concrete facts ──
+    KEY_PATTERNS = [
+        r'greps|gripen|arresterad|åtalad|avgick|avskedades|dömdes|dödades',
+        r'\d{1,2}\s+\w+\s+20\d{2}',
+        r'miljoner|miljarder|\d+\s*sidor|\d+\s*videor|\d+\s*bilder',
+        r'FBI|CIA|DOJ|kongressen|domstol|BGH',
+        r'hemligt avtal|cover.?up|undanhöll|bortredigerade|immunitet',
+        r'gripen|greps|åtalad|avgick|avskedades',
+    ]
+    nyckelFakta = []
+    seen = set()
+    for line in lines:
+        s = line.strip()
+        if not s or len(s) < 50: continue
+        if any(_re.match(p, s, _re.IGNORECASE) for p in skip_patterns): continue
+        if _re.match(r'^H[1-4]\s*[\[\(—]', s, _re.IGNORECASE): continue
+        if _re.match(r'^\*{0,2}(TES|BEVIS|MOTARG|STYRKA|FALSIF)', s, _re.IGNORECASE): continue
+        s_clean = _re.sub(r'\[.*?\]\(https?://[^\)]+\)', '', s)
+        s_clean = _re.sub(r'\[FAKTA\]|\[INFERENS\]|\[DEBATTERAD TOLKNING\]|\[PÅGÅENDE\]|\*{1,3}', '', s_clean).strip()
+        s_clean = _re.sub(r'^\*\*([^*]+)\*\*:?\s*', '', s_clean).strip()
+        if any(_re.search(p, s_clean, _re.IGNORECASE) for p in KEY_PATTERNS):
+            if s_clean not in seen and len(s_clean) > 50:
+                seen.add(s_clean)
+                if len(s_clean) > 180:
+                    cut = s_clean[:180].rfind('. ')
+                    s_clean = s_clean[:cut+1] if cut > 60 else s_clean[:180].rstrip() + "…"
+                nyckelFakta.append(s_clean)
+        if len(nyckelFakta) >= 5: break
+
+    # ── Nyckelfynd: H1/H2/H3 in strict order 1→2→3 ──
+    hyp_map = {}
+    current_h_num = None
+    current_h_label = None
+    for line in lines:
+        s = line.strip()
+        hm = _re.match(r'#{1,4}\s*H([1-4])\s*[\[\(]([^\]\)]+)[\]\)]\s*[—\-]\s*(.*)', s)
+        if not hm:
+            hm = _re.match(r'H([1-4])\s*[\[\(]([^\]\)]+)[\]\)]\s*[—\-]\s*(.*)', s)
+        if hm:
+            current_h_num = int(hm.group(1))
+            lbl = hm.group(2).strip()
+            title = hm.group(3).strip()
+            current_h_label = f"H{current_h_num} [{lbl}]"
+            if title: current_h_label += f" — {title[:50]}"
+        if current_h_num and current_h_num not in hyp_map:
+            tm = _re.match(r'^\*{0,2}TES\*{0,2}\s*:?\s*(.+)', s, _re.IGNORECASE)
+            if tm:
+                tes = _re.sub(r'\[.*?\]\(https?://[^\)]+\)', '', tm.group(1)).strip()
+                tes = _re.sub(r'\[FAKTA\]|\[INFERENS\]|\[DEBATTERAD TOLKNING\]|\[PÅGÅENDE\]|\*{1,3}', '', tes).strip()
+                if len(tes) > 150:
+                    cut = tes[:150].rfind('. ')
+                    tes = tes[:cut+1] if cut > 60 else tes[:150].rstrip() + "…"
+                if tes:
+                    hyp_map[current_h_num] = (current_h_label, tes)
+                    current_h_num = None
+
+    nyckelord = [hyp_map[k] for k in sorted(hyp_map.keys()) if k <= 3]
+
+    if not nyckelord and ranked:
+        for i, h in enumerate(ranked[:3], 1):
+            key = h.get("key",""); lbl = h.get("label",""); tes = h.get("tes","") or ""
+            if tes:
+                if len(tes) > 150:
+                    cut = tes[:150].rfind('. ')
+                    tes = tes[:cut+1] if cut > 60 else tes[:150].rstrip() + "…"
+                nm = int(_re.search(r'\d', key).group()) if _re.search(r'\d', key) else i
+                hyp_map[nm] = (f"{key} [{lbl}]", tes)
+        nyckelord = [hyp_map[k] for k in sorted(hyp_map.keys()) if k <= 3]
+
+    return {"syntes": syntes, "nyckelFakta": nyckelFakta, "nyckelord": nyckelord}
+
+
+def _render_primary_analysis(primary_text, ranked=None, today_str="", url_pool=None):
+    """Render primary analysis as magazine briefing + full expander."""
+    if url_pool is None: url_pool = {}
     raw = primary_text or ""
 
     if not raw.strip():
         st.markdown('<div class="pa-wrapper"><div class="pa-article"><p class="pa-p">Ingen primäranalys returnerades.</p></div></div>', unsafe_allow_html=True)
         return
 
-    # Build masthead right-side meta
+    # ── Masthead ──────────────────────────────────────────────────────────────
     model_line = "Claude Opus · GPT-4o Red Team"
-    date_line  = today_str or ""
     method_items = [
-        ("#57c78a", "Tre konkurrerande hypoteser"),
+        ("#57c78a", "Tre hypoteser"),
         ("#6eb6ff", "Evidens E1–E5"),
         ("#db6b57", "Adversariell kritik"),
         ("#aab7ff", "Falsifieringstest"),
     ]
     method_html = "".join(
-        f'<span class="pa-method-item">'
-        f'<span class="pa-method-dot" style="background:{c}"></span>'
-        f'<span>{t}</span></span>'
+        f'<span class="pa-method-item"><span class="pa-method-dot" style="background:{c}"></span><span>{t}</span></span>'
         for c, t in method_items
     )
-
     st.markdown(f"""
 <div class="pa-wrapper">
   <div class="pa-masthead">
@@ -859,37 +967,90 @@ def _render_primary_analysis(primary_text, ranked=None, today_str="", url_pool=N
       <div class="pa-masthead-kicker">Primäranalys · Steg 1</div>
       <div class="pa-masthead-title">Analytisk syntes</div>
     </div>
-    <div class="pa-masthead-right">{_safe(model_line)}<br>{_safe(date_line)}</div>
+    <div class="pa-masthead-right">{_safe(model_line)}<br>{_safe(today_str)}</div>
   </div>
   <div class="pa-method-bar">{method_html}</div>
 </div>""", unsafe_allow_html=True)
 
-    # Convert markdown → article HTML using RAW text (preserves inline links)
-    article_html = _md_to_article_html(raw)
+    # ── Extract briefing data ─────────────────────────────────────────────────
+    brief = _extract_briefing(raw, ranked)
 
-    # Sources footer — all real URLs from url_pool with E-levels where available
+    # ── LAGER 1: Magazine briefing ────────────────────────────────────────────
+    # Syntes
+    syntes_html = f'<p style="font-family:var(--serif);font-size:.93rem;line-height:1.9;color:var(--ink);margin:0 0 1.1rem">{_safe(brief["syntes"])}</p>' if brief["syntes"] else ""
+
+    # Nyckelfynd — H1/H2/H3 cards
+    STYRKA_COLORS = {"H1":"var(--grn)","H2":"var(--amb)","H3":"var(--ink3)"}
+    nyckel_cards = ""
+    for h_label, tes in brief["nyckelord"]:
+        key_prefix = h_label[:2]  # "H1", "H2", "H3"
+        col = STYRKA_COLORS.get(key_prefix, "var(--ink3)")
+        # Extract just the title part after [LABEL] —
+        title_match = re.search(r'—\s*(.+)$', h_label)
+        subtitle = title_match.group(1).strip() if title_match else h_label
+        nyckel_cards += (
+            f'<div style="border-left:2px solid {col};padding:.4rem .75rem;margin-bottom:.5rem;background:var(--bg2)">'
+            f'<div style="font-family:var(--mono);font-size:.48rem;letter-spacing:.2em;color:{col};margin-bottom:.18rem">'
+            f'{_safe(key_prefix)} · {_safe(subtitle[:55])}</div>'
+            f'<div style="font-family:var(--sans);font-size:.81rem;color:var(--ink2);line-height:1.62">{_safe(tes)}</div>'
+            f'</div>'
+        )
+
+    # Nyckelfakta — explosive concrete facts
+    fakta_items = "".join(
+        f'<li style="font-family:var(--sans);font-size:.82rem;color:var(--ink);'
+        f'line-height:1.7;padding:.32rem 0;border-bottom:1px solid var(--border);'
+        f'list-style:none;display:flex;gap:.55rem;align-items:baseline">'
+        f'<span style="color:var(--grn);flex-shrink:0;font-weight:700">›</span>'
+        f'<span>{_safe(f)}</span></li>'
+        for f in brief.get("nyckelFakta", [])
+    )
+    fakta_html = f'<ul style="margin:0;padding:0">{fakta_items}</ul>' if fakta_items else ""
+
+    # Sources
     global_urls = url_pool.get("global", [])
     if global_urls:
         elevel_map = {}
         for m in re.finditer(r'\[([^\]]+)\]\((https?://[^\s\)]+)\)\s*\[([E][1-5][^\]]*)\]', raw, re.IGNORECASE):
             elevel_map[m.group(2).strip()] = m.group(3).strip()
-        sources = [(u, _domain_label(u), elevel_map.get(u,"")) for u in global_urls[:10]]
+        sources = [(u, _domain_label(u), elevel_map.get(u,"")) for u in global_urls[:8]]
     else:
         sources = _extract_sources_with_elevel(raw)
-
     sources_html = _sources_footer_html(sources)
+
+    # Sections with labels
+    def _briefing_section(label, content, accent="var(--grn-dim)"):
+        return (
+            f'<div style="margin-bottom:1rem">'
+            f'<div style="font-family:var(--mono);font-size:.46rem;letter-spacing:.3em;color:var(--ink4);text-transform:uppercase;margin-bottom:.45rem;display:flex;align-items:center;gap:.5rem">'
+            f'<span style="display:inline-block;width:12px;height:1px;background:{accent}"></span>{label}</div>'
+            f'{content}'
+            f'</div>'
+        )
+
+    briefing_body = ""
+    if syntes_html:
+        briefing_body += _briefing_section("Analytisk syntes", syntes_html)
+    if fakta_html:
+        briefing_body += _briefing_section("Det du behöver veta nu", fakta_html, "var(--amb)")
+    if nyckel_cards:
+        briefing_body += _briefing_section("Tre förklaringar — konkurrerande hypoteser", nyckel_cards, "var(--grn)")
 
     st.markdown(
         f'<div class="pa-wrapper" style="margin-top:0;border-top:none;border-left:3px solid var(--grn-dim);">'
-        f'<div class="pa-article">{article_html}</div>'
+        f'<div class="pa-article">{briefing_body}</div>'
         f'{sources_html}'
         f'</div>',
         unsafe_allow_html=True
     )
 
-    # Raw text toggle
-    with st.expander("Visa full råtext från primäranalysen", expanded=False):
-        st.markdown(f'<div class="analysis-text">{_safe_links(raw)}</div>', unsafe_allow_html=True)
+    # ── LAGER 2: Full analysis in expander ───────────────────────────────────
+    with st.expander("Visa full primäranalys", expanded=False):
+        article_html = _md_to_article_html(raw)
+        st.markdown(
+            f'<div class="pa-article" style="background:var(--bg1)">{article_html}</div>',
+            unsafe_allow_html=True
+        )
 
 
 # ── Session state ──────────────────────────────────────────────────────────────
@@ -948,14 +1109,26 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ── Input ──────────────────────────────────────────────────────────────────────
-question = st.text_area("", placeholder="Skriv en fråga — t.ex. Vem sprängde Nord Stream? eller Varför invaderade Ryssland Ukraina 2022?",
-                        height=84, label_visibility="collapsed")
-c1,c2,_ = st.columns([1.5,1,5])
-with c1: run_btn = st.button("Analysera →", disabled=st.session_state.running)
-with c2:
-    if st.session_state.result and st.button("Rensa"):
-        st.session_state.result = None; st.session_state.layers_generated = False
-        st.session_state.deep_generated = False; st.rerun()
+if not st.session_state.result and not st.session_state.running:
+    # Empty state — full input
+    question = st.text_area("", placeholder="Skriv en fråga — t.ex. Vem sprängde Nord Stream? eller Varför invaderade Ryssland Ukraina 2022?",
+                            height=84, label_visibility="collapsed")
+    c1,c2,_ = st.columns([1.5,1,5])
+    with c1: run_btn = st.button("Analysera →", disabled=False)
+    with c2: run_btn = run_btn  # placeholder
+else:
+    # Result or running — compact bar, Rensa prominent
+    col_q, col_r = st.columns([5, 1])
+    with col_q:
+        question = st.text_area("", placeholder="Ställ en ny fråga...",
+                                height=52, label_visibility="collapsed",
+                                key="question_compact")
+    with col_r:
+        st.markdown('<div style="height:.35rem"></div>', unsafe_allow_html=True)
+        if st.session_state.result and st.button("✕ Rensa", use_container_width=True):
+            st.session_state.result = None; st.session_state.layers_generated = False
+            st.session_state.deep_generated = False; st.rerun()
+    run_btn = st.button("Analysera →", disabled=st.session_state.running)
 
 # ── Pipeline ───────────────────────────────────────────────────────────────────
 if run_btn and question.strip():
