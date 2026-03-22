@@ -1,4 +1,12 @@
-venv/
 .env
+venv/
 __pycache__/
+*.pyc
 .DS_Store
+history/
+*backup*.py
+*_working.py
+*.bak*
+*copy*.py
+patch_*.sh
+*.pdf
