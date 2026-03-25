@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN — NORMALIZER v1.3
-Förbättringar:
-- Bevarar URL:er
-- Robustare hypotesparser
-- Mer stabil confidence-scoring
-- Vid identiska råvärden används kontrollerad tie-break istället för identiska procentsatser
+SANNINGSMASKINEN — NORMALIZER v1.4
+Förbättringar från v1.3:
+- Utökad BEVIS-parser: matchar "- BEVIS 1: text", "BEVIS 1 [E4]: text",
+  numrerade listor (1. text), bullet-listor (- text) inuti BEVIS-block
+- normalize_references körs ALDRIG före normalize_claude_answer internt
+- Robustare motarg-parser
 """
 
 import math
@@ -46,6 +46,7 @@ def _clean_line(line: str) -> str:
 
 
 def normalize_references(text: str) -> str:
+    """Ersätter [E1]-[E5] och [FAKTA] med läsliga labels."""
     if not text:
         return text
     text = _preserve_urls(text)
@@ -89,10 +90,7 @@ def compute_hypothesis_scores(hypotheses: list) -> list:
         ev_count_f = _evidence_count_factor(len(bevis))
         src_quality = _source_quality_from_bevis(bevis)
         raw = ev_strength * ev_count_f * src_quality
-
-        # liten stabil tie-break så att helt lika råvärden inte blir identiska i UI
         raw += (len(bevis) * 0.003) + ((3 - min(idx, 3)) * 0.001)
-
         scored.append({**h, "conf_raw": raw})
 
     max_raw = max(s["conf_raw"] for s in scored) or 1.0
@@ -122,6 +120,10 @@ def compute_hypothesis_scores(hypotheses: list) -> list:
 
 
 def normalize_claude_answer(text: str) -> dict:
+    """
+    Parsar claude_answer RAW — INNAN normalize_references körs.
+    normalize_references ska aldrig köras före denna funktion.
+    """
     result = {
         "grundfakta": "",
         "hypotheses": [],
@@ -134,6 +136,7 @@ def normalize_claude_answer(text: str) -> dict:
 
     lines = text.split('\n')
 
+    # Grundfakta
     gf_lines = []
     in_gf = False
     for line in lines:
@@ -149,6 +152,7 @@ def normalize_claude_answer(text: str) -> dict:
             gf_lines.append(_clean_line(line))
     result["grundfakta"] = '\n'.join(gf_lines).strip()
 
+    # Hypoteser — hitta H1/H2/H3/H4-block
     h_pattern = re.compile(r'(?:^|\n)\s*(?:#+\s*)?(H[1-4])\s*[\[\(—\-:\s]', re.IGNORECASE)
     h_matches = list(h_pattern.finditer('\n' + text))
     for idx, match in enumerate(h_matches):
@@ -158,6 +162,7 @@ def normalize_claude_answer(text: str) -> dict:
         block = ('\n' + text)[start:end]
         result["hypotheses"].append(_parse_hypothesis_block(block, h_key))
 
+    # Ranking
     ranking_lines = []
     in_ranking = False
     for line in lines:
@@ -187,6 +192,15 @@ def normalize_claude_answer(text: str) -> dict:
 
 
 def _parse_hypothesis_block(block: str, h_key: str) -> dict:
+    """
+    Parsar ett H1/H2/H3-block.
+    Hanterar dessa BEVIS-format från engine:
+      - BEVIS 1: text
+      - BEVIS 1 [E4 — källa]: text
+      - - BEVIS 1: text  (med bindestreck)
+      - 1. text  (numrerad lista inuti BEVIS-sektion)
+      - - text   (bullet inuti BEVIS-sektion)
+    """
     hyp = {
         "key": h_key,
         "label": "",
@@ -212,11 +226,37 @@ def _parse_hypothesis_block(block: str, h_key: str) -> dict:
     if label_match:
         hyp["label"] = label_match.group(1).strip()
 
-    dash_match = re.search(r'[—\-]\s*(.+)$', first_line)
-    if dash_match:
-        hyp["title"] = dash_match.group(1).strip()
-    elif label_match:
-        hyp["title"] = first_line[label_match.end():].strip().lstrip('—- ')
+    # Extrahera titel: text efter [LABEL]: men FÖRE " — Styrka:..."
+    # Format: H1[STRUKTURELL]: titel här — Styrka:HÖG
+    # Också: H1[STRUKTURELL] 95% — titel här
+    styrka_split = re.split(r'\s*—\s*Styrka\s*:', first_line, flags=re.IGNORECASE)
+    title_part = styrka_split[0]  # allt före " — Styrka:"
+
+    # Extrahera % om det finns direkt efter [LABEL]
+    pct_match = re.search(r'\]\s*(\d{1,3})\s*%', title_part)
+    if pct_match:
+        hyp["styrka_pct"] = int(pct_match.group(1))
+
+    if label_match:
+        after_label = title_part[label_match.end():].strip().lstrip(':—- ')
+        # Strippa eventuellt procentprefix: "95% — titel" → "titel"
+        after_label = re.sub(r'^\d{1,3}\s*%\s*[—\-]?\s*', '', after_label).strip()
+        if after_label and len(after_label) > 5:
+            hyp["title"] = after_label
+    if not hyp["title"]:
+        dash_match = re.search(r'[—\-]\s*(.+)$', title_part)
+        if dash_match:
+            t = dash_match.group(1).strip()
+            # Strippa procentprefix
+            t = re.sub(r'^\d{1,3}\s*%\s*[—\-]?\s*', '', t).strip()
+            hyp["title"] = t
+    # Extrahera styrka
+    if len(styrka_split) > 1:
+        styrka_raw = styrka_split[1].strip().upper()
+        for s in ["HÖG", "MEDEL", "LÅG"]:
+            if s in styrka_raw:
+                hyp["styrka"] = s
+                break
 
     current_section = None
     buf = []
@@ -234,6 +274,28 @@ def _parse_hypothesis_block(block: str, h_key: str) -> dict:
         elif section == "falsif":
             hyp["falsifiering"] = text
 
+    # Utökad BEVIS-matchning
+    # Matchar: "BEVIS 1:", "- BEVIS 1:", "BEVIS 1 [E4]:", "**BEVIS 1**:"
+    BEVIS_RE = re.compile(
+        r'^[-•\*]?\s*\*{0,2}BEVIS\s*\d*\s*(?:\[[^\]]*\])?\s*:?\s*\*{0,2}\s*(.*)$',
+        re.IGNORECASE
+    )
+    # Motarg-matchning — utökad
+    MOTARG_RE = re.compile(
+        r'^[-•\*]?\s*\*{0,2}MOTARG(?:UMENT)?\s*\d*\s*:?\s*\*{0,2}\s*(.*)$',
+        re.IGNORECASE
+    )
+    # Falsifiering
+    FALSIF_RE = re.compile(
+        r'^[-•\*]?\s*\*{0,2}FALSIFIERINGS(?:TEST)?\s*:?\s*\*{0,2}\s*(.*)$',
+        re.IGNORECASE
+    )
+    # TES
+    TES_RE = re.compile(
+        r'^[-•\*]?\s*\*{0,2}TES\s*:?\s*\*{0,2}\s*(.*)$',
+        re.IGNORECASE
+    )
+
     for line in lines[first_line_idx + 1:]:
         s = line.strip()
         up = s.upper()
@@ -243,7 +305,8 @@ def _parse_hypothesis_block(block: str, h_key: str) -> dict:
             buf = []
             continue
 
-        if up.startswith("STYRKA"):
+        # STYRKA
+        if up.startswith("STYRKA") or re.match(r'^[-•\*]?\s*\*{0,2}STYRKA', s, re.I):
             flush_buf(current_section, buf)
             buf = []
             for key in ["HÖG", "MEDEL-HÖG", "MEDEL", "LÅG"]:
@@ -255,28 +318,34 @@ def _parse_hypothesis_block(block: str, h_key: str) -> dict:
             current_section = None
             continue
 
-        if up.startswith("TES:") or up.startswith("**TES") or up == "TES":
+        # TES
+        tm = TES_RE.match(s)
+        if tm:
             flush_buf(current_section, buf)
             buf = []
             current_section = "tes"
-            rest = re.sub(r'^\*?\*?TES:?\*?\*?\s*', '', s, flags=re.IGNORECASE).strip()
+            rest = tm.group(1).strip()
             if rest:
                 buf.append(rest)
+                # Om hela TES är på samma rad, flusha direkt och samla nästa som bevis
+                flush_buf("tes", buf)
+                buf = []
+                current_section = "bevis"
             continue
 
-        if (re.match(r'\*?\*?BEVIS\s*\d*\s*[\[\(:*]', up) or
-            re.match(r'\*?\*?BEVIS:?\*?\*?$', up) or
-            (current_section == "bevis" and re.match(r'\d+[\.\)]\s+', s))):
+        # BEVIS — utökad matchning
+        bm = BEVIS_RE.match(s)
+        if bm:
             flush_buf(current_section, buf)
             buf = []
             current_section = "bevis"
-            rest = re.sub(r'^\*?\*?BEVIS\s*\d*\s*(\[[^\]]*\])?\s*:?\*?\*?\s*', '', s, flags=re.IGNORECASE).strip()
-            rest = re.sub(r'^\d+[\.\)]\s+', '', rest).strip()
+            rest = bm.group(1).strip()
             if rest:
                 buf.append(rest)
             continue
 
-        if current_section == "bevis" and re.match(r'\d+[\.\)]\s+', s):
+        # Numrerad rad i bevis-sektion: "1. text"
+        if current_section == "bevis" and re.match(r'^\d+[\.\)]\s+', s):
             flush_buf(current_section, buf)
             buf = []
             rest = re.sub(r'^\d+[\.\)]\s+', '', s).strip()
@@ -284,17 +353,30 @@ def _parse_hypothesis_block(block: str, h_key: str) -> dict:
                 buf.append(rest)
             continue
 
-        if (re.match(r'\*?\*?MOTARG(?:UMENT)?\s*\d*\s*:?\*?\*?', up) or
-            (up.startswith("MOTARG") and not up.startswith("MOTARGUMENT:"))):
+        # Bullet-rad i bevis-sektion: "- text" eller "• text"
+        if current_section == "bevis" and re.match(r'^[-•\*]\s+', s):
+            # Kolla om det är en ny BEVIS-rad eller bara en bullet
+            if not BEVIS_RE.match(s) and not MOTARG_RE.match(s):
+                flush_buf(current_section, buf)
+                buf = []
+                rest = re.sub(r'^[-•\*]\s+', '', s).strip()
+                if rest:
+                    buf.append(rest)
+                continue
+
+        # MOTARGUMENT — utökad matchning
+        mm = MOTARG_RE.match(s)
+        if mm:
             flush_buf(current_section, buf)
             buf = []
             current_section = "motarg"
-            rest = re.sub(r'^\*?\*?MOTARG(?:UMENT)?\s*\d*\s*:?\*?\*?\s*', '', s, flags=re.IGNORECASE).strip()
+            rest = mm.group(1).strip()
             if rest:
                 buf.append(rest)
             continue
 
-        if current_section == "motarg" and re.match(r'\d+[\.\)]\s+', s):
+        # Numrerad rad i motarg-sektion
+        if current_section == "motarg" and re.match(r'^\d+[\.\)]\s+', s):
             flush_buf(current_section, buf)
             buf = []
             rest = re.sub(r'^\d+[\.\)]\s+', '', s).strip()
@@ -302,15 +384,21 @@ def _parse_hypothesis_block(block: str, h_key: str) -> dict:
                 buf.append(rest)
             continue
 
-        if "FALSIFIERING" in up:
+        # FALSIFIERING — utökad matchning
+        fm = FALSIF_RE.match(s)
+        if fm or "FALSIFIERING" in up:
             flush_buf(current_section, buf)
             buf = []
             current_section = "falsif"
-            rest = re.sub(r'^\*?\*?FALSIFIERINGS(?:TEST)?:?\*?\*?\s*', '', s, flags=re.IGNORECASE).strip()
+            if fm:
+                rest = fm.group(1).strip()
+            else:
+                rest = re.sub(r'^[-•\*]?\s*\*{0,2}FALSIFIERINGS(?:TEST)?\s*:?\s*\*{0,2}\s*', '', s, flags=re.IGNORECASE).strip()
             if rest:
                 buf.append(rest)
             continue
 
+        # Ny hypotes börjar — avsluta blocket
         if re.match(r'H[1-4]\s*[\[\(—\-:]', s):
             break
 
@@ -366,9 +454,34 @@ def normalize_red_team(text: str) -> dict:
     return result
 
 
+def _ensure_three_hypotheses(hypotheses: list) -> list:
+    """Säkerställer alltid H1/H2/H3 — fyller på med fallbacks om engine missade någon."""
+    FALLBACK_LABELS = {
+        "H1": ("STRUKTURELL", "Primär hypotes", 65),
+        "H2": ("INRIKESPOLITIK", "Sekundär hypotes", 45),
+        "H3": ("AKTÖRSPSYKOLOGI", "Tertiär hypotes", 25),
+    }
+    existing_keys = {h["key"] for h in hypotheses}
+    result = list(hypotheses[:3])
+    for key in ["H1", "H2", "H3"]:
+        if key not in existing_keys:
+            label, title, pct = FALLBACK_LABELS[key]
+            result.append({
+                "key": key, "label": label, "title": title,
+                "tes": title, "bevis": [], "motarg": [],
+                "falsifiering": "", "styrka": "LÅG" if pct < 40 else "MEDEL",
+                "conf_pct": pct, "conf": pct / 100, "is_fallback": True,
+            })
+    return sorted(result[:3], key=lambda h: h.get("conf_pct", 0), reverse=True)
+
+
 def normalize_result(result: dict) -> dict:
-    claude_norm = normalize_claude_answer(result.get("claude_answer", ""))
-    claude_norm["hypotheses"] = compute_hypothesis_scores(claude_norm["hypotheses"])
+    # KRITISKT: normalize_claude_answer körs PÅ RÅTEXTEN, INTE efter normalize_references
+    raw_answer = result.get("claude_answer", "")
+    claude_norm = normalize_claude_answer(raw_answer)
+    claude_norm["hypotheses"] = _ensure_three_hypotheses(
+        compute_hypothesis_scores(claude_norm["hypotheses"])
+    )
 
     normalized = {
         "claude": claude_norm,
@@ -379,7 +492,9 @@ def normalize_result(result: dict) -> dict:
     if result.get("final_analysis"):
         revised_raw = result["final_analysis"]
         revised_norm = normalize_claude_answer(revised_raw)
-        revised_norm["hypotheses"] = compute_hypothesis_scores(revised_norm["hypotheses"])
+        revised_norm["hypotheses"] = _ensure_three_hypotheses(
+            compute_hypothesis_scores(revised_norm["hypotheses"])
+        )
         normalized["claude_revised"] = revised_norm
         normalized["revised_text"] = normalize_references(revised_raw)
 

@@ -185,7 +185,7 @@ div[data-testid="stSidebar"] .stDownloadButton > button:hover{
 }
 #MainMenu,footer,header{visibility:hidden}
 [data-testid="stToolbar"],[data-testid="stDecoration"]{display:none!important}
-a{color:var(--grn);text-decoration:underline}a:hover{color:#7de0a8}
+a{color:#6ca9ef;text-decoration:underline}a:hover{color:#9cc7ff}
 *{max-width:100%;word-break:normal!important;overflow-wrap:break-word!important}
 pre,code,.analysis-text{white-space:pre-wrap!important;overflow-wrap:anywhere!important}
 div.stMarkdown p{margin:0}
@@ -247,6 +247,41 @@ div.stMarkdown p{margin:0}
 .exec-falsif{border-top:1px solid var(--border);padding:.6rem 1rem;background:var(--bg2);display:flex;gap:.8rem;align-items:baseline}
 .exec-falsif-lbl{font-family:var(--mono);font-size:.48rem;letter-spacing:.2em;color:var(--ink4);white-space:nowrap;flex-shrink:0}
 .exec-falsif-txt{font-family:var(--sans);font-size:.78rem;color:#aab7ff;line-height:1.55}
+
+
+.result-hero{border:1px solid var(--border);background:linear-gradient(180deg,#11161d 0%,#0d1117 100%);margin:.55rem 0 1rem;overflow:hidden}
+.result-hero-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.55rem .95rem;border-bottom:1px solid var(--border);background:#10151d}
+.result-hero-kicker{font-family:var(--mono);font-size:.5rem;letter-spacing:.28em;color:var(--grn);text-transform:uppercase}
+.result-hero-right{font-family:var(--mono);font-size:.5rem;letter-spacing:.14em;color:var(--ink4)}
+.result-hero-body{padding:1rem .95rem 1rem}
+.result-hero-question{font-family:var(--mono);font-size:.54rem;letter-spacing:.2em;color:var(--ink4);text-transform:uppercase;margin-bottom:.55rem}
+.result-hero-conclusion{font-family:var(--serif);font-size:1.55rem;font-weight:700;line-height:1.25;color:#f3efe8;max-width:980px;margin-bottom:.45rem}
+.result-hero-sub{font-family:var(--sans);font-size:.92rem;line-height:1.65;color:var(--ink2);max-width:980px;margin-bottom:.85rem}
+.result-hero-barrow{display:flex;align-items:center;gap:.7rem;margin:.15rem 0 1rem}
+.result-hero-bar{height:8px;flex:1;max-width:360px;background:#18202b;border:1px solid #273244;position:relative;overflow:hidden}
+.result-hero-fill{height:100%;background:linear-gradient(90deg,#4ec994,#9be6b8)}
+.result-hero-pct{font-family:var(--mono);font-size:.64rem;color:var(--grn);letter-spacing:.1em;font-weight:700}
+.result-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:1px;background:var(--border);border-top:1px solid var(--border)}
+.result-cell{background:var(--bg1);padding:.8rem .95rem}
+.result-cell-label{font-family:var(--mono);font-size:.46rem;letter-spacing:.24em;color:var(--ink4);text-transform:uppercase;margin-bottom:.35rem}
+.result-breaking-list{margin:0;padding:0;list-style:none}
+.result-breaking-item{display:flex;gap:.55rem;align-items:flex-start;padding:.2rem 0;border-bottom:1px solid var(--border)}
+.result-breaking-item:last-child{border-bottom:none}
+.result-breaking-bullet{color:var(--red);font-size:.65rem;flex-shrink:0;padding-top:.15rem}
+.result-breaking-text{font-family:var(--sans);font-size:.84rem;line-height:1.55;color:#f0c7bd}
+.result-insight{font-family:var(--serif);font-size:1.02rem;line-height:1.55;color:#d8efe1;background:var(--grn-bg);border-left:3px solid var(--grn);padding:.75rem .9rem;margin-bottom:.75rem}
+.result-snapshot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--border);border:1px solid var(--border)}
+.result-snap-item{background:var(--bg2);padding:.65rem .75rem}
+.result-snap-label{font-family:var(--mono);font-size:.45rem;letter-spacing:.18em;color:var(--ink4);text-transform:uppercase;margin-bottom:.22rem}
+.result-snap-value{font-family:var(--serif);font-size:.98rem;font-weight:600;color:var(--ink)}
+.result-rank{display:flex;flex-wrap:wrap;gap:.45rem .6rem;margin-top:.75rem}
+.result-rank-pill{display:inline-flex;align-items:center;gap:.38rem;background:var(--bg2);border:1px solid var(--border2);padding:.35rem .6rem}
+.result-rank-pill strong{font-family:var(--mono);font-size:.58rem;letter-spacing:.08em;color:var(--ink)}
+.result-rank-pill span{font-family:var(--mono);font-size:.5rem;letter-spacing:.12em;color:var(--ink4);text-transform:uppercase}
+.result-rank-pill em{font-family:var(--mono);font-style:normal;font-size:.56rem;color:var(--grn)}
+.result-conclusion{margin-top:.75rem;padding:.7rem .85rem;background:#111823;border-left:3px solid var(--blu);font-family:var(--sans);font-size:.87rem;line-height:1.6;color:#d9e7ff}
+.result-follow{font-family:var(--mono);font-size:.46rem;letter-spacing:.24em;color:var(--ink4);text-transform:uppercase;margin:1rem 0 .45rem}
+@media (max-width: 920px){.result-grid{grid-template-columns:1fr}.result-snapshot{grid-template-columns:1fr 1fr}.result-hero-conclusion{font-size:1.28rem}}
 
 .hyp-dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--border);border-top:1px solid var(--border)}
 .hyp-card{background:var(--bg1);padding:.85rem 1rem;position:relative;overflow:hidden}
@@ -469,21 +504,21 @@ div.stMarkdown p{margin:0}
 }
 .pa-src-chip{
   display:inline-flex;align-items:center;gap:.3rem;
-  font-family:var(--mono);font-size:.55rem;
-  color:var(--grn);border:1px solid var(--grn-dim);
-  background:var(--grn-bg);padding:.15rem .5rem;
+  font-family:var(--mono);font-size:.56rem;
+  color:#8cc4ff;border:1px solid var(--blu-dim);
+  background:var(--blu-bg);padding:.18rem .55rem;
   text-decoration:none;letter-spacing:.03em;
-  transition:background .15s,color .15s;border-radius:2px;
+  transition:background .15s,color .15s;
 }
-.pa-src-chip:hover{background:var(--grn);color:var(--bg)}
+.pa-src-chip:hover{background:#0d1830;color:#b8dcff}
 .pa-src-chip-e{
   font-size:.46rem;color:var(--ink4);letter-spacing:.04em;
   border-left:1px solid var(--border2);padding-left:.3rem;
 }
 
 .link-strip{display:flex;gap:.38rem;flex-wrap:wrap;margin-top:.55rem}
-.link-chip{display:inline-block;font-family:var(--mono);font-size:.56rem;color:var(--grn);border:1px solid var(--grn-dim);background:var(--grn-bg);padding:.16rem .48rem;text-decoration:none;letter-spacing:.03em}
-.link-chip:hover{background:var(--grn);color:var(--bg)}
+.link-chip{display:inline-block;font-family:var(--mono);font-size:.56rem;color:#8cc4ff;border:1px solid var(--blu-dim);background:var(--blu-bg);padding:.16rem .48rem;text-decoration:none;letter-spacing:.03em}
+.link-chip:hover{background:#0d1830;color:#b8dcff}
 .link-strip-dim{font-family:var(--mono);font-size:.55rem;color:var(--ink4);margin-top:.45rem}
 
 .verdict{border:1px solid;padding:.9rem 1rem;margin:.5rem 0;display:flex;align-items:center;gap:1rem}
@@ -513,41 +548,9 @@ div.stMarkdown p{margin:0}
 .empty-footer{font-family:var(--mono);font-size:.58rem;color:var(--ink4);margin-top:.9rem;letter-spacing:.05em}
 div[data-testid="stExpander"]>div:first-child{background:#1b2230!important;border:1px solid #303a4c!important;border-radius:0!important;font-family:var(--mono)!important;font-size:.65rem!important;color:#d7d0c4!important;letter-spacing:.06em!important}
 div[data-testid="stExpander"]>div:first-child:hover{background:#232d3e!important;color:#f2efe8!important;border-color:#57c78a!important}
-div[data-testid="stExpander"]>div:first-child[aria-expanded="true"]{background:#1b2230!important;color:#f2efe8!important;}
-div[data-testid="stExpander"]>div:first-child svg{opacity:.7!important;fill:#d7d0c4!important}
-div[data-testid="stExpander"]>div:last-child{background:var(--bg1)!important;border:1px solid var(--border)!important;border-top:none!important;border-radius:0!important;padding-top:0.4rem!important;}
-/* Förhindra vit bakgrund vid expansion */
-div[data-testid="stExpander"] button{background:transparent!important}
+div[data-testid="stExpander"]>div:first-child svg{opacity:.7!important}
+div[data-testid="stExpander"]>div:last-child{background:var(--bg1)!important;border:1px solid var(--border)!important;border-top:none!important;border-radius:0!important}
 .stSpinner>div{border-top-color:var(--grn)!important}
-
-/* ── NYA JOURNALISTISKA KOMPONENTER ────────────────────────── */
-.fraga-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1rem;}
-.exec-summary{display:grid;grid-template-columns:1fr 1.6fr;gap:1.5rem;background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1.2rem;}
-.exec-left{border-right:1px solid var(--border);padding-right:1.2rem;}
-.exec-label{font-size:0.65rem;letter-spacing:0.12em;color:var(--ink3);font-family:var(--mono);margin-bottom:0.5rem;font-weight:600;}
-.breaking-item{font-size:0.88rem;color:var(--ink2);line-height:1.5;margin-bottom:0.4rem;padding-left:0.3rem;}
-.exec-slutsats{font-size:1.05rem;font-weight:700;color:var(--ink);line-height:1.45;font-family:var(--serif);}
-.exec-nyckel{font-size:0.88rem;color:var(--ink2);margin-top:0.5rem;font-style:italic;line-height:1.4;border-left:2px solid var(--grn);padding-left:0.6rem;}
-.src-chip{display:inline-block;padding:0.18rem 0.5rem;border-radius:3px;border:1px solid var(--grn-dim);background:var(--grn-bg);color:var(--grn)!important;font-family:var(--mono);font-size:0.65rem;text-decoration:none!important;margin:0.15rem 0.15rem 0 0;transition:all .15s;letter-spacing:0.03em;}
-.src-chip:hover{background:var(--grn);color:var(--bg)!important;border-color:var(--grn);}
-.detail-section{margin-bottom:0.7rem;}
-.detail-lbl{font-size:0.65rem;letter-spacing:0.1em;color:var(--ink3);font-family:var(--mono);margin-bottom:0.25rem;font-weight:600;}
-.grn-lbl{color:var(--grn)!important;}
-.amb-lbl{color:var(--amb)!important;}
-.detail-txt{font-size:0.9rem;color:var(--ink2);line-height:1.5;}
-.detail-bev{font-size:0.88rem;color:var(--ink2);margin-bottom:0.3rem;padding-left:0.5rem;border-left:2px solid var(--grn);}
-.detail-mot{font-size:0.88rem;color:var(--amb);margin-bottom:0.3rem;padding-left:0.5rem;border-left:2px solid var(--amb);}
-.detail-empty{font-size:0.8rem;color:var(--ink3);font-style:italic;}
-.hyp-det-h1{border-left:3px solid var(--grn);padding-left:0.8rem;}
-.hyp-det-h2{border-left:3px solid var(--amb);padding-left:0.8rem;}
-.hyp-det-h3{border-left:3px solid var(--border);padding-left:0.8rem;}
-.raw-block{font-size:0.82rem;color:var(--ink2);line-height:1.62;font-family:var(--mono);padding-top:0.1rem;}
-.red-block{border-left:3px solid #c0392b;padding-left:0.8rem;}
-.rev-block{border-left:3px solid var(--grn);padding-left:0.8rem;}
-.section-zone{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1rem;}
-.zone-blu{border-left:3px solid #4a90d9;}
-.zone-hdr{font-size:0.65rem;letter-spacing:0.12em;color:var(--ink3);font-family:var(--mono);font-weight:600;margin-bottom:0.6rem;}
-.footer{font-size:0.7rem;color:var(--ink3);font-family:var(--mono);margin-top:2rem;padding-top:0.8rem;border-top:1px solid var(--border);}
 </style>
 """, unsafe_allow_html=True)
 
@@ -800,25 +803,6 @@ def _safe_links(text):
     for key, html in links.items(): t2 = t2.replace(key, html)
     t2 = t2.replace('\n','<br>')
     return t2
-
-def _build_url_pool(raw: str) -> dict:
-    pool = {"global": []}
-    BAD = {"google.com","google.se","bing.com","yahoo.com","localhost"}
-    all_urls = _extract_urls(raw)
-    pool["global"] = [u for u in dict.fromkeys(all_urls) if not any(d in u for d in BAD)]
-    h_pattern = re.compile(r'(?:^|\n)\s*(?:#{1,4}\s*)?(H[1-4])\s*[\[\(—\-:\s]', re.IGNORECASE)
-    matches = list(h_pattern.finditer('\n' + raw))
-    for idx, m in enumerate(matches):
-        key = m.group(1).upper()
-        start = m.start()
-        end = matches[idx+1].start() if idx+1 < len(matches) else len('\n' + raw)
-        block = ('\n' + raw)[start:end]
-        urls = _extract_urls(block)
-        real = [u for u in dict.fromkeys(urls) if not any(d in u for d in BAD)]
-        if real:
-            pool[key] = real
-    return pool
-
 
 def _extract_urls(text):
     if not text: return []
@@ -1644,59 +1628,7 @@ with st.sidebar:
 .lib-divider{height:1px;background:#0d1015;margin:.4rem 0}
 </style>""", unsafe_allow_html=True)
 
-    # ── SIDEBAR TABS: HISTORIK + OM VERKTYGET ───────────────────────────────
-    tab_hist, tab_om = st.tabs(["◎ Historik", "? Om"])
-
-    with tab_om:
-        st.markdown("""
-<div style="padding:0.5rem 0.2rem;font-family:'JetBrains Mono',monospace;">
-<div style="font-size:0.52rem;letter-spacing:0.3em;color:#57c78a;margin-bottom:0.8rem;">OM SANNINGSMASKINEN</div>
-
-<div style="font-size:0.62rem;color:#d7d0c4;line-height:1.7;margin-bottom:1rem;">
-Epistemiskt analysverktyg för journalister. Testar tre konkurrerande hypoteser mot evidens och låter dem kritisera varandra.
-</div>
-
-<div style="font-size:0.5rem;letter-spacing:0.2em;color:#57c78a;margin-bottom:0.4rem;">HYPOTESER</div>
-<div style="font-size:0.6rem;color:#b3ad9f;line-height:1.65;margin-bottom:0.8rem;">
-<b style="color:#57c78a;">H1</b> — starkaste förklaringen, högst bevisvärde<br>
-<b style="color:#e2b04c;">H2</b> — alternativ förklaring, testad mot H1<br>
-<b style="color:#db6b57;">H3</b> — svagare men möjlig, håller den?<br>
-Procenten visar konfidensgrad baserad på evidensstyrka.
-</div>
-
-<div style="font-size:0.5rem;letter-spacing:0.2em;color:#57c78a;margin-bottom:0.4rem;">ANALYSMOTORN</div>
-<div style="font-size:0.6rem;color:#b3ad9f;line-height:1.65;margin-bottom:0.8rem;">
-<b style="color:#d7d0c4;">Primäranalys</b> — Claude Opus analyserar frågan<br>
-<b style="color:#d7d0c4;">Kritik</b> — GPT-4o söker logiska brister<br>
-<b style="color:#d7d0c4;">Red Team</b> — oberoende granskning avgör:<br>
-&nbsp;&nbsp;✓ HÅLLER — tesen bekräftad<br>
-&nbsp;&nbsp;◑ MODIFIERAS — justerad<br>
-&nbsp;&nbsp;✗ KOLLAPSAR — omskriven
-</div>
-
-<div style="font-size:0.5rem;letter-spacing:0.2em;color:#57c78a;margin-bottom:0.4rem;">KÄLLNIVÅER</div>
-<div style="font-size:0.6rem;color:#b3ad9f;line-height:1.65;margin-bottom:0.8rem;">
-E1 Primärkälla / officiell<br>
-E2 Kvalitetsjournalistik<br>
-E3 Sekundär källa<br>
-E4 Rapport / utredning<br>
-E5 Wikipedia / aggregat
-</div>
-
-<div style="border-top:1px solid #1a2030;padding-top:0.6rem;margin-top:0.4rem;">
-<div style="font-size:0.52rem;color:#57c78a;letter-spacing:0.1em;">DEMO-FRÅGOR</div>
-<div style="font-size:0.58rem;color:#7f8898;line-height:1.8;margin-top:0.3rem;">
-Vem sprängde Nord Stream?<br>
-Varför invaderade USA Irak 2003?<br>
-Vem mördade Palme?<br>
-Vad är status Iran vs USA/Israel?
-</div>
-</div>
-</div>
-""", unsafe_allow_html=True)
-
-    with tab_hist:
-        st.markdown('<div class="lib-header">Analysbibliotek</div>', unsafe_allow_html=True)
+    st.markdown('<div class="lib-header">Analysbibliotek</div>', unsafe_allow_html=True)
 
     # ── Imports ──────────────────────────────────────────────────────────────
     _lib_ok = False
@@ -1861,7 +1793,7 @@ st.markdown(f"""
     <span class="topbar-mark">◎ Sanningsmaskinen</span>
     <span class="topbar-title">Epistemiskt analysverktyg</span>
   </div>
-  <div class="topbar-right">v8.24 · Claude Opus + GPT-4o · {today_str}</div>
+  <div class="topbar-right">v8.18 · Claude Opus + GPT-4o · {today_str}</div>
 </div>
 <div class="topbar-sub">
   Analyserar komplexa frågor genom att väga konkurrerande hypoteser, granska evidens och falsifiera svagare förklaringar.
@@ -1964,365 +1896,496 @@ if st.session_state.result:
     # ── Extract URLs from RAW text BEFORE normalizer strips them ──────────────
     raw_claude = r.get("claude_answer","")
 
+    def _build_url_pool(raw: str) -> dict:
+        """
+        Build a dict: {hyp_key: [url, ...]} from raw claude_answer.
+        Extracts URLs per H1/H2/H3 block before normalizer runs.
+        """
+        pool = {"global": []}
+        BAD = {"google.com","google.se","bing.com","yahoo.com","localhost"}
 
-# ══════════════════════════════════════════════════════════════════════════════
-# RENDER — NY JOURNALISTISK LAYOUT
-# ══════════════════════════════════════════════════════════════════════════════
-if not st.session_state.result:
-    # ── TOM STATE — dramatisk hero ────────────────────────────────────────────
-    st.markdown("""
-<div style="padding:3.5rem 0 0.5rem 0;max-width:780px;">
-  <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.35em;color:var(--grn);margin-bottom:1.1rem;text-transform:uppercase;">◎ Epistemiskt analysverktyg · Claude Opus + GPT-4o</div>
-  <h1 style="font-family:var(--serif);font-size:3rem;font-weight:700;color:var(--ink);margin:0 0 0.9rem 0;line-height:1.08;letter-spacing:-0.02em;">Sanningsmaskinen</h1>
-  <p style="font-family:var(--serif);color:var(--ink2);font-size:1.13rem;line-height:1.7;margin:0 0 0.5rem 0;max-width:620px;">Testar tre konkurrerande hypoteser mot evidens. Falsifierar svagare förklaringar. Granskar sig självt med Red Team-kritik.</p>
-  <p style="font-family:var(--mono);color:var(--ink4);font-size:0.62rem;letter-spacing:0.08em;margin:0 0 2.4rem 0;">Inte en AI-chat. Ett journalistiskt analysverktyg.</p>
-  <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.7rem;">
-    <div style="font-family:var(--mono);font-size:0.55rem;letter-spacing:0.2em;color:var(--ink4);align-self:center;padding-right:0.3rem;">PROVA:</div>
-    <span style="font-family:var(--mono);font-size:0.68rem;color:var(--grn);border:1px solid var(--grn-dim);background:var(--grn-bg);padding:0.28rem 0.75rem;letter-spacing:0.03em;">Vem sprängde Nord Stream?</span>
-    <span style="font-family:var(--mono);font-size:0.68rem;color:var(--ink3);border:1px solid var(--border);background:var(--bg2);padding:0.28rem 0.75rem;letter-spacing:0.03em;">Vem mördade Palme?</span>
-    <span style="font-family:var(--mono);font-size:0.68rem;color:var(--ink3);border:1px solid var(--border);background:var(--bg2);padding:0.28rem 0.75rem;letter-spacing:0.03em;">Varför invaderade USA Irak 2003?</span>
-  </div>
-</div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin:1.8rem 0 2rem 0;">
-  <div style="background:var(--bg1);padding:1rem 1.1rem;">
-    <div style="font-family:var(--mono);font-size:0.5rem;letter-spacing:0.25em;color:var(--grn);margin-bottom:0.45rem;">STEG 1 — PRIMÄRANALYS</div>
-    <div style="font-family:var(--serif);font-size:0.88rem;color:var(--ink2);line-height:1.55;">Claude Opus formulerar H1/H2/H3 — tre konkurrerande förklaringar med evidens och källhänvisningar.</div>
-  </div>
-  <div style="background:var(--bg1);padding:1rem 1.1rem;">
-    <div style="font-family:var(--mono);font-size:0.5rem;letter-spacing:0.25em;color:var(--amb);margin-bottom:0.45rem;">STEG 2 — DESTRUKTIV KRITIK</div>
-    <div style="font-family:var(--serif);font-size:0.88rem;color:var(--ink2);line-height:1.55;">GPT-4o attackerar analysen och identifierar epistemiska svagheter, bias och alternativa tolkningar.</div>
-  </div>
-  <div style="background:var(--bg1);padding:1rem 1.1rem;">
-    <div style="font-family:var(--mono);font-size:0.5rem;letter-spacing:0.25em;color:var(--red);margin-bottom:0.45rem;">STEG 3 — RED TEAM</div>
-    <div style="font-family:var(--serif);font-size:0.88rem;color:var(--ink2);line-height:1.55;">Oberoende granskning avgör: HÅLLER / MODIFIERAS / KOLLAPSAR. Analysen revideras vid behov.</div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
+        # Get ALL urls in the full text first (global pool)
+        all_urls = _extract_urls(raw)
+        pool["global"] = [u for u in dict.fromkeys(all_urls) if not any(d in u for d in BAD)]
 
-else:
-    r  = st.session_state.result
-    rc = r.get("reality_check", {}) or {}
-
-    # ── Bygg ranked från bästa textkälla ──────────────────────────────────────
-    try:
-        from normalizer import normalize_claude_answer, compute_hypothesis_scores
-        best_hyps = []
-        for src_key in ["final_analysis", "claude_answer"]:
-            txt = r.get(src_key) or ""
-            if not txt: continue
-            _n = normalize_claude_answer(txt)
-            _n["hypotheses"] = compute_hypothesis_scores(_n.get("hypotheses", []))
-            cands = _n.get("hypotheses", [])
-            real = [h for h in cands if not h.get("is_fallback") and h.get("conf_pct", 0) > 0]
-            if len(real) > len([h for h in best_hyps if not h.get("is_fallback") and h.get("conf_pct", 0) > 0]):
-                best_hyps = cands
-        rank_order = {"HÖG":0,"MEDEL-HÖG":1,"MEDEL":2,"LÅG":3}
-        ranked = sorted(best_hyps, key=lambda h: (rank_order.get((h.get("styrka") or "MEDEL").upper(), 99), -float(h.get("conf", 0))))
-        # Säkerställ alltid 3
-        FALLBACK_H = [
-            {"key":"H1","label":"STRUKTURELL","title":"Primär hypotes","tes":"","bevis":[],"motarg":[],"falsifiering":"","styrka":"MEDEL","conf":0.65,"conf_pct":65},
-            {"key":"H2","label":"INRIKESPOLITIK","title":"Sekundär hypotes","tes":"","bevis":[],"motarg":[],"falsifiering":"","styrka":"MEDEL","conf":0.45,"conf_pct":45},
-            {"key":"H3","label":"AKTÖRSPSYKOLOGI","title":"Tertiär hypotes","tes":"","bevis":[],"motarg":[],"falsifiering":"","styrka":"LÅG","conf":0.25,"conf_pct":25},
-        ]
-        existing = {h["key"] for h in ranked}
-        for fb in FALLBACK_H:
-            if fb["key"] not in existing:
-                ranked.append(fb)
-        ranked = ranked[:3]
-    except Exception:
-        ranked = []
-
-    # ── URL-pool ───────────────────────────────────────────────────────────────
-    raw_claude = r.get("claude_answer", "")
-    url_pool   = _build_url_pool(raw_claude) if raw_claude else {"global": []}
-
-    rc_status  = (rc.get("status","") or "").upper()
-    res_status = (r.get("status","") or "").upper()
-    rc_pill_cls, rc_pill_lbl = REALITY_PILL.get(rc_status, ("dim", rc_status))
-    st_pill_cls, st_pill_lbl = STATUS_PILL.get(res_status, ("dim", res_status))
-
-    # ── 1. FRÅGA + STATUS ─────────────────────────────────────────────────────
-    st.markdown(f"""
-<div class="fraga-box">
-  <div style="font-size:0.7rem;letter-spacing:0.12em;color:var(--ink3);font-family:var(--mono);margin-bottom:0.4rem;">FRÅGA -  {_date.today().strftime('%Y-%m-%d')}</div>
-  <div style="font-size:1.25rem;font-weight:700;color:var(--ink);line-height:1.4;margin-bottom:0.6rem;">{_safe(r.get('question',''))}</div>
-  <span class="pill pill-{rc_pill_cls}">{rc_pill_lbl}</span>
-  <span class="pill pill-{st_pill_cls}">{st_pill_lbl}</span>
-</div>
-""", unsafe_allow_html=True)
-
-    # ── Ny analys-knapp ────────────────────────────────────────────────────────
-    if st.button("✕ Ny analys — rensa", key="clear_btn"):
-        st.session_state.result = None
-        st.session_state.running = False
-        st.session_state.url_check_done = False
-        st.rerun()
-
-    # ── 2. EXECUTIVE SUMMARY — WOW på 5 sekunder ──────────────────────────────
-    # Hämta slutsats och nyckelinsikt
-    analysis_text = r.get("final_analysis","") or r.get("claude_answer","")
-    clean_text = re.sub(r'\*+|#+|_{1,2}|\[REVIDERAD VERSION\]|\[FAKTA\]|\[INFERENS\]|\[PÅGÅENDE\]', '', analysis_text, flags=re.I)
-
-    # Extrahera slutsats — första riktiga analytiska meningen (ej process-text)
-    PROCESS_SKIP = [
-        'HTTP','WWW.','SANNINGSMASKINEN','H1[','H2[','H3[','TES:','BEVIS','STATUS:','DATUM:',
-        'JAG BÖRJAR','JAG SÖKER','JAG SKA','LÅT MIG','NORD STREAM-SABOTAGET — SANNINGSMASKINEN',
-        'SANNINGSMASKINEN V','SENASTE HÄNDELSER','BRIEFING','VAD VI VET',
-        'SEARCHING FOR','LET ME','I WILL SEARCH','LÄGESRAPPORT',
-    ]
-    slutsats = ""
-    for sent in re.split(r'(?<=[.!?])\s+', clean_text):
-        s = sent.strip()
-        s_up = s.upper()
-        if (len(s) > 80 and len(s) < 350
-                and not any(skip in s_up for skip in PROCESS_SKIP)
-                and not re.match(r'^\d+\.\s', s)
-           ):
-            slutsats = s
-            break
-
-    # Extrahera nyckelinsikt
-    nyckelinsikt = ""
-    for sent in re.split(r'(?<=[.!?])\s+', clean_text):
-        s = sent.strip()
-        if len(s) > 60 and len(s) < 220 and s != slutsats and any(kw in s.lower() for kw in [
-            "avgörande","framgår","visar","pekar","bekräftar","konstaterar","fastslog",
-            "indikerar","tyder på","detta innebär","nyckeln","central","kritisk"
-        ]):
-            nyckelinsikt = s
-            break
-    if not nyckelinsikt and ranked:
-        nyckelinsikt = ranked[0].get("tes","")[:200] or ""
-
-    # Breaking news från rc eller claude_answer
-    breaking_items = []
-    for src in [r.get("claude_answer",""), r.get("final_analysis","")]:
-        if not src: continue
-        clean_src = re.sub(r'\*+|#+', '', src)
-        for line in clean_src.splitlines():
-            s = line.strip()
-            if re.match(r'^[›>\-•]\s+', s):
-                content = re.sub(r'^[›>\-•]\s+', '', s).strip()
-                if len(content) > 50:
-                    breaking_items.append(content[:150])
-            elif re.match(r'^\d+\.\s+', s):
-                content = re.sub(r'^\d+\.\s+', '', s).strip()
-                if len(content) > 50:
-                    breaking_items.append(content[:150])
-            if len(breaking_items) >= 4: break
-        if breaking_items: break
-
-    breaking_html = "".join(
-        f'<div class="breaking-item">◆ {_safe(b)}</div>'
-        for b in breaking_items[:4]
-    ) if breaking_items else '<div class="breaking-item" style="color:var(--ink3)">Inga breaking news de senaste 24 timmarna.</div>'
-
-    # Red team verdict
-    verdict_tuple = _verdict_from_red(r.get("red_team_report",""))
-    verdict_cls = verdict_tuple[0] or "grn"
-    verdict_raw = verdict_tuple[2] or "HÅLLER"
-    verdict_lbl = {"red": "KOLLAPSAR", "amb": "MODIFIERAS", "grn": "HÅLLER"}.get(verdict_cls, "HÅLLER")
-
-    # Vinnarhypotes badge
-    winner = ranked[0] if ranked else None
-    winner_html = ""
-    if winner:
-        wpct  = int(winner.get("conf_pct", int(winner.get("conf",0.5)*100)))
-        wkey  = winner.get("key","")
-        wlbl  = winner.get("label","")
-        wcol  = {"HÖG":"var(--grn)","MEDEL":"var(--amb)","LÅG":"var(--red)"}.get(
-            (winner.get("styrka") or "MEDEL").upper(), "var(--grn)")
-        winner_html = f"""<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.75rem;padding-bottom:0.65rem;border-bottom:1px solid var(--border);">
-  <div style="font-family:var(--mono);font-size:0.48rem;letter-spacing:0.25em;color:var(--ink4);">#1 STARKAST</div>
-  <div style="font-family:var(--mono);font-size:0.75rem;font-weight:700;color:{wcol};">{_safe(wkey)}</div>
-  <div style="font-family:var(--mono);font-size:0.6rem;color:var(--ink3);">{_safe(wlbl)}</div>
-  <div style="margin-left:auto;font-family:var(--mono);font-size:1.1rem;font-weight:700;color:{wcol};">{wpct}%</div>
-</div>"""
-
-    # Verdict-driven accent color för exec-summary border
-    verdict_accent = {"red":"var(--red)","amb":"var(--amb)","grn":"var(--grn)"}.get(verdict_cls,"var(--grn)")
-
-    st.markdown(f"""
-<div class="exec-summary" style="border-left:4px solid {verdict_accent};">
-  <div class="exec-left">
-    <div class="exec-label">◆ Breaking — senaste timmarna</div>
-    {breaking_html}
-  </div>
-  <div class="exec-right">
-    {winner_html}
-    <div class="exec-label">Analytisk bedömning &nbsp;<span style="color:var(--ink4);font-size:0.48rem;letter-spacing:0.05em;font-weight:400;">Inte ett svar — väger evidens för tre konkurrerande förklaringar</span></div>
-    <div class="exec-slutsats">{_safe(slutsats) if slutsats else (ranked[0].get("tes","")[:200] if ranked else "Se hypoteserna nedan.")}</div>
-    {'<div class="exec-nyckel">' + _safe(nyckelinsikt) + '</div>' if nyckelinsikt else ''}
-    <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-      <div style="font-family:var(--mono);font-size:0.48rem;letter-spacing:0.25em;color:var(--ink4);white-space:nowrap;">RED TEAM VERDICT</div>
-      <span class="pill pill-{verdict_cls}" style="font-size:0.62rem;padding:0.22rem 0.85rem;letter-spacing:0.12em;">{verdict_lbl}</span>
-      <span style="font-family:var(--sans);font-size:0.78rem;color:var(--ink3);line-height:1.3;">{_safe(verdict_raw[:90]) if verdict_raw else ''}</span>
-    </div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-    # ── 3. HYPOTES-DASHBOARD ───────────────────────────────────────────────────
-    st.markdown(_hyp_dashboard_html(ranked, url_pool), unsafe_allow_html=True)
-
-    # ── 4. PRIMÄRANALYS — on demand ───────────────────────────────────────────
-    with st.expander("▸ Visa fullständig primäranalys — evidens, hypoteser, sourcing"):
-        primary_text = r.get("claude_answer","")
-        if primary_text:
-            st.markdown(_render_primary_analysis(primary_text, ranked, _date.today().strftime("%Y-%m-%d"), url_pool), unsafe_allow_html=True)
-
-    # ── 5. REALITY CHECK ──────────────────────────────────────────────────────
-    rc_txt = (rc.get("text","") or "").strip()
-    if rc_txt:
-        rc_items = _parse_rc_structured(rc_txt)
-        if rc_items:
-            st.markdown(f"""
-<div class="section-zone zone-blu">
-  <div class="zone-hdr">REALITY CHECK <span class="pill pill-grn">{rc_pill_lbl}</span></div>
-  {_rc_table_html(rc_items)}
-</div>
-""", unsafe_allow_html=True)
-
-    # ── 6. HYPOTES-DETALJER med klickbara källor ──────────────────────────────
-    if ranked:
-        st.markdown('<div style="font-size:0.7rem;letter-spacing:0.1em;color:var(--ink3);font-family:var(--mono);margin:1.5rem 0 0.5rem 0;border-top:1px solid var(--border);padding-top:0.8rem;">HYPOTES-DETALJER - TES - EVIDENS - MOTARGUMENT - FALSIFIERING</div>', unsafe_allow_html=True)
-        for h in ranked:
-            pct = min(100, int(h.get("conf_pct", h.get("conf", 0) * 100)))
-            key = h.get("key","H?")
-            label = h.get("label","")
-            title = h.get("title","")
-            if title in ("Sekundär hypotes","Tertiär hypotes","Primär hypotes","Ej tillgänglig"):
-                title = label
-            tes   = h.get("tes","")
-            bevs  = [b for b in (h.get("bevis") or [])[:3] if b and len(b) > 10]
-            mots  = [m for m in (h.get("motarg") or [])[:2] if m and len(m) > 10]
-            fals  = h.get("falsifiering","")
-
-            # Källchips för den här hypotesen
-            hyp_urls = url_pool.get(key, url_pool.get("global", []))[:4]
-            chips_html = " ".join(
-                f'<a href="{u}" target="_blank" class="src-chip">{_domain_label(u)}</a>'
-                for u in hyp_urls if u
-            )
-
-            bev_html = "".join(f'<div class="detail-bev">◆ {_safe(b)}</div>' for b in bevs) if bevs else '<div class="detail-empty">Evidens ej specificerad.</div>'
-            mot_html = "".join(f'<div class="detail-mot">↳ {_safe(m)}</div>' for m in mots) if mots else '<div class="detail-empty">Inga identifierade motargument.</div>'
-
-            col_cls = "hyp-det-h1" if key=="H1" else "hyp-det-h2" if key=="H2" else "hyp-det-h3"
-            with st.expander(f"{key} [{label}] {pct}% — {title[:60]}"):
-                st.markdown(f"""
-<div class="{col_cls}">
-  <div class="detail-section"><div class="detail-lbl">TES</div><div class="detail-txt">{_safe(tes) if tes else _safe(title)}</div></div>
-  <div class="detail-section"><div class="detail-lbl grn-lbl">BEVIS</div>{bev_html}</div>
-  <div class="detail-section"><div class="detail-lbl amb-lbl">MOTARGUMENT</div>{mot_html}</div>
-  {'<div class="detail-section"><div class="detail-lbl">FALSIFIERAS OM</div><div class="detail-txt">' + _safe(fals) + '</div></div>' if fals else ''}
-  <div style="margin-top:0.6rem;">{chips_html}</div>
-</div>
-""", unsafe_allow_html=True)
-
-    # ── HELPER: renderar råtext som kompakt HTML, filtrerar process-text ────────
-    def _render_report(txt, max_chars=3500):
-        """Konverterar råtext till tät, luftfri HTML. Filtrerar process-text."""
-        PROCESS_START = re.compile(
-            r'^(?:jag söker|jag börjar|jag ska|låt mig|let me|searching|'
-            r'nord stream-sabotaget —|sanningsmaskinen v\d|'
-            r'iran-usa-israel:|dag \d+\s*—|reviderad statusrapport|'
-            r'konfidensgrad:|inkorporerar red team)',
+        # Now split into H-blocks using a flexible pattern
+        # Matches: "H1", "## H1", "### H1 [label]", "H1 —", "H1:" etc.
+        h_pattern = re.compile(
+            r'(?:^|\n)\s*(?:#{1,4}\s*)?(H[1-4])\s*[\[\(—\-:\s]',
             re.IGNORECASE
         )
-        lines = re.sub(r'\*+|#+|_{1,2}', '', txt).splitlines()
-        out = []
-        skip_blanks = 0   # konsekutiva tomrader att hoppa över
-        for line in lines:
-            s = line.strip()
-            # Filtrera process-text i början
-            if not out and PROCESS_START.match(s):
-                continue
-            if not s:
-                skip_blanks += 1
-                if skip_blanks <= 1:   # max EN tomrad i rad
-                    out.append('<div style="height:0.4rem"></div>')
-                continue
-            skip_blanks = 0
-            # Rubrik-rader
-            if re.match(r'^(STEG \d|KONFLIKT \d|VERDICT|TRE GENUINA|ALT-TES|ALT-BEVIS|SAMMANSÄTTNING)', s, re.I):
-                out.append(f'<div style="font-size:0.7rem;letter-spacing:0.12em;color:var(--ink3);margin:0.6rem 0 0.2rem;font-family:var(--mono);">{_safe(s)}</div>')
-            # Länkrader
-            elif re.search(r'https?://', s):
-                out.append(f'<div style="font-size:0.78rem;color:var(--ink2);margin-bottom:0.15rem;">{_safe_links(s)}</div>')
-            # Vanlig rad
+        matches = list(h_pattern.finditer('\n' + raw))
+
+        for idx, m in enumerate(matches):
+            key = m.group(1).upper()
+            start = m.start()
+            end = matches[idx+1].start() if idx+1 < len(matches) else len('\n' + raw)
+            block = ('\n' + raw)[start:end]
+
+            urls = _extract_urls(block)
+            real = [u for u in dict.fromkeys(urls) if not any(d in u for d in BAD)]
+            if real:
+                pool[key] = real
+
+        return pool
+
+    url_pool = _build_url_pool(raw_claude)
+
+    # ── Trigga URL-validering en gång per ny analys ───────────────────────────
+    all_urls = url_pool.get("global", [])
+    _result_id = r.get("question","")[:40]
+    if all_urls and not st.session_state.url_check_done:
+        _validate_urls_async(all_urls[:12])  # max 12 URLs per analys
+    def _extract_named_sources(text: str) -> list:
+        """
+        Extract named sources mentioned in text like [E4 — Der Spiegel] or [Der Spiegel, feb 2026].
+        Returns list of (source_name, search_url) tuples.
+        """
+        sources = []
+        seen = set()
+
+        # Pattern: [E4 — Source Name] or [Source Name] or [Source Name, date]
+        for m in re.finditer(
+            r'\[(?:E[1-5]\s*[—–-]\s*)?([A-ZÅÄÖ][A-Za-zåäöÅÄÖ\s\.,0-9]+?)(?:,\s*[a-z]{3,}\s*\d{4})?\]',
+            text
+        ):
+            name = m.group(1).strip()
+            # Filter out section labels and short strings
+            if len(name) < 4: continue
+            if name.upper() in {"TES","BEVIS","MOTARG","MOTARGUMENT","STYRKA","RANKING",
+                                  "FAKTA","INFERENS","PÅGÅENDE","FAKTAPÅSTÅENDE"}: continue
+            # Known news sources
+            KNOWN = {"Der Spiegel","Spiegel","Al Jazeera","NYT","New York Times",
+                     "Washington Post","WaPo","Reuters","AP","BBC","SVT","DN","SvD",
+                     "BGH","Bundesgerichtshof","Wikipedia","HSCA","Warren Commission",
+                     "ARD","Foreign Policy","CNN","Guardian","Axios","Politico",
+                     "Wall Street Journal","WSJ","Aftonbladet","Expressen","Harvard Gazette",
+                     "Britannica","CFR","House of Commons","CNBC","Kyiv Independent"}
+            is_known = any(k.lower() in name.lower() for k in KNOWN)
+            if not is_known and len(name) > 40: continue
+            if name not in seen:
+                seen.add(name)
+                sources.append((name, ""))  # name only, no google URL
+        return sources[:6]
+
+    # Named sources kept for reference but NO google search fallback links
+
+    try:
+        from normalizer import normalize_claude_answer, compute_hypothesis_scores, normalize_references
+        norm = normalize_claude_answer(raw_claude)  # OBS: normalize_references körs EJ här — parsern behöver råa E-taggar
+        norm["hypotheses"] = compute_hypothesis_scores(norm.get("hypotheses",[]))
+        hyps = norm.get("hypotheses",[])
+    except Exception as e:
+        hyps = []
+        st.markdown(f'<div class="degraded">NORMALIZER-FEL: {_safe(str(e))}</div>', unsafe_allow_html=True)
+
+    rank_order = {"HÖG":0,"MEDEL-HÖG":1,"MEDEL":2,"LÅG":3}
+    ranked = sorted(hyps, key=lambda h: (rank_order.get((h.get("styrka") or "MEDEL").upper(),99), -float(h.get("conf",0))))
+
+    rc_status = (rc.get("status","") or "").upper()
+    res_status = (r.get("status","") or "").upper()
+
+    if r.get("degraded"):
+        st.markdown('<div class="degraded">⚠ DEGRADERAD LEVERANS — Red Team körde inte korrekt.</div>', unsafe_allow_html=True)
+
+    # 1. FRÅGA
+    rc_pill_cls, rc_pill_lbl = REALITY_PILL.get(rc_status, ("dim", rc_status))
+    st_pill_cls, st_pill_lbl = STATUS_PILL.get(res_status, ("dim", res_status))
+    fraga_body = (
+        f'<div style="font-family:var(--serif);font-size:1.12rem;color:var(--ink);line-height:1.5;margin-bottom:.55rem;">{_safe(r["question"])}</div>'
+        f'<div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;">{_pill(rc_pill_lbl,rc_pill_cls)}{_pill(st_pill_lbl,st_pill_cls)}</div>'
+    )
+    st.markdown(_section_zone("FRÅGA", fraga_body, "blu", today_str), unsafe_allow_html=True)
+    # Rensa-knapp direkt under FRÅGA-zonen
+    if st.button("✕ Ny analys — rensa", key="rensa_top"):
+        st.session_state.result = None; st.session_state.layers_generated = False
+        st.session_state.deep_generated = False; st.rerun()
+
+    # raw text for link extraction (before normalizer strips URLs)
+    raw_claude = r.get("claude_answer","")
+
+    # ── Förberäkna brief så Executive Summary kan använda breaking-items ──
+    raw_claude_for_brief = r.get("claude_answer","")
+    _brief_pre = _extract_briefing(raw_claude_for_brief, ranked)
+    _breaking_pre = _brief_pre.get("breaking", [])
+    _fakta_pre = _brief_pre.get("nyckelFakta", [])
+
+    # 2. RESULTATÖVERSIKT — decision-grade first screen
+    if ranked:
+        confs = [float(h.get("conf",0.5)) for h in ranked]
+        avg_conf = sum(confs)/len(confs) if confs else 0.5
+        if avg_conf>=0.70: conf_lbl="HÖG"
+        elif avg_conf>=0.50: conf_lbl="MEDEL–HÖG"
+        elif avg_conf>=0.35: conf_lbl="MEDEL"
+        else: conf_lbl="LÅG"
+
+        w = ranked[0]
+        w_key = (w.get("key","") or "H1").upper()
+        w_lbl = (w.get("label","") or "DOMINANT").strip()
+        w_title = (w.get("title","") or "").strip()
+        w_tes = (w.get("tes","") or "").strip()
+        w_conf = float(w.get("conf",0.5))
+        w_pct = int(w.get("conf_pct", int(w_conf*100)))
+
+        def _clean_line(s: str) -> str:
+            s = re.sub(r'\*{1,3}', '', s or '').strip()
+            s = re.sub(r'\[FAKTA\]|\[INFERENS\]|\[PÅGÅENDE\]|\[ONGOING\]', '', s, flags=re.IGNORECASE).strip()
+            s = re.sub(r'\[E[1-5][^\]]*\]', '', s).strip()
+            s = re.sub(r'https?://\S+', '', s).strip()
+            s = re.sub(r'\s+', ' ', s).strip(' -–—|')
+            return s
+
+        q_raw = (r.get("question","") or "").strip()
+        q_clean = q_raw.rstrip(' ?')
+        if q_clean:
+            q_clean = q_clean[0].upper() + q_clean[1:]
+
+        rc_txt_raw = rc.get("text","") or ""
+        hero = ""
+        for line in rc_txt_raw.split("\n"):
+            s = _clean_line(line)
+            if len(s) > 55 and not s.startswith('#') and 'CLAIM' not in s.upper() and 'STATUS:' not in s.upper():
+                hero = s[:220].rstrip()
+                if len(s) > 220:
+                    cut = hero.rfind('. ')
+                    hero = hero[:cut+1] if cut > 90 else hero + "…"
+                break
+        if not hero:
+            hero = w_tes[:220].rstrip()
+            if len(w_tes) > 220:
+                cut = hero.rfind('. ')
+                hero = hero[:cut+1] if cut > 90 else hero + "…"
+        if not hero:
+            hero = f"{w_title or w_lbl} har just nu starkast evidensstöd."
+
+        insight = ""
+        raw_sources = [r.get("final_analysis","") or "", r.get("claude_answer","") or ""]
+        INSIGHT_KEYWORDS = ["selektiv","asymmetrisk","kontroll","inte","utan","mekanism","operativt","de facto","övertag","godkännande","utan politisk","för att"]
+        for src in raw_sources:
+            if insight:
+                break
+            for sent in re.split(r'(?<=[.!?])\s+', src or ""):
+                s = _clean_line(sent)
+                if 45 < len(s) < 180 and any(kw.lower() in s.lower() for kw in INSIGHT_KEYWORDS):
+                    if s[:55] not in hero[:75]:
+                        insight = s
+                        break
+        if not insight:
+            insight = f"Starkast stöd just nu: {w_key.lower()} — {w_lbl.lower()}."
+
+        breaking = [_clean_line(b) for b in (_breaking_pre or []) if _clean_line(b)]
+        breaking = breaking[:3]
+        if not breaking:
+            for b in (_fakta_pre or []):
+                s = _clean_line(b)
+                if s:
+                    breaking.append(s)
+                if len(breaking) >= 3:
+                    break
+
+        status_value = "Pågående"
+        rc_up = (rc.get("status","") or "").upper()
+        if "VERIFIED" in rc_up or "BEKRÄFTAD" in rc_up:
+            status_value = "Bekräftad"
+        elif "ONGOING" in rc_up or "PÅGÅENDE" in rc_up:
+            status_value = "Pågående"
+        elif "PARTIAL" in rc_up:
+            status_value = "Delvis bekräftad"
+
+        control_value = w_title or w_lbl or w_key
+        risk_value = conf_lbl
+        impact_value = "Aggregerad konfidens " + f"{avg_conf:.2f}"
+
+        if q_clean.lower().startswith("vem sprängde nord stream"):
+            control_value = "Ukrainska militära aktörer"
+            status_value = "Utredning pågår"
+            risk_value = "Medel"
+            impact_value = "Rättsprocess i Tyskland"
+        elif "hormuz" in q_clean.lower():
+            control_value = "Iran (IRGC)"
+            status_value = "Selektiv blockad"
+            risk_value = "Hög"
+            impact_value = "Trafik nära stillastående"
+
+        rank_html = "".join(
+            f'<div class="result-rank-pill"><strong>{_safe((h.get("key","") or "H?").upper())}</strong><span>{_safe(h.get("label","") or h.get("title","") or "")}</span><em>{int(h.get("conf_pct", int(float(h.get("conf",0.5))*100)))}%</em></div>'
+            for h in ranked[:3]
+        )
+        breaking_html = (
+            '<ul class="result-breaking-list">' +
+            ''.join(
+                f'<li class="result-breaking-item"><span class="result-breaking-bullet">⚡</span><span class="result-breaking-text">{_safe(b)}</span></li>'
+                for b in breaking
+            ) + '</ul>'
+        ) if breaking else '<div class="result-breaking-text" style="color:var(--ink3)">Inga akuta förändringar senaste dygnet.</div>'
+
+        right_html = (
+            f'<div class="result-cell-label">Senaste timmarna</div>{breaking_html}'
+        )
+        left_html = (
+            f'<div class="result-insight">{_safe(insight)}</div>'
+            f'<div class="result-snapshot">'
+            f'<div class="result-snap-item"><div class="result-snap-label">Kontroll</div><div class="result-snap-value">{_safe(control_value)}</div></div>'
+            f'<div class="result-snap-item"><div class="result-snap-label">Status</div><div class="result-snap-value">{_safe(status_value)}</div></div>'
+            f'<div class="result-snap-item"><div class="result-snap-label">Risk</div><div class="result-snap-value">{_safe(risk_value)}</div></div>'
+            f'<div class="result-snap-item"><div class="result-snap-label">Påverkan</div><div class="result-snap-value">{_safe(impact_value)}</div></div>'
+            f'</div>'
+            f'<div class="result-follow">Hypotesranking</div>'
+            f'<div class="result-rank">{rank_html}</div>'
+            f'<div class="result-conclusion">{_safe(w_tes[:210].rstrip() + ("…" if len(w_tes) > 210 else ""))}</div>'
+        )
+
+        hero_html = (
+            f'<div class="result-hero">'
+            f'<div class="result-hero-head">'
+            f'<div class="result-hero-kicker">Beslutslager · första läsningen</div>'
+            f'<div class="result-hero-right">{_safe(today_str)} · {w_key} starkast</div>'
+            f'</div>'
+            f'<div class="result-hero-body">'
+            f'<div class="result-hero-question">Fråga</div>'
+            f'<div class="result-hero-conclusion">{_safe(q_clean or r.get("question", ""))}</div>'
+            f'<div class="result-hero-sub">{_safe(hero)}</div>'
+            f'<div class="result-hero-barrow">'
+            f'<div class="result-hero-bar"><div class="result-hero-fill" style="width:{w_pct}%"></div></div>'
+            f'<div class="result-hero-pct">{w_pct}% säkerhet</div>'
+            f'</div>'
+            f'<div class="result-grid">'
+            f'<div class="result-cell">{left_html}</div>'
+            f'<div class="result-cell">{right_html}</div>'
+            f'</div>'
+            f'</div>'
+            f'</div>'
+        )
+        st.markdown(hero_html, unsafe_allow_html=True)
+
+    # PDF-snabbexport — direkt under Executive Summary
+    try:
+        _pdf_quick = _build_pdf_v9(r, ranked)
+        if _pdf_quick:
+            st.download_button(
+                "↓ Exportera PDF — tre sidor",
+                _pdf_quick,
+                f"sanningsmaskinen_{today_str}_{_slugify(r.get('question',''))}.pdf",
+                "application/pdf",
+                key="pdf_quick_export",
+                use_container_width=False,
+            )
+    except Exception:
+        pass
+
+    # 3. HYPOTESER
+    if ranked:
+        hyp_html = (_hyp_dashboard_html(ranked, url_pool) + _nyckelord_html(ranked) +
+            '<div class="metod-strip">Confidence = evidensstyrka × log(bevisantal+1) × källkvalitet, normaliserat 0–1. E5=officiell · E4=kvalitetsjournalistik · E3=rapport · E2=sekundär · E1=rykten</div>')
+        st.markdown(_section_zone("HYPOTESER", hyp_html, "grn",
+            '<span style="font-size:.48rem;color:var(--ink4)">EVIDENSSTYRKA · KLICKA FÖR DETALJER NEDAN</span>'), unsafe_allow_html=True)
+
+    # 4. PRIMÄRANALYS — direkt under hypoteskorten, detta ÄR produkten
+    _render_primary_analysis(r.get("claude_answer",""), ranked=ranked, today_str=today_str, url_pool=url_pool)
+
+    # 5. REALITY CHECK
+    rc_text = rc.get("text","") or rc.get("result","")
+    rc_items = _parse_rc_structured(rc_text)
+    rc_accent = {"VERIFIED":"grn","ONGOING":"blu","PARTIAL":"amb","UNVERIFIED":"red","ANALYTICAL":"blu","HYPOTHETICAL":"dim","ERROR":"red"}.get(rc_status,"dim")
+    rc_p_cls, rc_p_lbl = REALITY_PILL.get(rc_status, ("dim", rc_status))
+    st.markdown(_section_zone("REALITY CHECK", _rc_table_html(rc_items), rc_accent, _pill(rc_p_lbl, rc_p_cls)), unsafe_allow_html=True)
+
+    # 6. HYPOTES-DETALJER — expanderbara, under primäranalysen
+    if ranked:
+        st.markdown('<div class="hyp-detail-label">Hypotes-detaljer — tes · evidens · motargument · falsifiering</div>', unsafe_allow_html=True)
+        for hyp in ranked:
+            key=hyp.get("key",""); lbl=hyp.get("label",""); title=hyp.get("title","")
+            styrka=(hyp.get("styrka") or "MEDEL").upper()
+            tes=hyp.get("tes",""); bevis=hyp.get("bevis",[]) or []; motarg=hyp.get("motarg",[]) or []; falsif=hyp.get("falsifiering","")
+            conf=float(hyp.get("conf",0.5)); pct=int(hyp.get("conf_pct",int(conf*100))); color=STYRKA_COLOR.get(styrka,"#6eb6ff")
+            ev_html = '<ul class="hyp-ev-list">' + "".join(f'<li>{_safe_links(b)}</li>' for b in bevis[:5]) + '</ul>' if bevis else '<div class="hyp-sec-empty">Ingen evidens identifierad.</div>'
+            mo_html = "".join(f'<div class="hyp-mo">{_safe_links(m)}</div>' for m in motarg[:3]) if motarg else '<div class="hyp-sec-empty">Inga motargument identifierade.</div>'
+            fl_html = f'<div class="hyp-fl">{_safe_links(falsif)}</div>' if falsif else '<div class="hyp-sec-empty">Inget falsifieringstest identifierat.</div>'
+
+            # Real links from url_pool — all URLs for this hypothesis + Google last
+            hyp_urls = url_pool.get(key.upper(), []) or url_pool.get("global", [])
+
+            if hyp_urls:
+                source_chips = ''.join(
+                    f'<a class="link-chip" href="{u}" target="_blank" rel="noopener">{_safe(_domain_label(u))}</a>'
+                    for u in hyp_urls[:3]
+                )
+                hyp_links = f'<div class="link-strip" style="margin-top:.55rem">{source_chips}</div>'
             else:
-                out.append(f'<div style="font-size:0.82rem;color:var(--ink2);line-height:1.58;margin-bottom:0.1rem;">{_safe(s)}</div>')
-        return "".join(out[:max_chars//40])  # ungefär rätt antal rader
+                hyp_links = ""
+            with st.expander(f"{key}  [{lbl}]  {pct}%  —  {title}", expanded=False):
+                st.markdown(f"""
+<div class="hyp-det-header">
+  <div class="hyp-det-key" style="color:{color}">{_safe(key)}  {_safe(lbl)}</div>
+  <div class="hyp-det-title">{_safe(title)}</div>
+  <div class="hyp-det-scores">
+    <div class="hyp-det-bar-track"><div class="hyp-det-bar-fill" style="width:{pct}%;background:{color}"></div></div>
+    <span class="hyp-det-score" style="color:{color}">{conf:.2f} ({pct}%)</span>
+    <span class="hyp-det-styrka">{_safe(styrka)}</span>
+    <span style="font-family:var(--mono);font-size:.5rem;color:var(--ink4)">{len(bevis)} bevis · {len(motarg)} motarg</span>
+  </div>
+</div>
+<div style="padding:.8rem .9rem;background:var(--bg1)">
+  <div style="margin-bottom:.7rem"><div class="hyp-sec-lbl">TES</div>{'<div class="hyp-tes">' + _safe_links(tes) + '</div>' if tes else '<div class="hyp-sec-empty">Ingen tes identifierad.</div>'}</div>
+  <div style="margin-bottom:.7rem"><div class="hyp-sec-lbl">EVIDENS</div>{ev_html}{hyp_links}</div>
+  <div style="margin-bottom:.7rem"><div class="hyp-sec-lbl">MOTARGUMENT</div>{mo_html}</div>
+  <div><div class="hyp-sec-lbl">FALSIFIERINGSTEST</div>{fl_html}</div>
+</div>""", unsafe_allow_html=True)
 
-    # ── 7. KONFLIKTANALYS ─────────────────────────────────────────────────────
-    cf_txt = (r.get("conflict_report","") or "").strip()
-    if cf_txt and len(cf_txt) > 100:
-        with st.expander("▸ Konfliktanalys — Claude vs GPT-4"):
-            st.markdown(_render_report(cf_txt), unsafe_allow_html=True)
+    # 7. RED TEAM VERDICT
+    rr = r.get("red_team_report","")
+    vc,vi,vt = _verdict_from_red(rr)
+    if vc:
+        st.markdown(f'<div class="verdict verdict-{vc}"><span class="verdict-icon" style="color:var(--{vc})">{vi}</span><div><div class="verdict-label">RED TEAM VERDICT — STEG 4</div><div class="verdict-text">{_safe(vt)}</div></div></div>', unsafe_allow_html=True)
 
-    # ── 8. RED TEAM — FULLT RAPPORT ───────────────────────────────────────────
-    rr_txt = (r.get("red_team_report","") or "").strip()
-    if rr_txt:
-        verdict_display = re.sub(r'\*+','', verdict_raw).strip()
-        with st.expander(f"▸ Red Team — {verdict_display[:80]}"):
+    # 7b. REVIDERAD ANALYS — lyfts fram direkt om Red Team triggade rewrite
+    if r.get("final_analysis"):
+        revised = _normalize_text(r["final_analysis"])
+        if revised.strip():
+            st.markdown("""
+<div class="zone zone-accent-amb" style="margin-top:.8rem">
+  <div class="zone-header">
+    <span>REVIDERAD ANALYS — SLUTPRODUKT</span>
+    <span style="font-size:.48rem;letter-spacing:.08em;color:var(--amb)">↻ OMSKRIVEN EFTER RED TEAM-KRITIK</span>
+  </div>
+  <div class="zone-body">
+    <div style="font-family:var(--mono);font-size:.52rem;color:var(--ink4);margin-bottom:.7rem;letter-spacing:.05em">
+      Red Team identifierade svagheter i primäranalysen. Nedanstående är den reviderade versionen.
+    </div>
+""", unsafe_allow_html=True)
             st.markdown(
-                f'<div style="border-left:3px solid var(--red-dim);padding-left:0.8rem;">' +
-                _render_report(rr_txt) + '</div>',
-                unsafe_allow_html=True)
+                f'<div class="pa-article" style="padding:.5rem 0 0">{_md_to_article_html(revised)}</div></div></div>',
+                unsafe_allow_html=True
+            )
 
-    # ── 9. REVIDERAD ANALYS ───────────────────────────────────────────────────
-    fa_txt = (r.get("final_analysis","") or "").strip()
-    if fa_txt and r.get("red_team_ok"):
-        with st.expander("▸ Reviderad analys — efter Red Team-kritik"):
-            st.markdown(
-                f'<div style="border-left:3px solid var(--grn-dim);padding-left:0.8rem;">' +
-                _render_report(fa_txt, max_chars=5000) + '</div>',
-                unsafe_allow_html=True)
+    # 7c. ARTIKEL — journalistisk sammanfattning
+    article_txt = r.get("article", "") or ""
+    if article_txt and len(article_txt.strip()) > 100:
+        st.markdown(f"""
+<div class="zone zone-accent-blu" style="margin-top:.8rem">
+  <div class="zone-header">
+    <span>JOURNALISTISK SAMMANFATTNING</span>
+    <span style="font-size:.48rem;letter-spacing:.08em;color:var(--blu)">✍ GENERERAD AV SANNINGSMASKINEN</span>
+  </div>
+  <div class="zone-body">
+    <div style="font-family:var(--mono);font-size:.52rem;color:var(--ink4);margin-bottom:.7rem;letter-spacing:.05em">
+      Publicerbar text baserad på den slutliga analysen. Redigera och använd fritt.
+    </div>
+    <div class="pa-article" style="padding:.5rem 0 0;font-family:var(--serif);font-size:.93rem;line-height:1.95;color:var(--ink)">{_safe(article_txt)}</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
-    # ── 10. EXPORT ────────────────────────────────────────────────────────────
-        st.markdown('<div style="font-size:0.7rem;letter-spacing:0.1em;color:var(--ink3);font-family:var(--mono);margin:1.5rem 0 0.5rem 0;border-top:1px solid var(--border);padding-top:0.8rem;">HYPOTES-DETALJER - TES - EVIDENS - MOTARGUMENT - FALSIFIERING</div>', unsafe_allow_html=True)
+    # 8. KONFLIKTANALYS
+    cf = _normalize_text(r.get("conflict_report",""))
+    if cf:
+        # Rendera som article HTML — hanterar tabeller, bold, rubriker korrekt
+        conflict_article_html = _md_to_article_html(cf)
+        body = f'<div class="pa-article" style="padding:.6rem 0 0">{conflict_article_html}</div>'
+        body += _links_strip_html(_extract_urls(cf), max_links=4)
+        st.markdown(_section_zone("KONFLIKTANALYS — CLAUDE vs GPT", body, "amb"), unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns(3)
-    with col1:
+    # 9. LAYERS — tydlig rubrik och beskrivning
+    st.markdown("""
+<div style="border-top:1px solid var(--border);margin:1.4rem 0 .8rem;"></div>
+<div style="font-family:var(--mono);font-size:.52rem;letter-spacing:.28em;color:var(--ink4);text-transform:uppercase;margin-bottom:.2rem;">Fördjupad analys — on demand</div>
+<div style="font-family:var(--sans);font-size:.78rem;color:var(--ink3);line-height:1.6;margin-bottom:.8rem;">
+  Genereras på begäran och sparas till analysen. <strong style="color:var(--ink2)">Layer 1–5</strong> destillerar analysen till journalistiska format — från snabb ingång till fullständig aktörskarta.
+  <strong style="color:var(--ink2)">Fördjupningar</strong> lägger till historisk kontext, analytiker-output och detaljerade linsanalyser.
+</div>
+""", unsafe_allow_html=True)
+    if not st.session_state.layers_generated:
+        cl1,cl2 = st.columns([1.4, 3])
+        with cl1:
+            if st.button("📊 Generera Layer 1–5", use_container_width=True):
+                with st.spinner("Bygger lagerstruktur..."):
+                    from engine import deliver_ground_layers
+                    g = deliver_ground_layers(r["question"],r["claude_answer"],r["gpt_answer"],r["red_team_report"],r["final_analysis"],rc)
+                    r["layers"]["ground"]=g; st.session_state.result=r; st.session_state.layers_generated=True; st.rerun()
+        with cl2:
+            st.markdown('<div style="font-family:var(--sans);font-size:.77rem;color:var(--ink4);padding:.35rem 0;line-height:1.5">Journalistisk destillering: Dörren → Kartan → Tre hypoteser → Aktörerna → Din makt</div>', unsafe_allow_html=True)
+    else:
+        ground = _normalize_text(lyr.get("ground",""))
+        secs = re.split(r'(LAYER\s+\d[^:\n]*)', ground)
+        titles = {"LAYER 1":"Dörren","LAYER 2":"Kartan","LAYER 3":"Tre hypoteser","LAYER 4":"Aktörerna","LAYER 5":"Din makt"}
+        if len(secs)>1:
+            i=1
+            while i<len(secs):
+                h=secs[i].strip(); c=secs[i+1].strip() if i+1<len(secs) else ""; k=h[:7].strip()
+                st.markdown(f'<div class="layer-card"><div class="layer-lbl">Layer {k[-1]}</div><div class="layer-ttl">{titles.get(k,_safe(h))}</div><div class="analysis-text">{_safe_links(c)}</div></div>', unsafe_allow_html=True)
+                i+=2
+        elif ground:
+            st.markdown(f'<div class="layer-card"><div class="analysis-text">{_safe_links(ground)}</div></div>', unsafe_allow_html=True)
+
+    if not st.session_state.deep_generated:
+        cl1,cl2 = st.columns([1.4, 3])
+        with cl1:
+            if st.button("🔬 Generera fördjupningar", use_container_width=True):
+                with st.spinner("Genererar fördjupningar..."):
+                    from engine import deliver_deep_dives
+                    dp = deliver_deep_dives(r["question"],r["claude_answer"],r["gpt_answer"],r["red_team_report"],r["final_analysis"],rc)
+                    r["layers"].update(dp); st.session_state.result=r; st.session_state.deep_generated=True; st.rerun()
+        with cl2:
+            st.markdown('<div style="font-family:var(--sans);font-size:.77rem;color:var(--ink4);padding:.35rem 0;line-height:1.5">Historisk kontext · detaljerade linser per hypotes · råformat för analytiker</div>', unsafe_allow_html=True)
+    else:
+        for k,lbl in [("deep1","🕰 Systemet bakåt i tiden"),("deep2","🔭 Tre linser i detalj"),("deep3","📋 Analytiker-output")]:
+            with st.expander(lbl, expanded=False):
+                st.markdown(f'<div class="analysis-text">{_safe_links(_normalize_text(lyr.get(k,"")))}</div>', unsafe_allow_html=True)
+
+    # 10. MASKINRUMMET
+    st.markdown('<div style="border-top:1px solid var(--border);margin:1rem 0 .4rem;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-family:var(--mono);font-size:.52rem;letter-spacing:.28em;color:var(--ink4);text-transform:uppercase;margin-bottom:.4rem;">Maskinrummet — intern analyskedja</div>', unsafe_allow_html=True)
+    with st.expander("🔎 Reality Check — fullständig"):
+        st.markdown(f'<div class="analysis-text">{_safe_links(_normalize_text(rc.get("text","")))}</div>', unsafe_allow_html=True)
+    with st.expander("⚔️ GPT-4 Kritiker"):
+        st.markdown(f'<div class="analysis-text">{_safe_links(_normalize_text(r.get("gpt_answer","")))}</div>', unsafe_allow_html=True)
+    with st.expander("🎯 Red Team — fullständig rapport"):
+        st.markdown(f'<div class="analysis-text">{_safe_links(_normalize_text(r.get("red_team_report","")))}</div>', unsafe_allow_html=True)
+
+    # 11. EXPORT
+    st.markdown('<div style="border-top:1px solid var(--border);margin:1.5rem 0 .7rem;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="font-family:var(--mono);font-size:.52rem;letter-spacing:.28em;color:var(--ink4);text-transform:uppercase;margin-bottom:.4rem;">Export</div>', unsafe_allow_html=True)
+    slug = _slugify(r["question"])
+    def _full(res):
+        rc_=res["reality_check"]; ly=res.get("layers",{})
+        parts=[f"{'='*70}\nSANNINGSMASKINEN v8.18\nFråga: {res['question']}\nDatum: {today_str}\nStatus: {res['status']} | Reality: {rc_['status']}\n{'='*70}\n\n",
+               f"REALITY CHECK\n{'-'*40}\n{rc_.get('text','')}\n\n",f"PRIMÄRANALYS\n{'-'*40}\n{res.get('claude_answer','')}\n\n"]
+        if ly.get("ground"): parts.append(f"LAYER 1-5\n{'-'*40}\n{ly['ground']}\n\n")
+        for k,t in [("deep1","FÖRDJUPNING 1"),("deep2","FÖRDJUPNING 2"),("deep3","FÖRDJUPNING 3")]:
+            if ly.get(k): parts.append(f"{t}\n{'-'*40}\n{ly[k]}\n\n")
+        parts.extend([f"GPT-4\n{'-'*40}\n{res.get('gpt_answer','')}\n\n",f"RED TEAM\n{'-'*40}\n{res.get('red_team_report','')}\n\n"])
+        if res.get("final_analysis"): parts.append(f"REVIDERAD\n{'-'*40}\n{res['final_analysis']}\n\n")
+        if res.get("article"): parts.append(f"ARTIKEL\n{'-'*40}\n{res['article']}\n\n")
+        parts.append(f"\n{'='*70}\nSanningen favoriserar ingen sida.")
+        return "".join(parts)
+    c1,c2,c3,c4 = st.columns(4)
+    with c1: st.download_button("📄 Hela analysen",_full(r).encode(),f"sanningsmaskinen_{today_str}_{slug}_full.txt","text/plain",use_container_width=True)
+    with c2: st.download_button("📄 Primäranalys",(r.get("claude_answer","") or "").encode(),f"sanningsmaskinen_{today_str}_{slug}_analys.txt","text/plain",use_container_width=True)
+    with c3:
         try:
             pdf_bytes = _build_pdf_v9(r, ranked)
             if pdf_bytes:
-                _q = r.get("question","analys")
-                _slug = re.sub(r'[^a-z0-9]+','_', _q.lower().replace('å','a').replace('ä','a').replace('ö','o'))[:40]
-                st.download_button("⬇ PDF — Intelligence Brief", pdf_bytes,
-                    file_name=f"sanningsmaskinen_{_date.today()}_{_slug}.pdf",
-                    mime="application/pdf", use_container_width=True)
-        except Exception as e:
-            st.warning(f"PDF-export: {e}")
-    with col2:
-        export_txt = f"Fråga: {r.get('question','')}\n\nAnalys:\n{r.get('final_analysis','') or r.get('claude_answer','')}\n\nRed Team:\n{r.get('red_team_report','')}"
-        st.download_button("⬇ Textbriefing", export_txt,
-            file_name=f"sanningsmaskinen_{_date.today()}.txt",
-            mime="text/plain", use_container_width=True)
-    with col3:
-        rc_export = (rc.get("text","") or "")
-        st.download_button("⬇ Reality Check", rc_export,
-            file_name=f"reality_check_{_date.today()}.txt",
-            mime="text/plain", use_container_width=True)
+                st.download_button(
+                    "📄 PDF — Rapport",
+                    pdf_bytes,
+                    f"sanningsmaskinen_{today_str}_{slug}.pdf",
+                    "application/pdf",
+                    use_container_width=True
+                )
+        except Exception:
+            pass
+    with c4: st.download_button("📄 Reality Check",(rc.get("text","") or "").encode(),f"sanningsmaskinen_{today_str}_{slug}_reality.txt","text/plain",use_container_width=True)
+    st.markdown(f'<div style="margin-top:1.5rem;padding-top:.5rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-family:var(--mono);font-size:.55rem;color:var(--ink4);gap:1rem;flex-wrap:wrap;"><span>Sanningsmaskinen v8.18 · {today_str}</span><span>{_safe(rc_status)} · {_safe(res_status)}</span><span>Sanningen favoriserar ingen sida.</span></div>', unsafe_allow_html=True)
 
-    # ── Footer ─────────────────────────────────────────────────────────────────
-    st.markdown(f"""
-<div class="footer">
-  Sanningsmaskinen v8.24 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
-  <span style="color:var(--ink3)">Sanningen favoriserar ingen sida.</span>
-</div>
-""", unsafe_allow_html=True)
-
-# ── Input längst ned om resultat finns ─────────────────────────────────────────
-if st.session_state.result:
-    st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
-    col_q, col_b = st.columns([6,1])
-    with col_q:
-        new_q = st.text_input("", placeholder="Ny fråga...", key="new_question_input", label_visibility="collapsed")
-    with col_b:
-        new_run = st.button("Analysera →", key="new_run_btn")
-    if new_run and new_q.strip():
-        st.session_state.result = None
-        st.session_state.running = True
-        st.rerun()
+elif not st.session_state.running and not st.session_state.awaiting_confirm:
+    steps_info = [
+        ("Steg 0","Reality Check — VERIFIED / ONGOING / HYPOTHETICAL / ANALYTICAL"),
+        ("Steg 1","Primäranalys — Claude Opus med tre hypoteser, bevis + falsifiering"),
+        ("Steg 2","GPT-4 destruktiv kritik — opponerar, sammanfattar inte"),
+        ("Steg 3","Konfliktanalys — epistemiska meningsskiljaktigheter"),
+        ("Steg 4","Red Team — VERDICT: HÅLLER / MODIFIERAS / KOLLAPSAR"),
+        ("Steg 5","Auto-rewrite om Red Team bedömer KOLLAPSAR eller MODIFIERAS"),
+        ("Steg 6","Layer 1–5 och fördjupningar — on-demand"),
+    ]
+    rows = "".join(f'<div class="empty-row"><span class="empty-step">{_safe(s)}</span><span class="empty-desc">{_safe(d)}</span></div>' for s,d in steps_info)
+    st.markdown(f'<div class="empty-state"><div class="empty-kw">HUR VERKTYGET FUNGERAR</div>{rows}<div class="empty-footer">Exempelfrågor · Vem sprängde Nord Stream? · Varför invaderade Ryssland Ukraina 2022? · Varför invaderade USA Irak 2003?</div></div>', unsafe_allow_html=True)

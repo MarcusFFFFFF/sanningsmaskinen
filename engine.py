@@ -13,6 +13,10 @@ import os
 import re
 import time
 from datetime import date
+
+from dotenv import load_dotenv
+load_dotenv(override=True)
+
 from anthropic import Anthropic
 from openai import OpenAI
 
@@ -199,7 +203,10 @@ EXEMPEL RÄTT:
 SYSTEM_PROMPT = (
     f"Du är SANNINGSMASKINEN v8.18. Datum: {TODAY}. "
     "Alien-perspektiv: ingen lojalitet, börja med vad aktören GÖR inte vad den SÄGER. "
-    "Websökning tillgänglig — använd max 4 sökningar. "
+    f"AKTUALITETSPRIORITET: Sök ALLTID efter nyheter från de senaste 24 timmarna (idag: {TODAY}). "
+    "Börja med det SENASTE som hänt — inte bakgrundshistorik. "
+    "Prioritera Reuters, AP News, Bloomberg, BBC, Al Jazeera som primärkällor. "
+    "Källdatum MÅSTE anges i länktexten: [Reuters, 23 mars 2026](url). "
     "KÄLLCITAT: när du refererar en källa du sökt upp, skriv alltid [Källnamn](URL) "
     "med den faktiska URL:en från sökresultatet. Utan URL: skriv bara källnamn+datum. "
     "SKRIVSÄTT: Skriv som en välutbildad journalist — klara meningar, aktiv röst, "
@@ -303,6 +310,8 @@ def event_reality_check(question: str) -> dict:
     prompt = (
         f"Verifiera kärnpåståendena i denna fråga med websökning.\n"
         f"FRÅGA: {question}\n"
+        f"DAGENS DATUM: {TODAY} — sök SENASTE nyheterna, max 24 timmar gamla.\n"
+        f"Prioritera: Reuters, AP News, Bloomberg, BBC, Al Jazeera, CNN, NYT, Guardian.\n"
         f"Svara EXAKT med dessa rader:\n"
         f"ÖVERGRIPANDE STATUS: VERIFIED\n"
         f"(eller PARTIAL, UNVERIFIED, ONGOING, HYPOTHETICAL)\n"
@@ -315,14 +324,16 @@ def event_reality_check(question: str) -> dict:
         f"till själva artikeln eller dokumentet — aldrig bara domänen eller en kategorisida.\n"
         f"Om du inte hittar exakt artikel-URL i sökresultatet: skriv [URL ej hittad] — gissa aldrig en URL."
     )
-    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 3}]
+    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 5}]
 
     try:
         response = anthropic_client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=1000,
+            max_tokens=1200,
             system=(
                 f"Du är ett faktaverifieringssystem. Datum: {TODAY}. Skriv på svenska. "
+                f"VIKTIGT: Sök alltid efter de SENASTE nyheterna från de senaste 24 timmarna. "
+                f"Prioritera primärkällor: Reuters, AP, Bloomberg, BBC, Al Jazeera. "
                 f"Första raden MÅSTE vara exakt: "
                 f"'ÖVERGRIPANDE STATUS: VERIFIED' (eller PARTIAL/UNVERIFIED/ONGOING/HYPOTHETICAL). "
                 f"Använd webbsökning för att hitta de exakta artikel-URL:erna."
@@ -365,6 +376,63 @@ def event_reality_check(question: str) -> dict:
     }
 
 
+def get_breaking_context(question: str, status: str) -> str:
+    """
+    För ONGOING/PARTIAL-frågor: sök aktivt efter militära deployeringar,
+    deadlines och eskaleringar de senaste 6 timmarna.
+    Returnerar en komprimerad kontext-sträng som injiceras i Claude-prompten.
+    """
+    if status not in ("ONGOING", "PARTIAL"):
+        return ""
+
+    # Bygg en riktad sökning baserad på nyckelord i frågan
+    search_prompt = (
+        f"Fråga: {question}\n"
+        f"Datum: {TODAY}\n\n"
+        f"Sök efter de SENASTE 6 timmarnas nyheter om denna fråga. "
+        f"Fokusera specifikt på:\n"
+        f"1. MILITÄRA DEPLOYERINGAR eller truppförflyttningar\n"
+        f"2. ULTIMATUM, deadlines eller tidsramar som löper ut\n"
+        f"3. ESKALERINGAR de senaste 12 timmarna\n"
+        f"4. MARKNADSRÖRELSER (oljepris, börser) som reaktion på händelserna\n\n"
+        f"Svar KORT — max 400 ord. Bara bekräftade fakta med källhänvisning. "
+        f"Format:\n"
+        f"BREAKING [tidpunkt]: [fakta] [Källa](url)\n"
+        f"BREAKING [tidpunkt]: [fakta] [Källa](url)\n"
+        f"Prioritera Reuters, AP, Bloomberg, BBC."
+    )
+
+    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 4}]
+    try:
+        r = anthropic_client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=600,
+            system=(
+                f"Du är ett nyhetsspanningssystem. Datum: {TODAY}. "
+                f"Sök ALLTID efter nyheter från de senaste 6 timmarna. "
+                f"Prioritera Reuters, AP, Bloomberg. Skriv på svenska. "
+                f"Var extremt koncis — bara de mest akuta fakta."
+            ),
+            messages=[{"role": "user", "content": search_prompt}],
+            tools=tools,
+        )
+        result = "".join(
+            b.text for b in r.content
+            if hasattr(b, "type") and b.type == "text"
+        ).strip()
+        if result and len(result) > 50:
+            return (
+                f"\n\n⚡ BREAKING CONTEXT — SENASTE 6 TIMMARNA ({TODAY}):\n"
+                f"{result}\n"
+                f"INSTRUKTION: Integrera dessa breaking-fakta HÖGST UPP i din analys "
+                f"under rubriken 'SENASTE TIMMARNAS HÄNDELSER'. "
+                f"Nämn specifikt alla militära deployeringar, deadlines och eskaleringar."
+            )
+    except Exception:
+        pass
+    return ""
+
+
 def ask_claude(question: str, reality_check: dict) -> str:
     q_type = reality_check.get("question_type", "EVENT")
     status = reality_check["status"]
@@ -399,15 +467,26 @@ officiella dokument (gov, parliament, un.org, europarl.eu).
         "Använd websökning för att hitta exakta artikel-URLs.\n"
         "Minst 4 bevis totalt MÅSTE ha riktiga https://-länkar.\n"
         "RÄTT: [E4 — Der Spiegel](https://www.spiegel.de/politik/artikel-123.html)\n"
-        "FEL:  [E4 — Der Spiegel, feb 2026]"
+        "FEL:  [E4 — Der Spiegel, feb 2026]\n"
+        f"\nAKTUALITET — KRITISKT: Datum idag är {TODAY}.\n"
+        "Sök ALLTID efter nyheter från de senaste 24 timmarna.\n"
+        "Prioritera Reuters, AP News, Bloomberg, BBC, Al Jazeera, CNN framför äldre källor.\n"
+        "Om frågan gäller en pågående händelse: börja med det SENASTE som hänt idag.\n"
+        "Ange alltid källans publiceringsdatum i länktexten: [E4 — Reuters, 23 mars 2026](url)"
     )
 
-    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 4}]
+    # Fler sökningar för pågående händelser
+    max_search = 8 if status in ("ONGOING", "PARTIAL") else 5
+    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": max_search}]
+
+    # Hämta breaking context för pågående händelser
+    breaking = get_breaking_context(question, status)
+
     response = anthropic_client.messages.create(
         model="claude-opus-4-6",
-        max_tokens=4000,
+        max_tokens=7000,
         system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": question + rc_note}],
+        messages=[{"role": "user", "content": question + rc_note + breaking}],
         tools=tools,
     )
     return "".join(
@@ -577,10 +656,12 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
         f"RED TEAM:\n{red_team_report[:800]}\n"
         f"Förbättra: kör tre linser om, degradera svaga påståenden [HYPOTES], "
         f"inkludera ALT-H1/H2/H3. Märk [REVIDERAD VERSION].\n"
-        f"VIKTIGT: Behåll alla källänkar från originalet och lägg till nya där möjligt. "
-        f"Format: [Källnamn](https://url)"
+        f"VIKTIGT: Sök de SENASTE nyheterna (max 24h gamla) för att uppdatera fakta. "
+        f"Prioritera Reuters, AP, Bloomberg. "
+        f"Behåll alla källänkar från originalet och lägg till nya där möjligt. "
+        f"Format: [Källnamn, {TODAY}](https://url)"
     )
-    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 2}]
+    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 5}]
     try:
         r = anthropic_client.messages.create(
             model="claude-opus-4-6",
@@ -595,6 +676,57 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
         )
     except Exception as e:
         return f"[Auto-rewrite misslyckades: {e}]"
+
+
+def generate_article(question: str, final_analysis: str, ranked: list) -> str:
+    """
+    Generera en journalistisk artikel (300-400 ord) baserad på den reviderade analysen.
+    Returnerar en publicerbar text med ingress, brödtext och avslutning.
+    """
+    if not final_analysis:
+        return ""
+
+    # Bygg hypotes-sammanfattning
+    hyp_summary = ""
+    if ranked:
+        hyp_lines = []
+        for h in ranked[:3]:
+            pct = int(h.get("conf_pct", int(float(h.get("conf", 0.5)) * 100)))
+            tes = h.get("tes", "")[:120]
+            hyp_lines.append(f"- {h.get('key','')} [{h.get('label','')}] {pct}%: {tes}")
+        hyp_summary = "\n".join(hyp_lines)
+
+    prompt = (
+        f"Du är en erfaren journalist på en kvalitetstidning. Skriv en journalistisk artikel "
+        f"på 300-400 ord baserad på följande analys. Skriv på svenska.\n\n"
+        f"FRÅGA SOM ANALYSERATS: {question}\n\n"
+        f"ANALYSENS SLUTSATSER (hypoteser rankade efter evidensstyrka):\n{hyp_summary}\n\n"
+        f"ANALYSTEXT (använd som faktaunderlag):\n{final_analysis[:2500]}\n\n"
+        f"INSTRUKTIONER:\n"
+        f"- Börja med en stark nyhetsingress (vad, vem, när, varför det spelar roll)\n"
+        f"- Presentera det mest akuta/breaking i andra stycket\n"
+        f"- Förklara de konkurrerande förklaringarna kortfattat i brödtexten\n"
+        f"- Avsluta med vad som avgör hur situationen utvecklas\n"
+        f"- Journalistisk ton: aktiv röst, konkreta fakta, inga akademiska termer\n"
+        f"- Märk INTE ut hypoteser som H1/H2/H3 — skriv dem som naturlig analys\n"
+        f"- Inkludera inte källhänvisningar i texten\n"
+        f"- Skriv INTE rubriker eller mellanrubriker — bara löpande text\n"
+        f"- Max 400 ord"
+    )
+
+    try:
+        response = anthropic_client.messages.create(
+            model="claude-opus-4-6",
+            max_tokens=800,
+            system=f"Du är en erfaren grävjournalist. Datum: {TODAY}. Skriv klar, faktabaserad journalistik.",
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return "".join(
+            b.text for b in response.content
+            if hasattr(b, "type") and b.type == "text"
+        ).strip()
+    except Exception as e:
+        return f"[Artikelgenerering misslyckades: {e}]"
 
 
 def assess_depth_recommendation(result: dict) -> dict:
@@ -855,4 +987,16 @@ def run_full_pipeline(question: str, force_proceed: bool = False) -> dict:
     result["status"] = "DEGRADERAD" if result["degraded"] else (
         "REVIDERAD" if result["final_analysis"] else "KLAR"
     )
+
+    # Generera journalistisk artikel baserad på slutprodukten
+    article_source = result["final_analysis"] or result["claude_answer"]
+    if article_source and len(article_source) > 200:
+        result["article"] = generate_article(
+            question,
+            article_source,
+            result.get("ranked", [])
+        )
+    else:
+        result["article"] = ""
+
     return result

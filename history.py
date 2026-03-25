@@ -74,6 +74,7 @@ def list_history():
                 'reality':   rc.get('status', ''),
                 'has_layers': bool(data.get('layers', {}).get('ground')),
                 'has_deep':   bool(data.get('layers', {}).get('deep1')),
+                'tags':      data.get('tags', []),
             })
         except Exception:
             continue
@@ -102,7 +103,39 @@ def delete_result(filename: str) -> bool:
     return False
 
 
-def export_txt(result: dict) -> str:
+def add_tag(filename: str, tag: str) -> bool:
+    """Lägger till en tagg på en sparad analys."""
+    path = HISTORY_DIR / filename
+    if not path.exists(): return False
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        tags = data.get('tags', [])
+        tag = tag.strip()[:30]
+        if tag and tag not in tags:
+            tags.append(tag)
+            data['tags'] = tags
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception:
+        return False
+
+
+def remove_tag(filename: str, tag: str) -> bool:
+    """Tar bort en tagg från en sparad analys."""
+    path = HISTORY_DIR / filename
+    if not path.exists(): return False
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        tags = data.get('tags', [])
+        data['tags'] = [t for t in tags if t != tag]
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception:
+        return False
     """Bygger en ren txt-export av ett result."""
     from datetime import date
     today = date.today().strftime('%Y-%m-%d')
