@@ -327,7 +327,7 @@ def event_reality_check(question: str) -> dict:
     tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 5}]
 
     try:
-        response = anthropic_client.messages.create(
+        response = anthropic_client.beta.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=1200,
             system=(
@@ -405,7 +405,7 @@ def get_breaking_context(question: str, status: str) -> str:
 
     tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 4}]
     try:
-        r = anthropic_client.messages.create(
+        r = anthropic_client.beta.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=600,
             system=(
@@ -484,7 +484,7 @@ officiella dokument (gov, parliament, un.org, europarl.eu).
     # Hämta breaking context för pågående händelser
     breaking = get_breaking_context(question, status)
 
-    response = anthropic_client.messages.create(
+    response = anthropic_client.beta.messages.create(
         model="claude-opus-4-6",
         max_tokens=7000,
         system=SYSTEM_PROMPT,
@@ -594,7 +594,7 @@ def analyze_conflicts(claude_answer: str, gpt_answer: str) -> str:
     )
     tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 1}]
     try:
-        r = anthropic_client.messages.create(
+        r = anthropic_client.beta.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=800,
             system=f"Du är konfliktanalytiker. Datum: {TODAY}. Skriv på svenska. Var specifik.",
@@ -667,7 +667,7 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
     )
     tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 5}]
     try:
-        r = anthropic_client.messages.create(
+        r = anthropic_client.beta.messages.create(
             model="claude-opus-4-6",
             max_tokens=3000,
             system=SYSTEM_PROMPT,
@@ -720,7 +720,7 @@ def generate_article(question: str, final_analysis: str, ranked: list) -> str:
     )
 
     try:
-        response = anthropic_client.messages.create(
+        response = anthropic_client.beta.messages.create(
             model="claude-opus-4-6",
             max_tokens=800,
             system=f"Du är en erfaren grävjournalist. Datum: {TODAY}. Skriv klar, faktabaserad journalistik.",
@@ -849,7 +849,7 @@ def deliver_ground_layers(question, claude_answer, gpt_answer,
     )
 
     try:
-        r = anthropic_client.messages.create(
+        r = anthropic_client.beta.messages.create(
             model="claude-opus-4-6",
             max_tokens=3000,
             system=SYSTEM_PROMPT,
@@ -921,7 +921,7 @@ def deliver_deep_dives(question, claude_answer, gpt_answer,
     )
 
     try:
-        r = anthropic_client.messages.create(
+        r = anthropic_client.beta.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=2500,
             system=SYSTEM_PROMPT,
