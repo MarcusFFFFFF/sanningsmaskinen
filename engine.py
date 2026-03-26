@@ -340,6 +340,7 @@ def event_reality_check(question: str) -> dict:
             ),
             messages=[{"role": "user", "content": prompt}],
             tools=tools,
+            betas=["web-search-2025-03-05"],
         )
         text = "".join(
             b.text for b in response.content
@@ -415,6 +416,7 @@ def get_breaking_context(question: str, status: str) -> str:
             ),
             messages=[{"role": "user", "content": search_prompt}],
             tools=tools,
+            betas=["web-search-2025-03-05"],
         )
         result = "".join(
             b.text for b in r.content
@@ -488,6 +490,7 @@ officiella dokument (gov, parliament, un.org, europarl.eu).
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": question + rc_note + breaking}],
         tools=tools,
+        betas=["web-search-2025-03-05"],
     )
     return "".join(
         b.text for b in response.content
@@ -597,6 +600,7 @@ def analyze_conflicts(claude_answer: str, gpt_answer: str) -> str:
             system=f"Du är konfliktanalytiker. Datum: {TODAY}. Skriv på svenska. Var specifik.",
             messages=[{"role": "user", "content": prompt}],
             tools=tools,
+            betas=["web-search-2025-03-05"],
         )
         return "".join(
             b.text for b in r.content
@@ -668,7 +672,8 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
             max_tokens=3000,
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": prompt}],
-            tools=tools
+            tools=tools,
+            betas=["web-search-2025-03-05"],
         )
         return "".join(
             b.text for b in r.content
