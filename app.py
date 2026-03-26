@@ -1704,8 +1704,8 @@ Vad är status Iran vs USA/Israel?
         from history import list_history, load_result, delete_result, add_tag, remove_tag
         from pdf_export import build_pdf as _pdf_sidebar
         _lib_ok = True
-    except Exception as e:
-        st.sidebar.error(f"Import-fel: {e}")
+    except Exception:
+        pass
     if not _lib_ok:
         try:
             from history import list_history, load_result, delete_result
