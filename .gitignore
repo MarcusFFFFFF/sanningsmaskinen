@@ -10,3 +10,6 @@ history/
 *copy*.py
 patch_*.sh
 *.pdf
+.env
+.DS_Store
+!history/.gitkeep
