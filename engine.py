@@ -680,7 +680,7 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
             if hasattr(b, "type") and b.type == "text"
         )
     except Exception as e:
-        return f"[Auto-rewrite misslyckades: {e}]"
+        return ""
 
 
 def generate_article(question: str, final_analysis: str, ranked: list) -> str:
