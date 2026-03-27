@@ -1928,9 +1928,17 @@ if run_btn and question.strip():
         try:
             from history import save_result; save_result(res)
         except: pass
-    except ImportError as e: st.error(f"Importfel: {e}")
-    except Exception as e: st.error(f"Fel: {e}")
-    finally: st.session_state.running = False; st.rerun()
+    except ImportError as e:
+        st.session_state.running = False
+        st.error(f"Importfel: {e}")
+        st.stop()
+    except Exception as e:
+        st.session_state.running = False
+        st.error(f"Fel: {e}")
+        st.stop()
+    else:
+        st.session_state.running = False
+        st.rerun()
 
 # ── Confirm hypothetical ───────────────────────────────────────────────────────
 if st.session_state.awaiting_confirm:
