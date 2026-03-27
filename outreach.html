@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outreach-dagbok — Sanningsmaskinen</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f7f7f5;color:#1a1a1a;font-size:15px;line-height:1.6;}
+.topbar{background:#fff;border-bottom:1px solid #e5e5e0;padding:14px 24px;display:flex;align-items:baseline;gap:12px;position:sticky;top:0;z-index:50;}
+.topbar h1{font-size:18px;font-weight:600;letter-spacing:-.01em;}
+.topbar span{font-size:13px;color:#888;}
+.wrap{max-width:780px;margin:0 auto;padding:24px 16px;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+.stat{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:12px 14px;}
+.stat-n{font-size:24px;font-weight:600;}
+.stat-l{font-size:12px;color:#888;margin-top:2px;}
+.stat-n.c-blue{color:#1a56db;}
+.stat-n.c-green{color:#0f7d4b;}
+.stat-n.c-amber{color:#b45309;}
+.toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.toolbar input,.toolbar select{font-size:13px;height:34px;padding:0 10px;border:1px solid #e0e0da;border-radius:8px;background:#fff;outline:none;}
+.toolbar input{flex:1;min-width:160px;}
+.toolbar input:focus,.toolbar select:focus{border-color:#4f46e5;}
+.btn-add{font-size:13px;padding:0 14px;height:34px;background:#4f46e5;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:500;}
+.btn-add:hover{background:#4338ca;}
+.section-label{font-size:11px;font-weight:600;color:#aaa;letter-spacing:.08em;text-transform:uppercase;margin:20px 0 8px;}
+.contact-list{display:flex;flex-direction:column;gap:6px;}
+.card{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color .15s;}
+.card:hover{border-color:#c5c5c0;}
+.card.open{border-color:#4f46e5;}
+.card-top{display:flex;align-items:flex-start;gap:10px;}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}
+.card-meta{flex:1;min-width:0;}
+.card-name{font-size:14px;font-weight:600;}
+.card-org{font-size:12px;color:#888;margin-top:1px;}
+.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+.badge-pending{background:#eff6ff;color:#1d4ed8;}
+.badge-svar{background:#f0fdf4;color:#166534;}
+.badge-bokad{background:#ecfdf5;color:#065f46;}
+.badge-avbojt{background:#fef2f2;color:#991b1b;}
+.badge-motstand{background:#fffbeb;color:#92400e;}
+.badge-forwarded{background:#f5f3ff;color:#4c1d95;}
+.card-date{font-size:11px;color:#bbb;}
+.card-body{margin-top:12px;padding-top:12px;border-top:1px solid #f0f0ea;display:none;}
+.card.open .card-body{display:block;}
+.log-list{list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.log-item{font-size:13px;color:#555;padding-left:12px;border-left:2px solid #e0e0da;}
+.log-item b{color:#111;font-weight:600;}
+.add-entry{display:flex;gap:6px;flex-wrap:wrap;}
+.add-entry input{flex:1;min-width:160px;font-size:13px;height:32px;padding:0 10px;border:1px solid #e0e0da;border-radius:8px;outline:none;}
+.add-entry input:focus{border-color:#4f46e5;}
+.add-entry select{font-size:12px;height:32px;padding:0 8px;border:1px solid #e0e0da;border-radius:8px;background:#fff;outline:none;}
+.btn-sm{font-size:12px;height:32px;padding:0 12px;background:#f5f5f2;border:1px solid #e0e0da;border-radius:8px;cursor:pointer;color:#333;font-weight:500;}
+.btn-sm:hover{background:#ebebea;}
+.next-step{font-size:12px;color:#aaa;margin-top:8px;}
+.learnings{margin-top:28px;padding-top:24px;border-top:1px solid #e5e5e0;}
+.learnings h2{font-size:15px;font-weight:600;margin-bottom:10px;}
+.learning-list{display:flex;flex-direction:column;gap:6px;}
+.learning-item{font-size:13px;color:#555;padding-left:12px;border-left:2px solid #e0e0da;}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:100;}
+.modal{background:#fff;border-radius:12px;border:1px solid #e0e0da;padding:22px;width:360px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,.12);}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:14px;}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.field label{font-size:12px;color:#888;font-weight:500;}
+.field input,.field select,.field textarea{font-size:13px;padding:7px 10px;border:1px solid #e0e0da;border-radius:8px;outline:none;font-family:inherit;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#4f46e5;}
+.field textarea{height:64px;resize:vertical;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;}
+.btn-prim{font-size:13px;height:34px;padding:0 18px;background:#4f46e5;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:500;}
+.btn-prim:hover{background:#4338ca;}
+.export-bar{text-align:right;margin-bottom:16px;}
+.btn-export{font-size:12px;height:30px;padding:0 12px;background:#fff;border:1px solid #e0e0da;border-radius:8px;cursor:pointer;color:#555;}
+.btn-export:hover{background:#f5f5f2;}
+@media(max-width:500px){.stats{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>Outreach-dagbok</h1>
+  <span>Sanningsmaskinen</span>
+</div>
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">Totalt</div></div>
+    <div class="stat"><div class="stat-n c-blue" id="s-pending">0</div><div class="stat-l">Inväntar svar</div></div>
+    <div class="stat"><div class="stat-n c-green" id="s-svar">0</div><div class="stat-l">Svar mottagna</div></div>
+    <div class="stat"><div class="stat-n c-amber" id="s-bokad">0</div><div class="stat-l">Demo bokad</div></div>
+  </div>
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Sök kontakt, org..." oninput="render()">
+    <select id="filter" onchange="render()">
+      <option value="">Alla statusar</option>
+      <option>Inväntar svar</option>
+      <option>Svar mottaget</option>
+      <option>Demo bokad</option>
+      <option>Avböjt</option>
+      <option>Kvalificerat motstånd</option>
+      <option>Vidarebefordrat</option>
+    </select>
+    <button class="btn-add" onclick="openModal()">+ Ny kontakt</button>
+  </div>
+  <div class="export-bar">
+    <button class="btn-export" onclick="exportJSON()">↓ Exportera JSON-backup</button>
+  </div>
+  <div class="contact-list" id="list"></div>
+  <div class="learnings">
+    <h2>Lärdomar</h2>
+    <div class="learning-list" id="learnings-list"></div>
+  </div>
+</div>
+
+<div id="modal-wrap" style="display:none;">
+  <div class="modal-bg" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <h3 id="modal-title">Ny kontakt</h3>
+      <div class="field"><label>Namn</label><input id="m-name" type="text" placeholder="Förnamn Efternamn"></div>
+      <div class="field"><label>Organisation</label><input id="m-org" type="text"></div>
+      <div class="field"><label>Roll</label><input id="m-role" type="text"></div>
+      <div class="field"><label>Kanal</label>
+        <select id="m-channel"><option>Mail</option><option>WhatsApp</option><option>Personlig kontakt</option><option>Telefon</option><option>LinkedIn</option></select>
+      </div>
+      <div class="field"><label>Status</label>
+        <select id="m-status">
+          <option>Inväntar svar</option><option>Svar mottaget</option><option>Demo bokad</option>
+          <option>Avböjt</option><option>Kvalificerat motstånd</option><option>Vidarebefordrat</option>
+        </select>
+      </div>
+      <div class="field"><label>Notat</label><textarea id="m-note" placeholder="Vad skickades? Vad hände?"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-sm" onclick="closeModal()">Avbryt</button>
+        <button class="btn-prim" onclick="saveContact()">Spara</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORE_KEY = 'sm_outreach_v1';
+const LEARN_KEY = 'sm_learnings_v1';
+
+const INIT_CONTACTS = [
+  {id:'c1',name:'Malin Crona',org:'SVT / ToFindOut',role:'Journalist',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-26',text:'Mail skickat.'},{date:'2026-03-27',text:'Uppföljning skickad med Iran-exempel.'}],nextStep:'Avvakta svar'},
+  {id:'c2',name:'Kollega (underrättelsetjänst)',org:'Personlig kontakt',role:'—',channel:'Personlig kontakt',status:'Inväntar svar',logs:[{date:'2026-03-26',text:'Kontakt tagen.'}],nextStep:''},
+  {id:'c3',name:'Johanna Kjellén',org:'Läranderonder',role:'Rektor / Författare',channel:'WhatsApp',status:'Inväntar svar',logs:[{date:'2026-03-26',text:'WhatsApp skickat.'}],nextStep:''},
+  {id:'c4',name:'IT-kontakt SVT',org:'SVT',role:'IT',channel:'Personlig kontakt',status:'Inväntar svar',logs:[{date:'2026-03-26',text:'Personlig kontakt tagen.'}],nextStep:''},
+  {id:'c5',name:'FOI',org:'Totalförsvarets forskningsinstitut',role:'—',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till info@foi.se.'}],nextStep:''},
+  {id:'c6',name:'UI — Utrikespolitiska institutet',org:'UI',role:'—',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat.'}],nextStep:''},
+  {id:'c7',name:'Stephanie Blenckner',org:'SIPRI',role:'Communications Director',channel:'Mail',status:'Svar mottaget',logs:[{date:'2026-03-27',text:'Ringde växeln → fick direkt namn och mail. Mail skickat till blenckner@sipri.org.'}],nextStep:'Avvakta svar'},
+  {id:'c8',name:'MCF (fd MSB)',org:'Myndigheten för civil beredskap',role:'—',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till registrator@mcf.se.'}],nextStep:''},
+  {id:'c9',name:'Kristoffer Örstadius',org:'DN Gräv',role:'Journalist',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till kristoffer.orstadius@dn.se.'}],nextStep:''},
+  {id:'c10',name:'Pär Björkman',org:'DN Verifieringsdesk',role:'Journalist',channel:'Mail',status:'Svar mottaget',logs:[{date:'2026-03-27',text:'Mail skickat med Iran-exempel. Kom in via Jakob Rickardsson.'}],nextStep:'Avvakta svar'},
+  {id:'c11',name:'Lars Truedson',org:'Tredje Statsmakten',role:'Journalist',channel:'Mail',status:'Kvalificerat motstånd',logs:[{date:'2026-03-17',text:'Kvalificerat motstånd — dörren öppen.'},{date:'2026-03-27',text:'Uppföljningsmail skickat med Iran-exempel.'}],nextStep:'Avvakta svar'},
+  {id:'c12',name:'Jakob Rickardsson',org:'DN',role:'Journalist',channel:'Mail',status:'Vidarebefordrat',logs:[{date:'2026-03-27',text:'Svarade och vidarebefordrade till Pär Björkman på DN Verifieringsdesk.'}],nextStep:''},
+];
+
+const INIT_LEARNINGS = [
+  'Telefonsamtal till växeln funkar — SIPRI gav direkt kontakt med rätt person.',
+  'Personlig referens öppnar dörrar — Hannah Engberg → Lars Truedson.',
+  'Kvalificerat motstånd är inte avvisning — Lars dörr är öppen.',
+  'Uppföljning med aktuellt exempel är starkare än första kontakt.',
+  'Tekniska problem hanteras transparent — Iran-exemplet vände krasch till möjlighet.',
+];
+
+let contacts = [];
+let learnings = [];
+let openCard = null;
+
+function loadData() {
+  try { contacts = JSON.parse(localStorage.getItem(STORE_KEY)) || INIT_CONTACTS; } catch(e) { contacts = [...INIT_CONTACTS]; }
+  try { learnings = JSON.parse(localStorage.getItem(LEARN_KEY)) || INIT_LEARNINGS; } catch(e) { learnings = [...INIT_LEARNINGS]; }
+  render();
+}
+
+function saveData() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(contacts));
+  localStorage.setItem(LEARN_KEY, JSON.stringify(learnings));
+}
+
+const AVATAR_COLORS = [
+  {bg:'#eff6ff',color:'#1d4ed8'},{bg:'#f0fdf4',color:'#166534'},
+  {bg:'#f5f3ff',color:'#4c1d95'},{bg:'#fffbeb',color:'#92400e'},
+  {bg:'#fef2f2',color:'#991b1b'},{bg:'#ecfdf5',color:'#065f46'},
+];
+
+function avatarColor(name) { return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length]; }
+function initials(name) { const p = name.trim().split(' '); return (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase(); }
+function badgeClass(s) {
+  return {
+    'Inväntar svar':'badge-pending','Svar mottaget':'badge-svar',
+    'Demo bokad':'badge-bokad','Avböjt':'badge-avbojt',
+    'Kvalificerat motstånd':'badge-motstand','Vidarebefordrat':'badge-forwarded'
+  }[s] || 'badge-pending';
+}
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('sv-SE', {day:'numeric', month:'short'});
+}
+
+function render() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const f = document.getElementById('filter').value;
+  const filtered = contacts.filter(c => {
+    const match = (c.name + c.org + c.role).toLowerCase().includes(q);
+    return match && (!f || c.status === f);
+  });
+
+  document.getElementById('s-total').textContent = contacts.length;
+  document.getElementById('s-pending').textContent = contacts.filter(c => c.status === 'Inväntar svar').length;
+  document.getElementById('s-svar').textContent = contacts.filter(c => ['Svar mottaget','Vidarebefordrat'].includes(c.status)).length;
+  document.getElementById('s-bokad').textContent = contacts.filter(c => c.status === 'Demo bokad').length;
+
+  const list = document.getElementById('list');
+  if (!filtered.length) { list.innerHTML = '<div style="font-size:13px;color:#bbb;padding:1rem 0;">Inga kontakter hittades.</div>'; return; }
+
+  list.innerHTML = filtered.map(c => {
+    const av = avatarColor(c.name);
+    const isOpen = openCard === c.id;
+    const lastLog = c.logs && c.logs.length ? c.logs[c.logs.length - 1] : null;
+    const statusOpts = ['Inväntar svar','Svar mottaget','Demo bokad','Avböjt','Kvalificerat motstånd','Vidarebefordrat'];
+    return `<div class="card${isOpen ? ' open' : ''}" id="card-${c.id}" onclick="toggleCard('${c.id}')">
+      <div class="card-top">
+        <div class="avatar" style="background:${av.bg};color:${av.color};">${initials(c.name)}</div>
+        <div class="card-meta">
+          <div class="card-name">${c.name}</div>
+          <div class="card-org">${c.org}${c.role && c.role !== '—' ? ' · ' + c.role : ''}</div>
+        </div>
+        <div class="card-right">
+          <span class="badge ${badgeClass(c.status)}">${c.status}</span>
+          <span class="card-date">${lastLog ? fmtDate(lastLog.date) : ''}</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul class="log-list">${(c.logs || []).map(l => `<li class="log-item"><b>${fmtDate(l.date)}</b> — ${l.text}</li>`).join('')}</ul>
+        <div class="add-entry" onclick="event.stopPropagation()">
+          <input type="text" id="note-${c.id}" placeholder="Lägg till händelse..." onclick="event.stopPropagation()">
+          <select id="st-${c.id}" onclick="event.stopPropagation()">
+            ${statusOpts.map(s => `<option${c.status === s ? ' selected' : ''}>${s}</option>`).join('')}
+          </select>
+          <button class="btn-sm" onclick="addEntry('${c.id}');event.stopPropagation();">Spara</button>
+        </div>
+        ${c.nextStep ? `<div class="next-step">Nästa steg: ${c.nextStep}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('learnings-list').innerHTML = learnings.map(l => `<div class="learning-item">${l}</div>`).join('');
+}
+
+function toggleCard(id) { openCard = openCard === id ? null : id; render(); }
+
+function addEntry(id) {
+  const noteEl = document.getElementById('note-' + id);
+  const stEl = document.getElementById('st-' + id);
+  const note = noteEl ? noteEl.value.trim() : '';
+  const newStatus = stEl ? stEl.value : '';
+  const c = contacts.find(x => x.id === id);
+  if (!c) return;
+  if (note) c.logs.push({date: new Date().toISOString().slice(0,10), text: note});
+  if (newStatus) c.status = newStatus;
+  saveData();
+  render();
+}
+
+function openModal() { document.getElementById('modal-wrap').style.display = 'flex'; }
+function closeModal(e) {
+  if (!e || e.target.classList.contains('modal-bg')) document.getElementById('modal-wrap').style.display = 'none';
+}
+
+function saveContact() {
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) return;
+  const note = document.getElementById('m-note').value.trim();
+  const c = {
+    id: 'c' + Date.now(),
+    name,
+    org: document.getElementById('m-org').value.trim(),
+    role: document.getElementById('m-role').value.trim() || '—',
+    channel: document.getElementById('m-channel').value,
+    status: document.getElementById('m-status').value,
+    logs: note ? [{date: new Date().toISOString().slice(0,10), text: note}] : [],
+    nextStep: ''
+  };
+  contacts.unshift(c);
+  saveData();
+  document.getElementById('modal-wrap').style.display = 'none';
+  ['m-name','m-org','m-role','m-note'].forEach(id => document.getElementById(id).value = '');
+  render();
+}
+
+function exportJSON() {
+  const data = JSON.stringify({contacts, learnings}, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'outreach_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+loadData();
+</script>
+</body>
+</html>
