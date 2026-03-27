@@ -1724,7 +1724,7 @@ Vad är status Iran vs USA/Israel?
             entries = []
 
         # ── Sök ──────────────────────────────────────────────────────────────
-        search_q = st.text_input("Sök", placeholder="🔍  Sök i historiken...", label_visibility="collapsed",
+        search_q = st.text_input("Sök", placeholder="🔍  Sök i historiken...",
                                  label_visibility="collapsed", key="lib_search")
 
         # ── Filter ───────────────────────────────────────────────────────────
