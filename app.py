@@ -1874,7 +1874,7 @@ if not st.session_state.result and not st.session_state.running:
     input_col, btn_col = st.columns([6, 1])
     with input_col:
         _placeholder = "Vem sprängde Nord Stream? · Varför invaderade USA Irak 2003? · Vad förklarar SDs framgångar?"
-        question = st.text_area("", placeholder=_placeholder,
+        question = st.text_area("Fråga", placeholder=_placeholder,
                                 height=100, label_visibility="collapsed",
                                 key="main_question")
     with btn_col:
@@ -2327,7 +2327,7 @@ if st.session_state.result:
     st.markdown('<div style="height:1rem"></div>', unsafe_allow_html=True)
     col_q, col_b = st.columns([6,1])
     with col_q:
-        new_q = st.text_input("", placeholder="Ny fråga...", key="new_question_input", label_visibility="collapsed")
+        new_q = st.text_input("Fråga", placeholder="Ny fråga...", key="new_question_input", label_visibility="collapsed")
     with col_b:
         new_run = st.button("Analysera →", key="new_run_btn")
     if new_run and new_q.strip():
