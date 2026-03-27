@@ -1736,7 +1736,7 @@ Vad är status Iran vs USA/Israel?
             "⚠️ Partial": "PARTIAL",  "🔄 Ongoing": "ONGOING",
             "💭 Hypothetical": "HYPOTHETICAL", "❌ Unverified": "UNVERIFIED",
         }
-        reality_filter = st.selectbox("Filter", REALITY_FILTER_OPTIONS, label_visibility="collapsed",
+        reality_filter = st.selectbox("Filter", REALITY_FILTER_OPTIONS,
                                       label_visibility="collapsed", key="lib_filter")
 
         # ── Filtrera ─────────────────────────────────────────────────────────
