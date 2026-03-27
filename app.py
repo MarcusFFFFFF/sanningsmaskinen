@@ -1724,7 +1724,7 @@ Vad är status Iran vs USA/Israel?
             entries = []
 
         # ── Sök ──────────────────────────────────────────────────────────────
-        search_q = st.text_input("", placeholder="🔍  Sök i historiken...",
+        search_q = st.text_input("Sök", placeholder="🔍  Sök i historiken...", label_visibility="collapsed",
                                  label_visibility="collapsed", key="lib_search")
 
         # ── Filter ───────────────────────────────────────────────────────────
@@ -1736,7 +1736,7 @@ Vad är status Iran vs USA/Israel?
             "⚠️ Partial": "PARTIAL",  "🔄 Ongoing": "ONGOING",
             "💭 Hypothetical": "HYPOTHETICAL", "❌ Unverified": "UNVERIFIED",
         }
-        reality_filter = st.selectbox("", REALITY_FILTER_OPTIONS,
+        reality_filter = st.selectbox("Filter", REALITY_FILTER_OPTIONS, label_visibility="collapsed",
                                       label_visibility="collapsed", key="lib_filter")
 
         # ── Filtrera ─────────────────────────────────────────────────────────
