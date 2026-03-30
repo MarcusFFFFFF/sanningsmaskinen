@@ -1916,14 +1916,6 @@ if run_btn and question.strip():
         upd(0)
         with st.spinner("Reality check..."): rc = event_reality_check(question.strip())
         upd(1)
-        # Fix 9: Feltyps-feedback för faktafrågor/sportfrågor
-        _q_lower = question.strip().lower()
-        _fact_patterns = ["vann", "vinner", "förlorade", "spelar", "åkte ur", "slutade", "placerade",
-                          "hur gammal", "när föddes", "vad heter", "vem är vd", "priset på", "börskurs"]
-        if any(p in _q_lower for p in _fact_patterns):
-            st.info("ℹ️ Sanningsmaskinen är byggd för komplexa analytiska frågor med konkurrerande förklaringar — inte faktafrågor med ett rätt svar. Prova en fråga som börjar med 'Varför' eller 'Hur kom det sig att'.")
-            st.session_state.running = False
-            st.stop()
         if not rc.get("proceed"):
             st.session_state.awaiting_confirm=True; st.session_state._rc=rc
             st.session_state._question=question.strip(); st.session_state.running=False
@@ -2011,7 +2003,27 @@ if not st.session_state.result:
   <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.35em;color:var(--grn);margin-bottom:1.1rem;text-transform:uppercase;">◎ Epistemiskt analysverktyg · Claude Opus + GPT-4o</div>
   <h1 style="font-family:var(--serif);font-size:3rem;font-weight:700;color:var(--ink);margin:0 0 0.9rem 0;line-height:1.08;letter-spacing:-0.02em;">Sanningsmaskinen</h1>
   <p style="font-family:var(--serif);color:var(--ink2);font-size:1.13rem;line-height:1.7;margin:0 0 0.5rem 0;max-width:620px;">Testar tre konkurrerande hypoteser mot evidens. Falsifierar svagare förklaringar. Granskar sig självt med Red Team-kritik.</p>
-  <p style="font-family:var(--mono);color:var(--ink4);font-size:0.62rem;letter-spacing:0.08em;margin:0 0 2.4rem 0;">Inte en AI-chat. Ett journalistiskt analysverktyg.</p>
+  <p style="font-family:var(--mono);color:var(--ink4);font-size:0.62rem;letter-spacing:0.08em;margin:0 0 1.6rem 0;">Inte en AI-chat. Ett journalistiskt analysverktyg.</p>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);padding:0.85rem 1.1rem;margin-bottom:1.6rem;display:grid;grid-template-columns:1fr 1fr;gap:0.6rem 2rem;">
+    <div>
+      <div style="font-family:var(--mono);font-size:0.48rem;letter-spacing:0.2em;color:var(--ink4);margin-bottom:0.35rem;">HYPOTESER</div>
+      <div style="font-family:var(--sans);font-size:0.78rem;color:var(--ink2);line-height:1.5;">H1, H2, H3 = tre konkurrerande förklaringar som testas mot evidens — ingen ges företräde från start.</div>
+    </div>
+    <div>
+      <div style="font-family:var(--mono);font-size:0.48rem;letter-spacing:0.2em;color:var(--ink4);margin-bottom:0.35rem;">BEVISSTYRKA</div>
+      <div style="font-family:var(--sans);font-size:0.78rem;color:var(--ink2);line-height:1.5;">95% = starkt stöd i evidensen &nbsp;·&nbsp; HÖG = bekräftat av primärkällor &nbsp;·&nbsp; LÅG = svagt underlag.</div>
+    </div>
+    <div>
+      <div style="font-family:var(--mono);font-size:0.48rem;letter-spacing:0.2em;color:var(--ink4);margin-bottom:0.35rem;">KÄLLGRADERING</div>
+      <div style="font-family:var(--sans);font-size:0.78rem;color:var(--ink2);line-height:1.5;">E5 = primärkälla (myndighet, domstol) &nbsp;·&nbsp; E4 = granskad journalism &nbsp;·&nbsp; E3 = sekundär analys &nbsp;·&nbsp; E1–E2 = svag källa.</div>
+    </div>
+    <div>
+      <div style="font-family:var(--mono);font-size:0.48rem;letter-spacing:0.2em;color:var(--ink4);margin-bottom:0.35rem;">RÄTT FRÅGETYP</div>
+      <div style="font-family:var(--sans);font-size:0.78rem;color:var(--ink2);line-height:1.5;">Fungerar för komplexa frågor där svaret inte är självklart: <em>Varför, Hur kom det sig att, Vad driver, Vad förklarar...</em></div>
+    </div>
+  </div>
+
   <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.7rem;">
     <div style="font-family:var(--mono);font-size:0.55rem;letter-spacing:0.2em;color:var(--ink4);align-self:center;padding-right:0.3rem;">PROVA:</div>
     <span style="font-family:var(--mono);font-size:0.68rem;color:var(--grn);border:1px solid var(--grn-dim);background:var(--grn-bg);padding:0.28rem 0.75rem;letter-spacing:0.03em;">Vem sprängde Nord Stream?</span>
@@ -2021,16 +2033,16 @@ if not st.session_state.result:
 </div>
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin:1.8rem 0 2rem 0;">
   <div style="background:var(--bg1);padding:1rem 1.1rem;">
-    <div style="font-family:var(--mono);font-size:0.5rem;letter-spacing:0.25em;color:var(--grn);margin-bottom:0.45rem;">STEG 1 — PRIMÄRANALYS</div>
-    <div style="font-family:var(--serif);font-size:0.88rem;color:var(--ink2);line-height:1.55;">Claude Opus formulerar H1/H2/H3 — tre konkurrerande förklaringar med evidens och källhänvisningar.</div>
+    <div style="font-family:var(--mono);font-size:0.5rem;letter-spacing:0.25em;color:var(--grn);margin-bottom:0.45rem;">STEG 1 — FAKTAKONTROLL</div>
+    <div style="font-family:var(--serif);font-size:0.88rem;color:var(--ink2);line-height:1.55;">Verifierar kärnpåståenden mot primärkällor och sätter konfidensgrad innan analysen börjar.</div>
   </div>
   <div style="background:var(--bg1);padding:1rem 1.1rem;">
-    <div style="font-family:var(--mono);font-size:0.5rem;letter-spacing:0.25em;color:var(--amb);margin-bottom:0.45rem;">STEG 2 — DESTRUKTIV KRITIK</div>
-    <div style="font-family:var(--serif);font-size:0.88rem;color:var(--ink2);line-height:1.55;">GPT-4o attackerar analysen och identifierar epistemiska svagheter, bias och alternativa tolkningar.</div>
+    <div style="font-family:var(--mono);font-size:0.5rem;letter-spacing:0.25em;color:var(--amb);margin-bottom:0.45rem;">STEG 2 — TRE FÖRKLARINGAR</div>
+    <div style="font-family:var(--serif);font-size:0.88rem;color:var(--ink2);line-height:1.55;">Formulerar H1, H2, H3 — konkurrerande hypoteser — och väger dem mot tillgänglig evidens och källhänvisningar.</div>
   </div>
   <div style="background:var(--bg1);padding:1rem 1.1rem;">
-    <div style="font-family:var(--mono);font-size:0.5rem;letter-spacing:0.25em;color:var(--red);margin-bottom:0.45rem;">STEG 3 — RED TEAM</div>
-    <div style="font-family:var(--serif);font-size:0.88rem;color:var(--ink2);line-height:1.55;">Oberoende granskning avgör: HÅLLER / MODIFIERAS / KOLLAPSAR. Analysen revideras vid behov.</div>
+    <div style="font-family:var(--mono);font-size:0.5rem;letter-spacing:0.25em;color:var(--red);margin-bottom:0.45rem;">STEG 3 — OBEROENDE GRANSKNING</div>
+    <div style="font-family:var(--serif);font-size:0.88rem;color:var(--ink2);line-height:1.55;">Extern kritiker avgör: HÅLLER / MODIFIERAS / KOLLAPSAR. Analysen skrivs om vid behov.</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
