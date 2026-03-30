@@ -492,50 +492,81 @@ def _parse_breaking_items(text):
     return items[:4]
 
 
+
 def _extract_news_from_analysis(text):
-    """Garanterad fallback: extraherar nyheter direkt ur analystext."""
-    import re as re2
+    """
+    Garanterad fallback: extraherar nyhetsrader direkt ur analystext.
+    Enkel logik utan komplex regex — letar efter rader med 2026/2025.
+    """
     if not text:
         return []
+
+    META_WORDS = [
+        "jag soker", "jag borjar", "lat mig", "sanningsmaskinen v",
+        "konfidensgrad", "red team", "motarg", "falsifieras", "steg 1",
+        "steg 2", "steg 3", "steg 4", "steg 5", "tes:", "bevis",
+        "styrka:", "let me", "i will search", "searching"
+    ]
+
     items = []
     seen = set()
-    META = re2.compile(
-        "jag soker|lat mig|searching|sanningsmaskinen v|konfidensgrad|"
-        "red team|motarg|falsifieras|h.r .r|nedan|analys:|steg [0-9]",
-        re2.IGNORECASE
-    )
-    clean = lambda s: re2.sub(r"\[.*?\]\(.*?\)|\*+|#+", "", s).strip()
 
-    # Format 1: bold datum **29 mars 2026 ...**
-    for m in re2.finditer(r"[*][*]?([0-9]{1,2}\s+\w+\s+2026[^*\n]{15,120})", text, re2.IGNORECASE):
-        item = clean(m.group(1))
-        if len(item) > 30 and not META.search(item) and item not in seen:
-            seen.add(item); items.append(item[:150])
-        if len(items) >= 4: return items
+    # Rensa markdown-links och stjärnor
+    import re as _re
 
-    # Format 2: radstart med datum
-    for line in text.splitlines():
+    def clean(s):
+        s = _re.sub(r'\[([^\]]+)\]\([^)]+\)', r'', s)
+        s = _re.sub(r'\*+|#+', '', s)
+        return s.strip()
+
+    def is_meta(s):
+        sl = s.lower()
+        return any(w in sl for w in META_WORDS)
+
+    lines = text.splitlines()
+
+    # Pass 1: bullet-rader som innehåller 2026 eller 2025
+    for line in lines:
         s = line.strip()
-        m = re2.match(r"^[-*]?\s*([0-9]{1,2}\s+\w+\s+202[56][:\s].{20,})", s, re2.IGNORECASE)
-        if m:
-            item = clean(m.group(1))
-            if len(item) > 30 and not META.search(item) and item not in seen:
-                seen.add(item); items.append(item[:150])
-        if len(items) >= 4: return items
+        if not s:
+            continue
+        starts_bullet = s.startswith('-') or s.startswith('*') or s.startswith('•') or s.startswith('>')
+        has_year = '2026' in s or '2025' in s
+        if starts_bullet and has_year and len(s) > 50 and not is_meta(s):
+            item = clean(s.lstrip('-*•> '))
+            if len(item) > 40 and item not in seen:
+                seen.add(item)
+                items.append(item[:150])
+        if len(items) >= 4:
+            return items
 
-    # Format 3: meningar med "den X mars 2026" inbäddade
-    for line in text.splitlines():
-        s = line.strip()
-        if (len(s) > 60
-                and re2.search(r"[0-9]{1,2}\s+mars\s+2026", s, re2.IGNORECASE)
-                and not META.search(s)
-                and s not in seen):
-            item = clean(s)
-            if len(item) > 40:
-                seen.add(item); items.append(item[:150])
-        if len(items) >= 4: return items
+    # Pass 2: rader som börjar med datum "30 mars 2026" eller "- 30 mars 2026"
+    if not items:
+        for line in lines:
+            s = line.strip().lstrip('-* ')
+            if _re.match(r'\d{1,2}\s+\w+\s+202', s) and len(s) > 40 and not is_meta(s):
+                item = clean(s)
+                if len(item) > 40 and item not in seen:
+                    seen.add(item)
+                    items.append(item[:150])
+            if len(items) >= 4:
+                return items
+
+    # Pass 3: alla rader med datum + > 60 tecken (sista utväg)
+    if not items:
+        for line in lines:
+            s = line.strip()
+            if len(s) > 60 and ('2026' in s or '2025' in s) and not is_meta(s):
+                if _re.search(r'\d{1,2}\s+mars\s+202', s, _re.IGNORECASE):
+                    item = clean(s)
+                    if len(item) > 40 and item not in seen:
+                        seen.add(item)
+                        items.append(item[:150])
+            if len(items) >= 4:
+                return items
 
     return items[:4]
+
 
 def ask_claude(question: str, reality_check: dict) -> str:
     q_type = reality_check.get("question_type", "EVENT")
@@ -1091,10 +1122,10 @@ def run_full_pipeline(question: str, force_proceed: bool = False) -> dict:
             question, result["claude_answer"], red_report
         )
 
-    # Garanterad fallback: om breaking_items är tom, extrahera ur analystext
-    if not result["breaking_items"]:
-        analysis_src = result.get("final_analysis","") or result.get("claude_answer","")
-        result["breaking_items"] = _extract_news_from_analysis(analysis_src)
+    # Garanterad fallback: om breaking_items tom, extrahera ur analystext
+    if not result.get("breaking_items"):
+        src = result.get("final_analysis", "") or result.get("claude_answer", "")
+        result["breaking_items"] = _extract_news_from_analysis(src)
 
     result["depth_recommendation"] = assess_depth_recommendation(result)
 
