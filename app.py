@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN v8.25 — STREAMLIT UI
+SANNINGSMASKINEN v8.27 — STREAMLIT UI
 Ändring från v8.17b:
   - Primäranalys renderas som formatterad artikel (markdown → HTML)
   - Tabeller, rubrikhierarki, TES/BEVIS/MOTARG i färgkodade sektioner
@@ -1873,7 +1873,7 @@ st.markdown(f"""
     <span class="topbar-mark">◎ Sanningsmaskinen</span>
     <span class="topbar-title">Epistemiskt analysverktyg</span>
   </div>
-  <div class="topbar-right">v8.25 · Claude Opus + GPT-4o · {today_str}</div>
+  <div class="topbar-right">v8.27 · Claude Opus + GPT-4o · {today_str}</div>
 </div>
 <div class="topbar-sub">
   Analyserar komplexa frågor genom att väga konkurrerande hypoteser, granska evidens och falsifiera svagare förklaringar.
@@ -2111,32 +2111,9 @@ else:
     analysis_text = r.get("final_analysis","") or r.get("claude_answer","")
     clean_text = re.sub(r'\*+|#+|_{1,2}|\[REVIDERAD VERSION\]|\[FAKTA\]|\[INFERENS\]|\[PÅGÅENDE\]', '', analysis_text, flags=re.I)
 
-    # Extrahera slutsats — första riktiga analytiska meningen (ej process-text, ej nyhet)
-    PROCESS_SKIP = [
-        'HTTP','WWW.','SANNINGSMASKINEN','H1[','H2[','H3[','TES:','BEVIS','STATUS:','DATUM:',
-        'JAG BÖRJAR','JAG SÖKER','JAG SKA','LÅT MIG','NORD STREAM-SABOTAGET — SANNINGSMASKINEN',
-        'SANNINGSMASKINEN V','SENASTE HÄNDELSER','BRIEFING','VAD VI VET',
-        'SEARCHING FOR','LET ME','I WILL SEARCH','LÄGESRAPPORT',
-        'AMBASSADÖR','LANDADE','AVGICK','FLYGPLATS','FLIGHT CA',
-        'JANUARI 2026','FEBRUARI 2026','MARS 2026','APRIL 2026',
-        '30 MARS','29 MARS','28 MARS','27 MARS','26 MARS','25 MARS',
-    ]
-    DATE_NEWS_RE = re.compile(r'\b\d{1,2}\s+(januari|februari|mars|april|maj|juni|juli|augusti|september|oktober|november|december)\b', re.IGNORECASE)
+    # Slutsats — alltid TES från starkaste hypotesen (samma princip som nyckelinsikt)
     slutsats = ""
-    for sent in re.split(r'(?<=[.!?])\s+', clean_text):
-        s = sent.strip()
-        s_up = s.upper()
-        if (len(s) > 80 and len(s) < 350
-                and not any(skip in s_up for skip in PROCESS_SKIP)
-                and not re.match(r'^\d+\.\s', s)
-                and not DATE_NEWS_RE.search(s)
-           ):
-            if not _is_english(s):
-                slutsats = s
-                break
-    if slutsats and DATE_NEWS_RE.search(slutsats):
-        slutsats = ""
-    if not slutsats and ranked:
+    if ranked:
         slutsats = (ranked[0].get("tes","") or "")[:300]
 
     # Nyckelinsikt — alltid TES från starkaste hypotesen (skarpaste meningen i analysen)
@@ -2371,7 +2348,7 @@ else:
     # ── Footer ─────────────────────────────────────────────────────────────────
     st.markdown(f"""
 <div class="footer">
-  Sanningsmaskinen v8.25 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
+  Sanningsmaskinen v8.27 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
   <span style="color:var(--ink3)">Sanningen favoriserar ingen sida.</span>
 </div>
 """, unsafe_allow_html=True)
