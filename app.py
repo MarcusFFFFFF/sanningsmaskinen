@@ -2111,13 +2111,17 @@ else:
     analysis_text = r.get("final_analysis","") or r.get("claude_answer","")
     clean_text = re.sub(r'\*+|#+|_{1,2}|\[REVIDERAD VERSION\]|\[FAKTA\]|\[INFERENS\]|\[PÅGÅENDE\]', '', analysis_text, flags=re.I)
 
-    # Extrahera slutsats — första riktiga analytiska meningen (ej process-text)
+    # Extrahera slutsats — första riktiga analytiska meningen (ej process-text, ej nyhet)
     PROCESS_SKIP = [
         'HTTP','WWW.','SANNINGSMASKINEN','H1[','H2[','H3[','TES:','BEVIS','STATUS:','DATUM:',
         'JAG BÖRJAR','JAG SÖKER','JAG SKA','LÅT MIG','NORD STREAM-SABOTAGET — SANNINGSMASKINEN',
         'SANNINGSMASKINEN V','SENASTE HÄNDELSER','BRIEFING','VAD VI VET',
         'SEARCHING FOR','LET ME','I WILL SEARCH','LÄGESRAPPORT',
+        'AMBASSADÖR','LANDADE','AVGICK','FLYGPLATS','FLIGHT CA',
+        'JANUARI 2026','FEBRUARI 2026','MARS 2026','APRIL 2026',
+        '30 MARS','29 MARS','28 MARS','27 MARS','26 MARS','25 MARS',
     ]
+    DATE_NEWS_RE = re.compile(r'\b\d{1,2}\s+(januari|februari|mars|april|maj|juni|juli|augusti|september|oktober|november|december)\b', re.IGNORECASE)
     slutsats = ""
     for sent in re.split(r'(?<=[.!?])\s+', clean_text):
         s = sent.strip()
@@ -2125,17 +2129,22 @@ else:
         if (len(s) > 80 and len(s) < 350
                 and not any(skip in s_up for skip in PROCESS_SKIP)
                 and not re.match(r'^\d+\.\s', s)
+                and not DATE_NEWS_RE.search(s)
            ):
             if not _is_english(s):
                 slutsats = s
                 break
+    if slutsats and DATE_NEWS_RE.search(slutsats):
+        slutsats = ""
+    if not slutsats and ranked:
+        slutsats = (ranked[0].get("tes","") or "")[:300]
 
     # Nyckelinsikt — alltid TES från starkaste hypotesen (skarpaste meningen i analysen)
     nyckelinsikt = ""
     if ranked:
         nyckelinsikt = (ranked[0].get("tes", "") or "")[:200]
 
-    # Breaking news från rc eller claude_answer
+    # Breaking news — bara aktuella nyheter (innehåller 2026 eller senaste månader)
     breaking_items = []
     META_SKIP_RE = re.compile(
         r'frågan är analytisk|inte breaking news|jag behandlar|'
@@ -2144,6 +2153,7 @@ else:
         r'sanningsmaskinen v\d|konfidensgrad:|red team-revision',
         re.IGNORECASE
     )
+    RECENCY_RE = re.compile(r'2026|2025|januari|februari|mars|april|idag|igår', re.IGNORECASE)
     for src in [r.get("claude_answer",""), r.get("final_analysis","")]:
         if not src: continue
         clean_src = re.sub(r'\*+|#+', '', src)
@@ -2151,11 +2161,15 @@ else:
             s = line.strip()
             if re.match(r'^[›>\-•]\s+', s):
                 item_content = re.sub(r'^[›>\-•]\s+', '', s).strip()
-                if len(item_content) > 50 and not META_SKIP_RE.search(item_content):
+                if (len(item_content) > 50
+                        and not META_SKIP_RE.search(item_content)
+                        and RECENCY_RE.search(item_content)):
                     breaking_items.append(item_content[:150])
             elif re.match(r'^\d+\.\s+', s):
                 item_content = re.sub(r'^\d+\.\s+', '', s).strip()
-                if len(item_content) > 50 and not META_SKIP_RE.search(item_content):
+                if (len(item_content) > 50
+                        and not META_SKIP_RE.search(item_content)
+                        and RECENCY_RE.search(item_content)):
                     breaking_items.append(item_content[:150])
             if len(breaking_items) >= 4: break
         if breaking_items: break
