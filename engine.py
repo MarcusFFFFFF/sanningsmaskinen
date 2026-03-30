@@ -1122,10 +1122,15 @@ def run_full_pipeline(question: str, force_proceed: bool = False) -> dict:
             question, result["claude_answer"], red_report
         )
 
-    # Garanterad fallback: om breaking_items tom, extrahera ur analystext
+    # Garanterad fallback: scanna BADA kallorna — claude_answer forst (har alltid nyhetsbullets)
     if not result.get("breaking_items"):
-        src = result.get("final_analysis", "") or result.get("claude_answer", "")
-        result["breaking_items"] = _extract_news_from_analysis(src)
+        items = []
+        for src in [result.get("claude_answer",""), result.get("final_analysis","")]:
+            if src:
+                items = _extract_news_from_analysis(src)
+                if items:
+                    break
+        result["breaking_items"] = items
 
     result["depth_recommendation"] = assess_depth_recommendation(result)
 
