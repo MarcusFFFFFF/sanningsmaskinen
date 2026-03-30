@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN v8.28 — STREAMLIT UI
+SANNINGSMASKINEN v8.29 — STREAMLIT UI
 Ändring från v8.17b:
   - Primäranalys renderas som formatterad artikel (markdown → HTML)
   - Tabeller, rubrikhierarki, TES/BEVIS/MOTARG i färgkodade sektioner
@@ -1873,7 +1873,7 @@ st.markdown(f"""
     <span class="topbar-mark">◎ Sanningsmaskinen</span>
     <span class="topbar-title">Epistemiskt analysverktyg</span>
   </div>
-  <div class="topbar-right">v8.28 · Claude Opus + GPT-4o · {today_str}</div>
+  <div class="topbar-right">v8.29 · Claude Opus + GPT-4o · {today_str}</div>
 </div>
 <div class="topbar-sub">
   Analyserar komplexa frågor genom att väga konkurrerande hypoteser, granska evidens och falsifiera svagare förklaringar.
@@ -2121,44 +2121,8 @@ else:
     if ranked:
         nyckelinsikt = (ranked[0].get("tes", "") or "")[:200]
 
-    # Breaking news — bara aktuella nyheter (innehåller 2026 eller senaste månader)
-    breaking_items = []
-    META_SKIP_RE = re.compile(
-        r'frågan är analytisk|inte breaking news|jag behandlar|'
-        r'låt mig|jag söker|searching|sakfrågeägarskap|'
-        r'jag ska|let me search|bra, jag har|'
-        r'sanningsmaskinen v\d|konfidensgrad:|red team-revision',
-        re.IGNORECASE
-    )
-    RECENCY_RE = re.compile(r'2026|2025|januari|februari|mars|april|idag|igår', re.IGNORECASE)
-    DATE_LINE_RE = re.compile(r'^[-]?\s*\d{1,2}\s+\w+\s+2026[:\s]', re.IGNORECASE)
-    for src in [r.get("claude_answer",""), r.get("final_analysis","")]:
-        if not src: continue
-        clean_src = re.sub(r'\*+|#+', '', src)
-        for line in clean_src.splitlines():
-            s = line.strip()
-            # Bullets med aktuellt innehåll
-            if re.match(r'^[›>\-•]\s+', s):
-                item_content = re.sub(r'^[›>\-•]\s+', '', s).strip()
-                if (len(item_content) > 50
-                        and not META_SKIP_RE.search(item_content)
-                        and RECENCY_RE.search(item_content)):
-                    breaking_items.append(item_content[:150])
-            # Numrerade listor
-            elif re.match(r'^\d+\.\s+', s):
-                item_content = re.sub(r'^\d+\.\s+', '', s).strip()
-                if (len(item_content) > 50
-                        and not META_SKIP_RE.search(item_content)
-                        and RECENCY_RE.search(item_content)):
-                    breaking_items.append(item_content[:150])
-            # Datumrader: "30 mars 2026: ..." eller "- 30 mars 2026: ..."
-            elif DATE_LINE_RE.match(s):
-                item_content = re.sub(r'^-\s*', '', s).strip()
-                if (len(item_content) > 50
-                        and not META_SKIP_RE.search(item_content)):
-                    breaking_items.append(item_content[:150])
-            if len(breaking_items) >= 4: break
-        if breaking_items: break
+    # Breaking news — hämta direkt från strukturerat fält i result
+    breaking_items = r.get("breaking_items") or []
 
     breaking_html = "".join(
         f'<div class="breaking-item">◆ {_safe(b)}</div>'
@@ -2357,7 +2321,7 @@ else:
     # ── Footer ─────────────────────────────────────────────────────────────────
     st.markdown(f"""
 <div class="footer">
-  Sanningsmaskinen v8.28 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
+  Sanningsmaskinen v8.29 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
   <span style="color:var(--ink3)">Sanningen favoriserar ingen sida.</span>
 </div>
 """, unsafe_allow_html=True)
