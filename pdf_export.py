@@ -260,41 +260,14 @@ def _get_hero(r):
 def _get_key_insight(r, hero=""):
     if r.get("_insight_override"):
         return _trunc(r["_insight_override"], 170)
-
-    # Prefer sentences explaining mechanism/how
-    MECH = re.compile(
-        r'(?:genom|med hjälp av|via|utövas|fungerar|mekanismen|'
-        r'innebär|kontroll(?:en)? utövas|selektiv|asymmetrisk|'
-        r'hävstång|avgörande|drivs av|strukturellt)',
-        re.IGNORECASE
-    )
-    hero_key = (hero or "")[:50].lower()
-    ins      = _clean(r.get("insight",""))
-    ranked   = r.get("ranked") or []
-
-    # 1. Mechanism sentence from insight
-    for s in _sentences(ins, 40, 170):
-        if s.lower()[:40] not in hero_key and MECH.search(s):
-            return _trunc(s, 160)
-
-    # 2. Any sentence from insight differing from hero
-    for s in list(_sentences(ins, 35, 170))[1:]:
-        if s.lower()[:40] not in hero_key and _ok_line(s):
-            return _trunc(s, 160)
-
-    # 3. Mechanism sentence from H1 tes (second sentence)
+    # Alltid TES fran starkaste hypotesen - forsta meningen
+    ranked = r.get("ranked") or []
     if ranked:
-        for s in list(_sentences(_clean(ranked[0].get("tes","")), 35, 170))[1:]:
-            if s.lower()[:40] not in hero_key:
-                return _trunc(s, 160)
-
-    # 4. From article/final_analysis
-    for src in [r.get("article",""), r.get("final_analysis","")]:
-        for s in _sentences(src or "", 40, 170):
-            if s.lower()[:40] not in hero_key and MECH.search(s):
-                return _trunc(s, 160)
+        tes = _clean(ranked[0].get("tes", ""))
+        sentences = list(_sentences(tes, 20, 200))
+        if sentences:
+            return _trunc(sentences[0], 170)
     return ""
-
 # ── BREAKING ─────────────────────────────────────────────────────────────────
 def _get_breaking(r):
     txt   = (r.get("claude_answer") or "") + "\n" + (r.get("final_analysis") or "")
@@ -311,11 +284,22 @@ def _get_breaking(r):
         in_b = False
         for line in txt.split('\n'):
             s = line.strip()
-            if re.search(r'SENASTE\s+TIMMARNAS|BREAKING\s+CONTEXT', s, re.I):
+            if re.search(r'SENASTE\s+TIMMARNAS|BREAKING\s+CONTEXT|SENASTE\s+48|LAGET\s+JUST\s+NU', s, re.I):
                 in_b = True; continue
             if in_b:
-                if re.match(r'^#{1,3}\s+[A-ZÅÄÖ]', s): break
+                if re.match(r'^#{1,3}\s+[A-ZAOAOA]', s): break
                 item = _trunc(_clean(s), 115)
+                if len(item) > 32 and _ok_line(item) and item not in seen:
+                    seen.add(item); items.append(item)
+            if len(items) >= 4: break
+
+    # Fallback: datumrader som "30 mars 2026: ..."
+    if not items:
+        DATE_LINE = re.compile(r'^[-*]?\s*\d{1,2}\s+\w+\s+2026[:\s]', re.IGNORECASE)
+        for line in txt.split('\n'):
+            s = line.strip()
+            if DATE_LINE.match(s):
+                item = _trunc(_clean(re.sub(r'^[-*]\s*', '', s)), 115)
                 if len(item) > 32 and _ok_line(item) and item not in seen:
                     seen.add(item); items.append(item)
             if len(items) >= 4: break

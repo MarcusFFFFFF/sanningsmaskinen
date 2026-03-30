@@ -2131,22 +2131,31 @@ else:
         re.IGNORECASE
     )
     RECENCY_RE = re.compile(r'2026|2025|januari|februari|mars|april|idag|igår', re.IGNORECASE)
+    DATE_LINE_RE = re.compile(r'^[-]?\s*\d{1,2}\s+\w+\s+2026[:\s]', re.IGNORECASE)
     for src in [r.get("claude_answer",""), r.get("final_analysis","")]:
         if not src: continue
         clean_src = re.sub(r'\*+|#+', '', src)
         for line in clean_src.splitlines():
             s = line.strip()
+            # Bullets med aktuellt innehåll
             if re.match(r'^[›>\-•]\s+', s):
                 item_content = re.sub(r'^[›>\-•]\s+', '', s).strip()
                 if (len(item_content) > 50
                         and not META_SKIP_RE.search(item_content)
                         and RECENCY_RE.search(item_content)):
                     breaking_items.append(item_content[:150])
+            # Numrerade listor
             elif re.match(r'^\d+\.\s+', s):
                 item_content = re.sub(r'^\d+\.\s+', '', s).strip()
                 if (len(item_content) > 50
                         and not META_SKIP_RE.search(item_content)
                         and RECENCY_RE.search(item_content)):
+                    breaking_items.append(item_content[:150])
+            # Datumrader: "30 mars 2026: ..." eller "- 30 mars 2026: ..."
+            elif DATE_LINE_RE.match(s):
+                item_content = re.sub(r'^-\s*', '', s).strip()
+                if (len(item_content) > 50
+                        and not META_SKIP_RE.search(item_content)):
                     breaking_items.append(item_content[:150])
             if len(breaking_items) >= 4: break
         if breaking_items: break
