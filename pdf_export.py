@@ -270,41 +270,28 @@ def _get_key_insight(r, hero=""):
     return ""
 # ── BREAKING ─────────────────────────────────────────────────────────────────
 def _get_breaking(r):
-    txt   = (r.get("claude_answer") or "") + "\n" + (r.get("final_analysis") or "")
-    items, seen = [], set()
-    for line in txt.split('\n'):
+    # Hämta direkt från strukturerat fält — satt av engine.py
+    items = r.get("breaking_items") or []
+    if items:
+        return [_trunc(_clean(i), 115) for i in items[:4]]
+    # Fallback: sök i råtext efter BREAKING-format
+    txt = (r.get("claude_answer") or "") + "\n" + (r.get("final_analysis") or "")
+    result, seen = [], set()
+    DATE_LINE = re.compile(r'^[-*]?\s*\d{1,2}\s+\w+\s+202[56][:\s]', re.IGNORECASE)
+    for line in txt.split("\n"):
         s = line.strip()
-        m = re.match(r'^(?:#{1,3}\s*)?BREAKING\s*\d*\s*[:\-—]\s*(.+)', s, re.I)
+        m = re.match(r'^BREAKING\s*\[[^\]]*\]\s*[:\-—]\s*(.+)', s, re.I)
         if m:
-            item = _trunc(_clean(m.group(1)), 115)
-            if item and _ok_line(item) and item not in seen:
-                seen.add(item); items.append(item)
-        if len(items) >= 4: break
-    if not items:
-        in_b = False
-        for line in txt.split('\n'):
-            s = line.strip()
-            if re.search(r'SENASTE\s+TIMMARNAS|BREAKING\s+CONTEXT|SENASTE\s+48|LAGET\s+JUST\s+NU', s, re.I):
-                in_b = True; continue
-            if in_b:
-                if re.match(r'^#{1,3}\s+[A-ZAOAOA]', s): break
-                item = _trunc(_clean(s), 115)
-                if len(item) > 32 and _ok_line(item) and item not in seen:
-                    seen.add(item); items.append(item)
-            if len(items) >= 4: break
-
-    # Fallback: datumrader som "30 mars 2026: ..."
-    if not items:
-        DATE_LINE = re.compile(r'^[-*]?\s*\d{1,2}\s+\w+\s+2026[:\s]', re.IGNORECASE)
-        for line in txt.split('\n'):
-            s = line.strip()
-            if DATE_LINE.match(s):
-                item = _trunc(_clean(re.sub(r'^[-*]\s*', '', s)), 115)
-                if len(item) > 32 and _ok_line(item) and item not in seen:
-                    seen.add(item); items.append(item)
-            if len(items) >= 4: break
-    return items[:4]
-
+            item = _trunc(_clean(re.sub(r'\[.*?\]\(.*?\)', '', m.group(1))), 115)
+            if len(item) > 30 and item not in seen:
+                seen.add(item); result.append(item)
+        elif DATE_LINE.match(s):
+            item = _trunc(_clean(re.sub(r'^[-*]\s*', '', s)), 115)
+            if len(item) > 30 and item not in seen:
+                seen.add(item); result.append(item)
+        if len(result) >= 4:
+            break
+    return result[:4]
 # ── SNAPSHOT 2×2 — short, scannable, real-world language ─────────────────────
 def _get_snapshot(r):
     ranked = r.get("ranked") or []

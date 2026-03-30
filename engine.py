@@ -439,17 +439,103 @@ def get_breaking_context(question: str, status: str) -> str:
             if hasattr(b, "type") and b.type == "text"
         ).strip()
         if result and len(result) > 50 and "INGA AKTUELLA NYHETER" not in result.upper():
-            return (
+            items = _parse_breaking_items(result)
+            ctx = (
                 f"\n\n⚡ BREAKING CONTEXT — SENASTE NYHETERNA ({TODAY}):\n"
                 f"{result}\n"
                 f"INSTRUKTION: Integrera dessa fakta HÖGST UPP i din analys "
                 f"under rubriken 'SENASTE TIMMARNAS HÄNDELSER'. "
                 f"Nämn specifikt alla militära deployeringar, politiska beslut och eskaleringar."
             )
+            return ctx, items
     except Exception:
         pass
-    return ""
+    return "", []
 
+
+def _parse_breaking_items(text):
+    """Parsar breaking-text till en lista med korta faktasträngar."""
+    import re as _re
+    items = []
+    seen = set()
+    # Format 1: BREAKING [datum]: fakta
+    for line in text.splitlines():
+        s = line.strip()
+        m = _re.match(r'^BREAKING\s*\[[^\]]*\]\s*[:\-—]\s*(.+)', s, _re.IGNORECASE)
+        if m:
+            item = _re.sub(r'\[.*?\]\(.*?\)', '', m.group(1)).strip()[:150]
+            if len(item) > 30 and item not in seen:
+                seen.add(item); items.append(item)
+        if len(items) >= 4:
+            return items
+    # Format 2: "30 mars 2026: fakta" eller "- 30 mars 2026: fakta"
+    DATE_RE = _re.compile(r'^[-*]?\s*\d{1,2}\s+\w+\s+202[56][:\s]', _re.IGNORECASE)
+    for line in text.splitlines():
+        s = line.strip()
+        if DATE_RE.match(s):
+            item = _re.sub(r'^[-*]\s*', '', s)
+            item = _re.sub(r'\[.*?\]\(.*?\)', '', item).strip()[:150]
+            if len(item) > 30 and item not in seen:
+                seen.add(item); items.append(item)
+        if len(items) >= 4:
+            return items
+    # Format 3: meningar > 40 tecken med år
+    YEAR_RE = _re.compile(r'202[56]')
+    for line in text.splitlines():
+        s = line.strip()
+        if len(s) > 40 and YEAR_RE.search(s) and s not in seen:
+            item = _re.sub(r'\[.*?\]\(.*?\)', '', s).strip()[:150]
+            if len(item) > 30:
+                seen.add(item); items.append(item)
+        if len(items) >= 4:
+            return items
+    return items[:4]
+
+
+def _extract_news_from_analysis(text):
+    """Garanterad fallback: extraherar nyheter direkt ur analystext."""
+    import re as re2
+    if not text:
+        return []
+    items = []
+    seen = set()
+    META = re2.compile(
+        "jag soker|lat mig|searching|sanningsmaskinen v|konfidensgrad|"
+        "red team|motarg|falsifieras|h.r .r|nedan|analys:|steg [0-9]",
+        re2.IGNORECASE
+    )
+    clean = lambda s: re2.sub(r"\[.*?\]\(.*?\)|\*+|#+", "", s).strip()
+
+    # Format 1: bold datum **29 mars 2026 ...**
+    for m in re2.finditer(r"[*][*]?([0-9]{1,2}\s+\w+\s+2026[^*\n]{15,120})", text, re2.IGNORECASE):
+        item = clean(m.group(1))
+        if len(item) > 30 and not META.search(item) and item not in seen:
+            seen.add(item); items.append(item[:150])
+        if len(items) >= 4: return items
+
+    # Format 2: radstart med datum
+    for line in text.splitlines():
+        s = line.strip()
+        m = re2.match(r"^[-*]?\s*([0-9]{1,2}\s+\w+\s+202[56][:\s].{20,})", s, re2.IGNORECASE)
+        if m:
+            item = clean(m.group(1))
+            if len(item) > 30 and not META.search(item) and item not in seen:
+                seen.add(item); items.append(item[:150])
+        if len(items) >= 4: return items
+
+    # Format 3: meningar med "den X mars 2026" inbäddade
+    for line in text.splitlines():
+        s = line.strip()
+        if (len(s) > 60
+                and re2.search(r"[0-9]{1,2}\s+mars\s+2026", s, re2.IGNORECASE)
+                and not META.search(s)
+                and s not in seen):
+            item = clean(s)
+            if len(item) > 40:
+                seen.add(item); items.append(item[:150])
+        if len(items) >= 4: return items
+
+    return items[:4]
 
 def ask_claude(question: str, reality_check: dict) -> str:
     q_type = reality_check.get("question_type", "EVENT")
@@ -498,7 +584,7 @@ officiella dokument (gov, parliament, un.org, europarl.eu).
     tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": max_search}]
 
     # Hämta breaking context för pågående händelser
-    breaking = get_breaking_context(question, status)
+    breaking, _ = get_breaking_context(question, status)
 
     response = anthropic_client.beta.messages.create(
         model="claude-opus-4-6",
@@ -969,6 +1055,7 @@ def run_full_pipeline(question: str, force_proceed: bool = False) -> dict:
         "degraded": False,
         "status": "RUNNING",
         "depth_recommendation": None,
+        "breaking_items": [],
     }
 
     rc = event_reality_check(question)
@@ -980,6 +1067,7 @@ def run_full_pipeline(question: str, force_proceed: bool = False) -> dict:
     if not rc["proceed"] and force_proceed:
         rc["proceed"] = True
 
+    _, result["breaking_items"] = get_breaking_context(question, rc.get("status","VERIFIED"))
     result["claude_answer"] = ask_claude(question, rc)
     result["gpt_answer"] = ask_gpt_critic(question, result["claude_answer"], rc["status"])
     result["conflict_report"] = analyze_conflicts(result["claude_answer"], result["gpt_answer"])
@@ -1002,6 +1090,11 @@ def run_full_pipeline(question: str, force_proceed: bool = False) -> dict:
         result["final_analysis"] = auto_rewrite(
             question, result["claude_answer"], red_report
         )
+
+    # Garanterad fallback: om breaking_items är tom, extrahera ur analystext
+    if not result["breaking_items"]:
+        analysis_src = result.get("final_analysis","") or result.get("claude_answer","")
+        result["breaking_items"] = _extract_news_from_analysis(analysis_src)
 
     result["depth_recommendation"] = assess_depth_recommendation(result)
 
