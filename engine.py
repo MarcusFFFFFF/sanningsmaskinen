@@ -379,40 +379,56 @@ def event_reality_check(question: str) -> dict:
 
 def get_breaking_context(question: str, status: str) -> str:
     """
-    För ONGOING/PARTIAL-frågor: sök aktivt efter militära deployeringar,
-    deadlines och eskaleringar de senaste 6 timmarna.
+    Sök aktivt efter aktuella nyheter för ALLA frågetyper.
+    För ONGOING/PARTIAL: fokus på eskaleringar senaste 6 timmarna.
+    För VERIFIED: fokus på aktuell relevans av den historiska frågan senaste 7 dagarna.
     Returnerar en komprimerad kontext-sträng som injiceras i Claude-prompten.
     """
-    if status not in ("ONGOING", "PARTIAL"):
-        return ""
+    if status in ("ONGOING", "PARTIAL"):
+        tidsram = "de SENASTE 6 timmarna"
+        fokus = (
+            f"1. MILITÄRA DEPLOYERINGAR eller truppförflyttningar\n"
+            f"2. ULTIMATUM, deadlines eller tidsramar som löper ut\n"
+            f"3. ESKALERINGAR de senaste 12 timmarna\n"
+            f"4. MARKNADSRÖRELSER (oljepris, börser) som reaktion på händelserna"
+        )
+        max_uses = 4
+    else:
+        # VERIFIED / HYPOTHETICAL — sök aktuell relevans av historisk fråga
+        tidsram = "de SENASTE 7 dagarna"
+        fokus = (
+            f"1. AKTUELLA HÄNDELSER som direkt berör eller uppdaterar denna fråga\n"
+            f"2. NYA UTTALANDEN från berörda aktörer, stater eller organisationer\n"
+            f"3. FORSKNING, rapporter eller beslut som förändrar bilden\n"
+            f"4. POLITISKA KONSEKVENSER eller nutida relevans av det historiska skeendet"
+        )
+        max_uses = 3
 
-    # Bygg en riktad sökning baserad på nyckelord i frågan
     search_prompt = (
         f"Fråga: {question}\n"
         f"Datum: {TODAY}\n\n"
-        f"Sök efter de SENASTE 6 timmarnas nyheter om denna fråga. "
+        f"Sök efter nyheter från {tidsram} om denna fråga. "
         f"Fokusera specifikt på:\n"
-        f"1. MILITÄRA DEPLOYERINGAR eller truppförflyttningar\n"
-        f"2. ULTIMATUM, deadlines eller tidsramar som löper ut\n"
-        f"3. ESKALERINGAR de senaste 12 timmarna\n"
-        f"4. MARKNADSRÖRELSER (oljepris, börser) som reaktion på händelserna\n\n"
+        f"{fokus}\n\n"
         f"Svar KORT — max 400 ord. Bara bekräftade fakta med källhänvisning. "
-        f"Format:\n"
-        f"BREAKING [tidpunkt]: [fakta] [Källa](url)\n"
-        f"BREAKING [tidpunkt]: [fakta] [Källa](url)\n"
-        f"Prioritera Reuters, AP, Bloomberg, BBC."
+        f"Om inga relevanta nyheter finns — svara exakt: INGA AKTUELLA NYHETER\n"
+        f"Annars, format:\n"
+        f"BREAKING [datum]: [fakta] [Källa](url)\n"
+        f"BREAKING [datum]: [fakta] [Källa](url)\n"
+        f"Prioritera Reuters, AP, BBC, SVT."
     )
 
-    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 4}]
+    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": max_uses}]
     try:
         r = anthropic_client.beta.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=600,
             system=(
                 f"Du är ett nyhetsspanningssystem. Datum: {TODAY}. "
-                f"Sök ALLTID efter nyheter från de senaste 6 timmarna. "
-                f"Prioritera Reuters, AP, Bloomberg. Skriv på svenska. "
-                f"Var extremt koncis — bara de mest akuta fakta."
+                f"Sök efter nyheter från {tidsram}. "
+                f"Prioritera Reuters, AP, BBC, SVT. Skriv på svenska. "
+                f"Var extremt koncis — bara bekräftade fakta. "
+                f"Om inga relevanta nyheter finns, svara exakt: INGA AKTUELLA NYHETER"
             ),
             messages=[{"role": "user", "content": search_prompt}],
             tools=tools,
@@ -422,13 +438,13 @@ def get_breaking_context(question: str, status: str) -> str:
             b.text for b in r.content
             if hasattr(b, "type") and b.type == "text"
         ).strip()
-        if result and len(result) > 50:
+        if result and len(result) > 50 and "INGA AKTUELLA NYHETER" not in result.upper():
             return (
-                f"\n\n⚡ BREAKING CONTEXT — SENASTE 6 TIMMARNA ({TODAY}):\n"
+                f"\n\n⚡ BREAKING CONTEXT — SENASTE NYHETERNA ({TODAY}):\n"
                 f"{result}\n"
-                f"INSTRUKTION: Integrera dessa breaking-fakta HÖGST UPP i din analys "
+                f"INSTRUKTION: Integrera dessa fakta HÖGST UPP i din analys "
                 f"under rubriken 'SENASTE TIMMARNAS HÄNDELSER'. "
-                f"Nämn specifikt alla militära deployeringar, deadlines och eskaleringar."
+                f"Nämn specifikt alla militära deployeringar, politiska beslut och eskaleringar."
             )
     except Exception:
         pass

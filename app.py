@@ -2130,19 +2130,10 @@ else:
                 slutsats = s
                 break
 
-    # Extrahera nyckelinsikt
+    # Nyckelinsikt — alltid TES från starkaste hypotesen (skarpaste meningen i analysen)
     nyckelinsikt = ""
-    for sent in re.split(r'(?<=[.!?])\s+', clean_text):
-        s = sent.strip()
-        if len(s) > 60 and len(s) < 220 and s != slutsats and any(kw in s.lower() for kw in [
-            "avgörande","framgår","visar","pekar","bekräftar","konstaterar","fastslog",
-            "indikerar","tyder på","detta innebär","nyckeln","central","kritisk"
-        ]):
-            if not _is_english(s):
-                nyckelinsikt = s
-                break
-    if not nyckelinsikt and ranked:
-        nyckelinsikt = (ranked[0].get("tes","") or "")[:200]
+    if ranked:
+        nyckelinsikt = (ranked[0].get("tes", "") or "")[:200]
 
     # Breaking news från rc eller claude_answer
     breaking_items = []
