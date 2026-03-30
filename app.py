@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN v8.32 — STREAMLIT UI
+SANNINGSMASKINEN v8.34 — STREAMLIT UI
 Ändring från v8.17b:
   - Primäranalys renderas som formatterad artikel (markdown → HTML)
   - Tabeller, rubrikhierarki, TES/BEVIS/MOTARG i färgkodade sektioner
@@ -1881,7 +1881,7 @@ st.markdown(f"""
     <span class="topbar-mark">◎ Sanningsmaskinen</span>
     <span class="topbar-title">Epistemiskt analysverktyg</span>
   </div>
-  <div class="topbar-right">v8.32 · Claude Opus + GPT-4o · {today_str}</div>
+  <div class="topbar-right">v8.34 · Claude Opus + GPT-4o · {today_str}</div>
 </div>
 <div class="topbar-sub">
   Analyserar komplexa frågor genom att väga konkurrerande hypoteser, granska evidens och falsifiera svagare förklaringar.
@@ -2140,7 +2140,8 @@ else:
         META = ["jag soker","jag borjar","lat mig","sanningsmaskinen v",
                 "konfidensgrad","red team","motarg","falsifieras",
                 "tes:","bevis","styrka:","let me","searching","steg 1",
-                "steg 2","steg 3","steg 4","steg 5"]
+                "steg 2","steg 3","steg 4","steg 5",
+                "typ:","| källa:","| source:"]
 
         def _ok(s):
             sl = s.lower()
@@ -2258,7 +2259,7 @@ else:
         if rc_items:
             st.markdown(f"""
 <div class="section-zone zone-blu">
-  <div class="zone-hdr">REALITY CHECK <span class="pill pill-grn">{rc_pill_lbl}</span></div>
+  <div class="zone-hdr">REALITY CHECK <span class="pill pill-{rc_pill_cls}">{rc_pill_lbl}</span></div>
   {_rc_table_html(rc_items)}
 </div>
 """, unsafe_allow_html=True)
@@ -2389,7 +2390,7 @@ else:
     # ── Footer ─────────────────────────────────────────────────────────────────
     st.markdown(f"""
 <div class="footer">
-  Sanningsmaskinen v8.32 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
+  Sanningsmaskinen v8.34 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
   <span style="color:var(--ink3)">Sanningen favoriserar ingen sida.</span>
 </div>
 """, unsafe_allow_html=True)
