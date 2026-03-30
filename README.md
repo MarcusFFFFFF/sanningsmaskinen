@@ -145,3 +145,4 @@ sanningsmaskinen/
 ---
 
 *SANNINGSMASKINEN v4 — Mars 2026*
+# v8.25
