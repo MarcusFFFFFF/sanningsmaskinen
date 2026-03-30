@@ -20,6 +20,10 @@ st.set_page_config(page_title="Sanningsmaskinen", page_icon="◎", layout="wide"
 
 st.markdown("""
 <style>
+[data-testid="stToolbar"]{display:none !important;}
+footer{display:none !important;}
+[data-testid="stDecoration"]{display:none !important;}
+[data-testid="stStatusWidget"]{display:none !important;}
 @import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;600&family=Libre+Franklin:wght@300;400;600;700&display=swap');
 :root{
   --bg:#0a0b0d; --bg1:#0f1115; --bg2:#141821; --bg3:#1b2230;
@@ -783,6 +787,14 @@ def _build_pdf_v9(r: dict, ranked: list) -> bytes:
 
 def _safe(t): return (t or "").replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
 
+def _is_english(text):
+    """Enkel heuristik — returnerar True om texten troligen är engelska."""
+    if not text: return False
+    en_markers = ['the ', ' of ', ' in ', ' and ', ' is ', ' was ', ' are ', ' were ', ' has ', ' have ', 'its ', 'their ']
+    low = text.lower()
+    hits = sum(1 for m in en_markers if m in low)
+    return hits >= 3
+
 def _safe_links(text):
     if not text: return ""
     # First auto-wrap raw URLs that aren't already in markdown links
@@ -1037,9 +1049,9 @@ def _nyckelord_html(ranked):
 
 def _parse_rc_structured(txt):
     items = []
-    for block in re.split(r'\n(?=CLAIM\s*\d*:)', txt or "", flags=re.IGNORECASE):
+    for block in re.split(r'\n(?=\*{0,4}CLAIM\s*\d*:)', txt or "", flags=re.IGNORECASE):
         c_m = re.search(r'CLAIM\s*\d*:\s*(.+?)(?:\n|$)', block, re.IGNORECASE)
-        s_m = re.search(r'STATUS\s*:\s*(.+?)(?:\n|$)', block, re.IGNORECASE)
+        s_m = re.search(r'(?<!ÖVERGRIPANDE )(?<!OVERALL )STATUS\s*:\s*\*{0,2}([^*\n]+?)\*{0,2}(?:\n|$)', block, re.IGNORECASE)
         src_m = re.search(r'(?:SOURCE|KÄLLA)\s*:\s*(.+?)(?:\n|$)', block, re.IGNORECASE)
         if c_m:
             items.append({"claim":c_m.group(1).strip(),"status":s_m.group(1).strip() if s_m else "","source":src_m.group(1).strip() if src_m else ""})
@@ -1050,7 +1062,7 @@ def _parse_rc_structured(txt):
         if any(x in u for x in ["ÖVERGRIPANDE","OVERALL STATUS","BESLUT:","REALITY CHECK","SAMMANFATTNING"]): continue
         st=""
         if any(x in u for x in ["VERIFIED","BEKRÄFTAD","✓","✔"]): st="VERIFIED"
-        elif any(x in u for x in ["DISPUTED","OMTVISTAD","DELVIS","◑"]): st="DISPUTED"
+        elif any(x in u for x in ["DISPUTED","OMTVISTAD","◑"]): st="DISPUTED"
         elif any(x in u for x in ["UNVERIFIED","EJ BEKRÄFTAD","✗"]): st="UNVERIFIED"
         src=""; sm=re.search(r'\(([^)]{5,90})\)\s*$', s)
         if sm: src=sm.group(1).strip()
@@ -1064,7 +1076,7 @@ def _rc_table_html(items):
     for it in items:
         claim=it.get("claim",""); status=(it.get("status","") or "").upper(); source=it.get("source","")
         if "VERIFIED" in status or "BEKRÄFTAD" in status: sc,si="rc-st-v","✓ VERIFIED"
-        elif "DISPUTED" in status or "PARTIAL" in status: sc,si="rc-st-d","◑ DISPUTED"
+        elif "DISPUTED" in status or "OMTVISTAD" in status: sc,si="rc-st-d","◑ DISPUTED"
         elif "UNVERIFIED" in status: sc,si="rc-st-u","✗ UNVERIFIED"
         else: sc,si="rc-st-n","◎ —"
         src_html = _safe_links(source) if source else '<span style="color:var(--ink4)">—</span>'
@@ -1891,6 +1903,8 @@ if run_btn and question.strip():
     st.session_state.running = True; st.session_state.result = None
     st.session_state.layers_generated = False; st.session_state.deep_generated = False
     st.session_state.url_status = {}; st.session_state.url_check_done = False
+    for _k in ['last_raw', 'ranked', 'url_pool']:
+        if _k in st.session_state: del st.session_state[_k]
     try:
         from engine import (event_reality_check, ask_claude, ask_gpt_critic,
                             analyze_conflicts, run_red_team, auto_rewrite, assess_depth_recommendation)
@@ -1902,6 +1916,14 @@ if run_btn and question.strip():
         upd(0)
         with st.spinner("Reality check..."): rc = event_reality_check(question.strip())
         upd(1)
+        # Fix 9: Feltyps-feedback för faktafrågor/sportfrågor
+        _q_lower = question.strip().lower()
+        _fact_patterns = ["vann", "vinner", "förlorade", "spelar", "åkte ur", "slutade", "placerade",
+                          "hur gammal", "när föddes", "vad heter", "vem är vd", "priset på", "börskurs"]
+        if any(p in _q_lower for p in _fact_patterns):
+            st.info("ℹ️ Sanningsmaskinen är byggd för komplexa analytiska frågor med konkurrerande förklaringar — inte faktafrågor med ett rätt svar. Prova en fråga som börjar med 'Varför' eller 'Hur kom det sig att'.")
+            st.session_state.running = False
+            st.stop()
         if not rc.get("proceed"):
             st.session_state.awaiting_confirm=True; st.session_state._rc=rc
             st.session_state._question=question.strip(); st.session_state.running=False
@@ -1934,7 +1956,13 @@ if run_btn and question.strip():
         st.stop()
     except Exception as e:
         st.session_state.running = False
-        st.error(f"Fel: {e}")
+        err_str = str(e).lower()
+        if "timeout" in err_str or "connect" in err_str or "overload" in err_str or "529" in err_str:
+            st.warning("⏱ Analysatorn svarar inte just nu — API-belastning hög. Försök igen om en minut.")
+        elif "rate" in err_str or "limit" in err_str:
+            st.warning("⏱ För många förfrågningar — vänta 30 sekunder och försök igen.")
+        else:
+            st.error(f"Fel: {e}")
         st.stop()
     else:
         st.session_state.running = False
@@ -2086,8 +2114,9 @@ else:
                 and not any(skip in s_up for skip in PROCESS_SKIP)
                 and not re.match(r'^\d+\.\s', s)
            ):
-            slutsats = s
-            break
+            if not _is_english(s):
+                slutsats = s
+                break
 
     # Extrahera nyckelinsikt
     nyckelinsikt = ""
@@ -2097,26 +2126,34 @@ else:
             "avgörande","framgår","visar","pekar","bekräftar","konstaterar","fastslog",
             "indikerar","tyder på","detta innebär","nyckeln","central","kritisk"
         ]):
-            nyckelinsikt = s
-            break
+            if not _is_english(s):
+                nyckelinsikt = s
+                break
     if not nyckelinsikt and ranked:
-        nyckelinsikt = ranked[0].get("tes","")[:200] or ""
+        nyckelinsikt = (ranked[0].get("tes","") or "")[:200]
 
     # Breaking news från rc eller claude_answer
     breaking_items = []
+    META_SKIP_RE = re.compile(
+        r'frågan är analytisk|inte breaking news|jag behandlar|'
+        r'låt mig|jag söker|searching|sakfrågeägarskap|'
+        r'jag ska|let me search|bra, jag har|'
+        r'sanningsmaskinen v\d|konfidensgrad:|red team-revision',
+        re.IGNORECASE
+    )
     for src in [r.get("claude_answer",""), r.get("final_analysis","")]:
         if not src: continue
         clean_src = re.sub(r'\*+|#+', '', src)
         for line in clean_src.splitlines():
             s = line.strip()
             if re.match(r'^[›>\-•]\s+', s):
-                content = re.sub(r'^[›>\-•]\s+', '', s).strip()
-                if len(content) > 50:
-                    breaking_items.append(content[:150])
+                item_content = re.sub(r'^[›>\-•]\s+', '', s).strip()
+                if len(item_content) > 50 and not META_SKIP_RE.search(item_content):
+                    breaking_items.append(item_content[:150])
             elif re.match(r'^\d+\.\s+', s):
-                content = re.sub(r'^\d+\.\s+', '', s).strip()
-                if len(content) > 50:
-                    breaking_items.append(content[:150])
+                item_content = re.sub(r'^\d+\.\s+', '', s).strip()
+                if len(item_content) > 50 and not META_SKIP_RE.search(item_content):
+                    breaking_items.append(item_content[:150])
             if len(breaking_items) >= 4: break
         if breaking_items: break
 
@@ -2159,8 +2196,8 @@ else:
   <div class="exec-right">
     {winner_html}
     <div class="exec-label">Analytisk bedömning &nbsp;<span style="color:var(--ink4);font-size:0.48rem;letter-spacing:0.05em;font-weight:400;">Inte ett svar — väger evidens för tre konkurrerande förklaringar</span></div>
-    <div class="exec-slutsats">{_safe(slutsats) if slutsats else (ranked[0].get("tes","")[:200] if ranked else "Se hypoteserna nedan.")}</div>
-    {'<div class="exec-nyckel">' + _safe(nyckelinsikt) + '</div>' if nyckelinsikt else ''}
+    <div class="exec-slutsats">{_safe(slutsats) if slutsats else (_safe((ranked[0].get("tes","") or "")[:200]) if ranked else "Se hypoteserna nedan.")}</div>
+    {'<div class="exec-nyckel">' + _safe(nyckelinsikt) + '</div>' if nyckelinsikt and nyckelinsikt.strip() else ''}
     <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
       <div style="font-family:var(--mono);font-size:0.48rem;letter-spacing:0.25em;color:var(--ink4);white-space:nowrap;">RED TEAM VERDICT</div>
       <span class="pill pill-{verdict_cls}" style="font-size:0.62rem;padding:0.22rem 0.85rem;letter-spacing:0.12em;">{verdict_lbl}</span>

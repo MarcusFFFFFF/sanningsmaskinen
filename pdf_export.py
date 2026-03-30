@@ -899,7 +899,14 @@ def build_p3(doc, r):
         if not tes:   tes  = titl or "Hypotesen saknar specificerad tes."
         if not bevs:  bevs = ["Evidens ej specificerad i kallmaterial."]
         if not mot:   mot  = "Inga identifierade motargument."
-        if not fals:  fals = "Bevis som direkt motsager hypotesens karnantagande."
+        if not fals:
+            tes_raw = (h.get("tes","") or "").strip()
+            if tes_raw:
+                tes_short = tes_raw[:55].rstrip()
+                if len(tes_raw) > 55:
+                    tes_short = tes_short.rsplit(" ", 1)[0]
+                fals = f"Om '{tes_short}...' falsifieras med primärkällebevis (E1/E2)."
+            # else: fals stays empty — no placeholder shown
 
         # ── Header ────────────────────────────────────────────────────────────
         doc.RECT(ML, y-20, TW, 22, dim)
