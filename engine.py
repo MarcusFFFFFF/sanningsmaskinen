@@ -356,7 +356,10 @@ def event_reality_check(question: str) -> dict:
 
     upper = text.upper()
     status, proceed = "UNVERIFIED", False
-    if "STATUS: VERIFIED" in upper or "VERIFIED" in upper[:200]:
+    # Check UNVERIFIED first — "VERIFIED" is a substring of "UNVERIFIED"
+    if "UNVERIFIED" in upper[:300] or "EJ BEKRÄFTAD" in upper[:300] or "EJ VERIFIERBAR" in upper[:300]:
+        status, proceed = "UNVERIFIED", False
+    elif "STATUS: VERIFIED" in upper or ("VERIFIED" in upper[:200] and "UNVERIFIED" not in upper[:200]):
         status, proceed = "VERIFIED", True
     elif "STATUS: ONGOING" in upper or "ONGOING" in upper[:200]:
         status, proceed = "ONGOING", True
