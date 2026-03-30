@@ -2121,8 +2121,68 @@ else:
     if ranked:
         nyckelinsikt = (ranked[0].get("tes", "") or "")[:200]
 
-    # Breaking news — hämta direkt från strukturerat fält i result
-    breaking_items = r.get("breaking_items") or []
+    # Breaking news — extrahera direkt i app.py, oberoende av engine
+    def _app_extract_breaking(result):
+        # Hoeg prioritet: strukturerat falt fran engine
+        items = result.get("breaking_items") or []
+        if items:
+            return items
+
+        # Fallback: skanna claude_answer och final_analysis direkt har
+        META = ["jag soker","jag borjar","lat mig","sanningsmaskinen v",
+                "konfidensgrad","red team","motarg","falsifieras",
+                "tes:","bevis","styrka:","let me","searching","steg 1",
+                "steg 2","steg 3","steg 4","steg 5"]
+
+        def _ok(s):
+            sl = s.lower()
+            return not any(w in sl for w in META)
+
+        def _clean(s):
+            s = re.sub(r'\[([^\]]+)\]\([^)]+\)', '', s)
+            s = re.sub(r'\*+|#+', '', s)
+            return s.strip()
+
+        found = []
+        seen = set()
+
+        for src_key in ["claude_answer", "final_analysis"]:
+            src = result.get(src_key, "") or ""
+            if not src:
+                continue
+            for line in src.splitlines():
+                s = line.strip()
+                if not s:
+                    continue
+                bullet = s.startswith('-') or s.startswith('*') or s.startswith(chr(8226))
+                has_yr = '2026' in s or '2025' in s
+                if bullet and has_yr and len(s) > 50 and _ok(s):
+                    item = _clean(s.lstrip('-*' + chr(8226) + '> '))
+                    if len(item) > 40 and item not in seen:
+                        seen.add(item)
+                        found.append(item[:150])
+                if len(found) >= 4:
+                    return found
+            if found:
+                return found
+
+        # Sista utvaeg: meningar med inbakat datum
+        for src_key in ["claude_answer", "final_analysis"]:
+            src = result.get(src_key, "") or ""
+            for line in src.splitlines():
+                s = line.strip()
+                if len(s) > 60 and ('2026' in s or '2025' in s) and _ok(s):
+                    if re.search(r'\d{1,2}\s+\w+\s+202[56]', s):
+                        item = _clean(s)
+                        if len(item) > 40 and item not in seen:
+                            seen.add(item)
+                            found.append(item[:150])
+                if len(found) >= 4:
+                    return found
+
+        return found[:4]
+
+    breaking_items = _app_extract_breaking(r)
 
     breaking_html = "".join(
         f'<div class="breaking-item">◆ {_safe(b)}</div>'
