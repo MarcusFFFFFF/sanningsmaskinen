@@ -314,11 +314,15 @@ def _get_snapshot(r):
     # PRIMÄR AKTÖR — at most 3–4 meaningful words, not a sentence
     aktör = _trunc(_clean(r.get("_aktör_override","")), 35)
     if not aktör and ranked:
-        # Extract actor: prefer label/title subject, not full tes
+        # Use full title, truncate at word boundary within 35 chars
         title = _clean(ranked[0].get("title",""))
-        # Take first 3 meaningful words from title
-        words = [w for w in title.split() if len(w) > 2][:3]
-        aktör = " ".join(words)
+        if len(title) <= 35:
+            aktör = title
+        else:
+            # Truncate at last space before char 35
+            cut = title[:35]
+            last_space = cut.rfind(" ")
+            aktör = cut[:last_space].strip() if last_space > 0 else cut
     if not aktör or not _ok_line(aktör):
         aktör = "Ej fastställd"
     # Ensure it's short — no sentences
