@@ -2207,7 +2207,6 @@ else:
 <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;
      font-family:var(--mono);font-size:0.6rem;color:#57c78a;letter-spacing:0.08em;">
   <span style="font-size:0.9rem;">←</span>
-  <span>Din analys är sparad — öppna historiken i sidebaren</span>
 </div>""", unsafe_allow_html=True)
     if st.button("✕ Ny analys — rensa", key="clear_btn"):
         st.session_state.result = None
