@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN v8.35 — STREAMLIT UI
+SANNINGSMASKINEN v8.36 — STREAMLIT UI
 Ändring från v8.17b:
   - Primäranalys renderas som formatterad artikel (markdown → HTML)
   - Tabeller, rubrikhierarki, TES/BEVIS/MOTARG i färgkodade sektioner
@@ -1059,10 +1059,29 @@ def _canon_rc_status(raw):
 
 def _parse_rc_structured(txt):
     items = []
-    for block in re.split(r'\n(?=\*{0,4}CLAIM\s*\d*:)', txt or "", flags=re.IGNORECASE):
-        c_m = re.search(r'CLAIM\s*\d*:\s*(.+?)(?:\n|$)', block, re.IGNORECASE)
-        s_m = re.search(r'(?<!ÖVERGRIPANDE )(?<!OVERALL )STATUS\s*:\s*\*{0,2}([^*\n]+?)\*{0,2}(?:\n|$)', block, re.IGNORECASE)
-        src_m = re.search(r'(?:SOURCE|KÄLLA)\s*:\s*(.+?)(?:\n|$)', block, re.IGNORECASE)
+    # Format A: pipe-separated single-line "CLAIM N: text | Status: X | Kalla: Y"
+    import re as _re
+    pipe_lines = [l.strip() for l in (txt or "").split("\n")
+                  if _re.search(r"CLAIM\s*\d*:", l, _re.IGNORECASE) and "|" in l]
+    for line in pipe_lines:
+        parts = [p.strip() for p in line.split("|")]
+        claim_raw = parts[0] if parts else ""
+        claim = _re.sub(r"^\*{0,4}CLAIM\s*\d*:\s*\*{0,2}", "", claim_raw, flags=_re.IGNORECASE).strip().strip("*")
+        raw_st = ""
+        src = ""
+        for p in parts[1:]:
+            if _re.match(r"\s*STATUS\s*:", p, _re.IGNORECASE):
+                raw_st = _re.sub(r"^\s*STATUS\s*:\s*", "", p, flags=_re.IGNORECASE).strip()
+            elif _re.match(r"\s*K[AÄ]LLA\s*:|SOURCE\s*:", p, _re.IGNORECASE):
+                src = _re.sub(r"^\s*K[AÄ]LLA\s*:|SOURCE\s*:", "", p, flags=_re.IGNORECASE).strip()
+        if len(claim) > 10:
+            items.append({"claim": claim[:220], "status": _canon_rc_status(raw_st), "source": src})
+    if items: return items[:6]
+    # Format B: multi-line blocks starting with CLAIM
+    for block in re.split(r"\n(?=\*{0,4}CLAIM\s*\d*:)", txt or "", flags=re.IGNORECASE):
+        c_m = re.search(r"CLAIM\s*\d*:\s*(.+?)(?:\n|$)", block, re.IGNORECASE)
+        s_m = re.search(r"(?<!ÖVERGRIPANDE )(?<!OVERALL )STATUS\s*:\s*\*{0,2}([^*\n]+?)\*{0,2}(?:\n|$)", block, re.IGNORECASE)
+        src_m = re.search(r"(?:SOURCE|KÄLLA)\s*:\s*(.+?)(?:\n|$)", block, re.IGNORECASE)
         if c_m:
             raw_st = s_m.group(1).strip() if s_m else ""
             items.append({"claim":c_m.group(1).strip(),"status":_canon_rc_status(raw_st),"source":src_m.group(1).strip() if src_m else ""})
@@ -1881,7 +1900,7 @@ st.markdown(f"""
     <span class="topbar-mark">◎ Sanningsmaskinen</span>
     <span class="topbar-title">Epistemiskt analysverktyg</span>
   </div>
-  <div class="topbar-right">v8.35 · Claude Opus + GPT-4o · {today_str}</div>
+  <div class="topbar-right">v8.36 · Claude Opus + GPT-4o · {today_str}</div>
 </div>
 <div class="topbar-sub">
   Analyserar komplexa frågor genom att väga konkurrerande hypoteser, granska evidens och falsifiera svagare förklaringar.
@@ -2390,7 +2409,7 @@ else:
     # ── Footer ─────────────────────────────────────────────────────────────────
     st.markdown(f"""
 <div class="footer">
-  Sanningsmaskinen v8.35 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
+  Sanningsmaskinen v8.36 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
   <span style="color:var(--ink3)">Sanningen favoriserar ingen sida.</span>
 </div>
 """, unsafe_allow_html=True)
