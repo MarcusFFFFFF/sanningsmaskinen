@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN v8.41 — STREAMLIT UI
+SANNINGSMASKINEN v8.42 — STREAMLIT UI
 Ändring från v8.17b:
   - Primäranalys renderas som formatterad artikel (markdown → HTML)
   - Tabeller, rubrikhierarki, TES/BEVIS/MOTARG i färgkodade sektioner
@@ -1931,7 +1931,7 @@ st.markdown(f"""
     <span class="topbar-mark">◎ Sanningsmaskinen</span>
     <span class="topbar-title">Epistemiskt analysverktyg</span>
   </div>
-  <div class="topbar-right">v8.41 · Claude Opus + GPT-4o · {today_str}</div>
+  <div class="topbar-right">v8.42 · Claude Opus + GPT-4o · {today_str}</div>
 </div>
 <div class="topbar-sub">
   Analyserar komplexa frågor genom att väga konkurrerande hypoteser, granska evidens och falsifiera svagare förklaringar.
@@ -2130,7 +2130,7 @@ if not st.session_state.result:
     # ── SENASTE ANALYSER på startsidan ─────────────────────────────────────────
     try:
         from history import list_history, load_result
-        _recent = list_history()[:5]
+        _recent = list_history()[:10]
         if _recent:
             st.markdown('''<div style="font-family:var(--mono);font-size:0.5rem;letter-spacing:0.25em;color:var(--ink4);margin:1.5rem 0 0.6rem 0;border-top:1px solid var(--border);padding-top:1rem;">SENASTE ANALYSER</div>''', unsafe_allow_html=True)
             for _e in _recent:
@@ -2492,7 +2492,7 @@ else:
     # ── Footer ─────────────────────────────────────────────────────────────────
     st.markdown(f"""
 <div class="footer">
-  Sanningsmaskinen v8.41 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
+  Sanningsmaskinen v8.42 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
   <span style="color:var(--ink3)">Sanningen favoriserar ingen sida.</span>
 </div>
 """, unsafe_allow_html=True)
