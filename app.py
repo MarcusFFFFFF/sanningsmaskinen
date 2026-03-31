@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN v8.37 — STREAMLIT UI
+SANNINGSMASKINEN v8.38 — STREAMLIT UI
 Ändring från v8.17b:
   - Primäranalys renderas som formatterad artikel (markdown → HTML)
   - Tabeller, rubrikhierarki, TES/BEVIS/MOTARG i färgkodade sektioner
@@ -1684,9 +1684,22 @@ with st.sidebar:
 </style>""", unsafe_allow_html=True)
 
     # ── SIDEBAR TABS: HISTORIK + OM VERKTYGET ───────────────────────────────
-    tab_hist, tab_om = st.tabs(["◎ Historik", "? Om"])
+    if "sidebar_tab" not in st.session_state: st.session_state.sidebar_tab = "historik"
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("◎ HISTORIK", key="sb_hist_btn", use_container_width=True,
+                     type="primary" if st.session_state.sidebar_tab=="historik" else "secondary"):
+            st.session_state.sidebar_tab = "historik"
+    with c2:
+        if st.button("? OM", key="sb_om_btn", use_container_width=True,
+                     type="primary" if st.session_state.sidebar_tab=="om" else "secondary"):
+            st.session_state.sidebar_tab = "om"
+    st.markdown("<hr style='margin:0.4rem 0;border-color:#1a2030;'>", unsafe_allow_html=True)
 
-    with tab_om:
+    _show_om = st.session_state.sidebar_tab == "om"
+    _show_hist = st.session_state.sidebar_tab == "historik"
+
+    if _show_om:
         st.markdown("""
 <div style="padding:0.5rem 0.2rem;font-family:'JetBrains Mono',monospace;">
 <div style="font-size:0.52rem;letter-spacing:0.3em;color:#57c78a;margin-bottom:0.8rem;">OM SANNINGSMASKINEN</div>
@@ -1734,7 +1747,7 @@ Vad är status Iran vs USA/Israel?
 </div>
 """, unsafe_allow_html=True)
 
-    with tab_hist:
+    if _show_hist:
         st.markdown('<div class="lib-header">Analysbibliotek</div>', unsafe_allow_html=True)
 
     # ── Imports ──────────────────────────────────────────────────────────────
@@ -1900,7 +1913,7 @@ st.markdown(f"""
     <span class="topbar-mark">◎ Sanningsmaskinen</span>
     <span class="topbar-title">Epistemiskt analysverktyg</span>
   </div>
-  <div class="topbar-right">v8.37 · Claude Opus + GPT-4o · {today_str}</div>
+  <div class="topbar-right">v8.38 · Claude Opus + GPT-4o · {today_str}</div>
 </div>
 <div class="topbar-sub">
   Analyserar komplexa frågor genom att väga konkurrerande hypoteser, granska evidens och falsifiera svagare förklaringar.
@@ -2431,7 +2444,7 @@ else:
     # ── Footer ─────────────────────────────────────────────────────────────────
     st.markdown(f"""
 <div class="footer">
-  Sanningsmaskinen v8.37 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
+  Sanningsmaskinen v8.38 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
   <span style="color:var(--ink3)">Sanningen favoriserar ingen sida.</span>
 </div>
 """, unsafe_allow_html=True)
