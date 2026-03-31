@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN v8.40 — STREAMLIT UI
+SANNINGSMASKINEN v8.41 — STREAMLIT UI
 Ändring från v8.17b:
   - Primäranalys renderas som formatterad artikel (markdown → HTML)
   - Tabeller, rubrikhierarki, TES/BEVIS/MOTARG i färgkodade sektioner
@@ -1931,7 +1931,7 @@ st.markdown(f"""
     <span class="topbar-mark">◎ Sanningsmaskinen</span>
     <span class="topbar-title">Epistemiskt analysverktyg</span>
   </div>
-  <div class="topbar-right">v8.40 · Claude Opus + GPT-4o · {today_str}</div>
+  <div class="topbar-right">v8.41 · Claude Opus + GPT-4o · {today_str}</div>
 </div>
 <div class="topbar-sub">
   Analyserar komplexa frågor genom att väga konkurrerande hypoteser, granska evidens och falsifiera svagare förklaringar.
@@ -2126,6 +2126,29 @@ if not st.session_state.result:
   </div>
 </div>
 """, unsafe_allow_html=True)
+
+    # ── SENASTE ANALYSER på startsidan ─────────────────────────────────────────
+    try:
+        from history import list_history, load_result
+        _recent = list_history()[:5]
+        if _recent:
+            st.markdown('''<div style="font-family:var(--mono);font-size:0.5rem;letter-spacing:0.25em;color:var(--ink4);margin:1.5rem 0 0.6rem 0;border-top:1px solid var(--border);padding-top:1rem;">SENASTE ANALYSER</div>''', unsafe_allow_html=True)
+            for _e in _recent:
+                _fn  = _e.get("filename","")
+                _q   = _e.get("question","(okänd fråga)")
+                _st  = _e.get("status","")
+                _ico = {"VERIFIED":"✓","ONGOING":"◉","UNVERIFIED":"✗","REVIDERAD":"↻","KLAR":"✓","DEGRADERAD":"⚠"}.get(_st.upper(),"·")
+                _col = {"KLAR":"#57c78a","REVIDERAD":"#e2b04c","DEGRADERAD":"#db6b57","VERIFIED":"#57c78a","ONGOING":"#6eb6ff","UNVERIFIED":"#db6b57"}.get(_st.upper(),"#4a5568")
+                _qlbl = (_q[:70]+"…") if len(_q)>70 else _q
+                if st.button(f"{_ico}  {_qlbl}", key=f"recent_{_fn}", use_container_width=True):
+                    _loaded = load_result(_fn)
+                    if _loaded:
+                        st.session_state.result = _loaded
+                        st.session_state.layers_generated = bool(_loaded.get("layers",{}).get("ground"))
+                        st.session_state.deep_generated = bool(_loaded.get("layers",{}).get("deep1"))
+                        st.rerun()
+    except Exception:
+        pass
 
 else:
     r  = st.session_state.result
@@ -2469,7 +2492,7 @@ else:
     # ── Footer ─────────────────────────────────────────────────────────────────
     st.markdown(f"""
 <div class="footer">
-  Sanningsmaskinen v8.40 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
+  Sanningsmaskinen v8.41 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
   <span style="color:var(--ink3)">Sanningen favoriserar ingen sida.</span>
 </div>
 """, unsafe_allow_html=True)
