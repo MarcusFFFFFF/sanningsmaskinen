@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN v8.36 — STREAMLIT UI
+SANNINGSMASKINEN v8.37 — STREAMLIT UI
 Ändring från v8.17b:
   - Primäranalys renderas som formatterad artikel (markdown → HTML)
   - Tabeller, rubrikhierarki, TES/BEVIS/MOTARG i färgkodade sektioner
@@ -1900,7 +1900,7 @@ st.markdown(f"""
     <span class="topbar-mark">◎ Sanningsmaskinen</span>
     <span class="topbar-title">Epistemiskt analysverktyg</span>
   </div>
-  <div class="topbar-right">v8.36 · Claude Opus + GPT-4o · {today_str}</div>
+  <div class="topbar-right">v8.37 · Claude Opus + GPT-4o · {today_str}</div>
 </div>
 <div class="topbar-sub">
   Analyserar komplexa frågor genom att väga konkurrerande hypoteser, granska evidens och falsifiera svagare förklaringar.
@@ -1990,13 +1990,28 @@ if run_btn and question.strip():
 # ── Confirm hypothetical ───────────────────────────────────────────────────────
 if st.session_state.awaiting_confirm:
     rc_tmp=st.session_state.get("_rc",{}); q_tmp=st.session_state.get("_question","")
-    st.markdown(f'<div class="degraded">HÄNDELSEN KAN INTE VERIFIERAS<br>{_safe(rc_tmp.get("text","")[:300])}<br><br>Fortsätta som hypotetiskt scenario?</div>', unsafe_allow_html=True)
+    rc_status_lbl = rc_tmp.get("status","UNVERIFIED")
+    st.markdown(f'''<div class="degraded" style="padding:1.2rem 1.4rem;border-radius:6px;margin-bottom:1rem;">
+  <div style="font-size:0.7rem;letter-spacing:0.12em;font-family:var(--mono);margin-bottom:0.5rem;">REALITY CHECK · {rc_status_lbl}</div>
+  <div style="font-size:1rem;font-weight:600;margin-bottom:0.4rem;">Händelsen kan inte verifieras som faktapåstående.</div>
+  <div style="font-size:0.85rem;opacity:0.8;">Vill du fortsätta analysen som ett hypotetiskt scenario?</div>
+</div>''', unsafe_allow_html=True)
     c1,c2 = st.columns([1,4])
+    _confirmed = False
     with c1:
-        if st.button("Ja, fortsätt"):
-            rc_tmp["proceed"]=True; st.session_state.awaiting_confirm=False; st.session_state.running=True
-            try:
-                from engine import (ask_claude,ask_gpt_critic,analyze_conflicts,run_red_team,auto_rewrite,assess_depth_recommendation)
+        if st.button("Ja, fortsätt", type="primary"):
+            _confirmed = True
+    with c2:
+        if st.button("Avbryt"):
+            st.session_state.awaiting_confirm=False; st.rerun()
+    if _confirmed:
+        rc_tmp["proceed"]=True
+        st.session_state.awaiting_confirm=False
+        st.session_state.running=True
+        _err = None
+        try:
+            from engine import (ask_claude,ask_gpt_critic,analyze_conflicts,run_red_team,auto_rewrite,assess_depth_recommendation)
+            with st.spinner("Analyserar — detta tar 30–60 sekunder..."):
                 ca=ask_claude(q_tmp,rc_tmp); ga=ask_gpt_critic(q_tmp,ca,rc_tmp["status"])
                 cf=analyze_conflicts(ca,ga); rr,sr=run_red_team(q_tmp,ca,cf)
                 rok=bool(rr and "misslyckades" not in rr.lower() and len(rr)>100)
@@ -2007,10 +2022,17 @@ if st.session_state.awaiting_confirm:
                      "status":"DEGRADERAD" if not rok else ("REVIDERAD" if fa else "KLAR")}
                 res["depth_recommendation"]=assess_depth_recommendation(res)
                 st.session_state.result=res
-            except Exception as e: st.error(f"Fel: {e}")
-            finally: st.session_state.running=False; st.rerun()
-    with c2:
-        if st.button("Avbryt"): st.session_state.awaiting_confirm=False; st.rerun()
+        except Exception as e:
+            _err = str(e)
+            st.session_state.awaiting_confirm=True
+            st.session_state._rc=rc_tmp
+            st.session_state._question=q_tmp
+        finally:
+            st.session_state.running=False
+        if _err:
+            st.error(f"Fel vid analys: {_err}")
+        else:
+            st.rerun()
 
 # ── Result view ────────────────────────────────────────────────────────────────
 if st.session_state.result:
@@ -2409,7 +2431,7 @@ else:
     # ── Footer ─────────────────────────────────────────────────────────────────
     st.markdown(f"""
 <div class="footer">
-  Sanningsmaskinen v8.36 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
+  Sanningsmaskinen v8.37 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
   <span style="color:var(--ink3)">Sanningen favoriserar ingen sida.</span>
 </div>
 """, unsafe_allow_html=True)
