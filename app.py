@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN v8.39 — STREAMLIT UI
+SANNINGSMASKINEN v8.40 — STREAMLIT UI
 Ändring från v8.17b:
   - Primäranalys renderas som formatterad artikel (markdown → HTML)
   - Tabeller, rubrikhierarki, TES/BEVIS/MOTARG i färgkodade sektioner
@@ -1931,7 +1931,7 @@ st.markdown(f"""
     <span class="topbar-mark">◎ Sanningsmaskinen</span>
     <span class="topbar-title">Epistemiskt analysverktyg</span>
   </div>
-  <div class="topbar-right">v8.39 · Claude Opus + GPT-4o · {today_str}</div>
+  <div class="topbar-right">v8.40 · Claude Opus + GPT-4o · {today_str}</div>
 </div>
 <div class="topbar-sub">
   Analyserar komplexa frågor genom att väga konkurrerande hypoteser, granska evidens och falsifiera svagare förklaringar.
@@ -2179,7 +2179,14 @@ else:
 </div>
 """, unsafe_allow_html=True)
 
-    # ── Ny analys-knapp ────────────────────────────────────────────────────────
+    # ── Ny analys-knapp + historik-prompt ─────────────────────────────────────
+    st.markdown("""
+<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;
+     font-family:var(--mono);font-size:0.6rem;color:#57c78a;letter-spacing:0.08em;">
+  <span style="font-size:0.9rem;">←</span>
+  <span>Din analys är sparad — öppna historiken i sidebaren</span>
+</div>""", unsafe_allow_html=True)
+    st.markdown('<div style="font-size:0.65rem;font-family:var(--mono);color:#57c78a;letter-spacing:0.08em;margin-bottom:0.5rem;opacity:0.8;">◂ Din analys är sparad — öppna historiken i sidebaren</div>', unsafe_allow_html=True)
     if st.button("✕ Ny analys — rensa", key="clear_btn"):
         st.session_state.result = None
         st.session_state.running = False
@@ -2462,7 +2469,7 @@ else:
     # ── Footer ─────────────────────────────────────────────────────────────────
     st.markdown(f"""
 <div class="footer">
-  Sanningsmaskinen v8.39 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
+  Sanningsmaskinen v8.40 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
   <span style="color:var(--ink3)">Sanningen favoriserar ingen sida.</span>
 </div>
 """, unsafe_allow_html=True)
