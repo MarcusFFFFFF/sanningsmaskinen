@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN v8.38 — STREAMLIT UI
+SANNINGSMASKINEN v8.39 — STREAMLIT UI
 Ändring från v8.17b:
   - Primäranalys renderas som formatterad artikel (markdown → HTML)
   - Tabeller, rubrikhierarki, TES/BEVIS/MOTARG i färgkodade sektioner
@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 st.set_page_config(page_title="Sanningsmaskinen", page_icon="◎", layout="wide",
-                   initial_sidebar_state="expanded")
+                   initial_sidebar_state="collapsed")
 
 st.markdown("""
 <style>
@@ -1813,6 +1813,24 @@ Vad är status Iran vs USA/Israel?
             st.markdown('<div class="lib-empty">Inga analyser matchar.</div>',
                         unsafe_allow_html=True)
         else:
+            # Pagination — max 20 per page to avoid Safari widget limit crash
+            PAGE_SIZE = 20
+            if "lib_page" not in st.session_state: st.session_state.lib_page = 0
+            total_pages = max(1, (len(filtered) - 1) // PAGE_SIZE + 1)
+            page = min(st.session_state.lib_page, total_pages - 1)
+            filtered = filtered[page * PAGE_SIZE:(page + 1) * PAGE_SIZE]
+            if total_pages > 1:
+                pc1, pc2, pc3 = st.columns([1,2,1])
+                with pc1:
+                    if page > 0:
+                        if st.button("← Nyare", key="lib_prev", use_container_width=True):
+                            st.session_state.lib_page = page - 1; st.rerun()
+                with pc2:
+                    st.markdown(f'<div style="text-align:center;font-size:.5rem;color:#666;padding:.3rem">{page+1}/{total_pages}</div>', unsafe_allow_html=True)
+                with pc3:
+                    if page < total_pages - 1:
+                        if st.button("Äldre →", key="lib_next", use_container_width=True):
+                            st.session_state.lib_page = page + 1; st.rerun()
             # ── Gruppera per dag ──────────────────────────────────────────────
             from collections import OrderedDict
             from datetime import datetime as _dt
@@ -1913,7 +1931,7 @@ st.markdown(f"""
     <span class="topbar-mark">◎ Sanningsmaskinen</span>
     <span class="topbar-title">Epistemiskt analysverktyg</span>
   </div>
-  <div class="topbar-right">v8.38 · Claude Opus + GPT-4o · {today_str}</div>
+  <div class="topbar-right">v8.39 · Claude Opus + GPT-4o · {today_str}</div>
 </div>
 <div class="topbar-sub">
   Analyserar komplexa frågor genom att väga konkurrerande hypoteser, granska evidens och falsifiera svagare förklaringar.
@@ -2444,7 +2462,7 @@ else:
     # ── Footer ─────────────────────────────────────────────────────────────────
     st.markdown(f"""
 <div class="footer">
-  Sanningsmaskinen v8.38 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
+  Sanningsmaskinen v8.39 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
   <span style="color:var(--ink3)">Sanningen favoriserar ingen sida.</span>
 </div>
 """, unsafe_allow_html=True)
