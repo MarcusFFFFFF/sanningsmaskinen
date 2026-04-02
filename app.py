@@ -41,6 +41,8 @@ html,body,[class*="css"]{background:var(--bg);color:var(--ink);font-family:var(-
 div[data-testid="stAppViewContainer"]{background:#0a0b0d}
 
 /* ── Sidebar — mörk editorial design med hårdkodade färger ── */
+div[data-testid="stSidebar"]{display:none!important;}
+div[data-testid="stSidebarCollapsedControl"]{display:none!important;}
 div[data-testid="stSidebar"]{
   background:#0f1115!important;
   border-right:1px solid #242c3a!important;
@@ -2128,7 +2130,9 @@ if not st.session_state.result:
 """, unsafe_allow_html=True)
 
     # ── SENASTE ANALYSER på startsidan ─────────────────────────────────────────
-    try:
+    # Tillfälligt avstängt
+    if False:
+      try:
         from history import list_history, load_result
         _recent = list_history()[:10]
         if _recent:
@@ -2147,7 +2151,7 @@ if not st.session_state.result:
                         st.session_state.layers_generated = bool(_loaded.get("layers",{}).get("ground"))
                         st.session_state.deep_generated = bool(_loaded.get("layers",{}).get("deep1"))
                         st.rerun()
-    except Exception:
+      except Exception:
         pass
 
 else:
