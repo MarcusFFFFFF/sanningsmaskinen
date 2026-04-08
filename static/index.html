@@ -550,7 +550,15 @@ function esc(s) {
 }
 
 function cleanText(s) {
-  return (s || '').replace(/\*+/g,'').replace(/#+/g,'').replace(/\[REVIDERAD VERSION\]/gi,'').trim();
+  return (s || '')
+    .replace(/\*\*[^*]+:\*\*/g, '')  // **BEVIS 1:** etc
+    .replace(/\*+/g,'')
+    .replace(/#{1,6}\s*/g,'')
+    .replace(/\[REVIDERAD VERSION\]/gi,'')
+    .replace(/\[[^\]]+\]\(https?:[^)]+\)/g, '')  // [text](url)
+    .replace(/\(https?:[^)]+\)/g, '')  // (url)
+    .replace(/---+/g,'')
+    .trim();
 }
 
 function cleanRTText(s) {
