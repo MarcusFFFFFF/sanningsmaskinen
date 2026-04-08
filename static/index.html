@@ -323,11 +323,13 @@ function renderResult(r) {
   </div>`;
 
   // Nytt fynd
-  const findingText = extractFinding(rc.text || r.claude_answer || '');
+  const articleText = (r.article || '').replace(/\*+/g,'').replace(/#{1,6}\s*/g,'').trim();
+  const findingText = articleText ? articleText.slice(0,300) : '';
+
   if (findingText) {
     html += `
   <div class="finding-block">
-    <div class="f-label"><div class="f-dot"></div>NYTT FYND — FRAMKOM EJ I PRIMÄRKÄLLORNAS URSPRUNGLIGA GRANSKNING</div>
+    <div class="f-label"><div class="f-dot"></div>BREAKING — SENASTE UTVECKLING</div>
     <div class="finding-text">${esc(findingText)}</div>
   </div>`;
   }
@@ -590,8 +592,14 @@ function confSegs(ranked) {
 function extractFinding(s) {
   // Extraherar det faktiska fyndet — hoppar över status-rubriker och claims
   const SKIP = ['övergripande status','overall status','claim ','statusbedömning',
-    'situationsöversikt','⚡','---','verifierade kärnpåståenden','senaste timmarnas'];
-  const lines = (s || '').split('\n').filter(l => {
+    'situationsöversikt','⚡','---','verifierade kärnpåståenden','senaste timmarnas',
+    'situationen är extremt','här är en faktaverifiering','dag ','eldupphör',
+    'fakta]','inferens]','trump ','usa och iran','iran och usa',
+    'claim 1','claim 2','claim 3','claim 4','claim 5',
+    'källa:','e-nivå','här är','fakta-verifiering'];
+  // Ta bort allt innan första riktiga meningen
+  const cleaned = (s || '').replace(/CLAIM\s*\d+[^\n]*/gi, '').replace(/ÖVERGRIPANDE STATUS[^\n]*/gi, '').replace(/SITUATIONSÖVERSIKT[^\n]*/gi, '').replace(/STATUSBEDÖMNING[^\n]*/gi, '');
+  const lines = cleaned.split('\n').filter(l => {
     const t = l.trim().toLowerCase();
     return t.length > 40 && !SKIP.some(sk => t.startsWith(sk)) && !t.startsWith('#');
   }).map(l => l.replace(/\*+/g,'').trim());
@@ -599,6 +607,7 @@ function extractFinding(s) {
 }
 
 function cleanEngineText(s) {
+  s = (s || '').replace(/\[FAKTA[^\]]*\]/g,'').replace(/\[INFERENS[^\]]*\]/g,'').replace(/\[DEBATTERAT[^\]]*\]/g,'');
   // Ta bort alla engine-prefix, markdown, interna kommandon
   const SKIP_STARTS = [
     'datum:','status:','sanningsmaskinen','[reviderad','jag söker','jag börjar',
@@ -609,7 +618,8 @@ function cleanEngineText(s) {
     'konfidensgrad:','inkorporerar','övergripande bedömning',
     'statusbedömning:','situationsöversikt','⚡','senaste timmarnas',
     'tvåveckors vapenvila','vapenvila meddelad','kriget pausat',
-    'verifierade kärnpåståenden','claim '
+    'verifierade kärnpåståenden','claim ','dag ','eldupphör annonserat',
+    'eldupphör —','pågående]','[pågående'
   ];
   return (s || '')
     .replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6}\s*/g,'')
