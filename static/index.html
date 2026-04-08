@@ -323,8 +323,8 @@ function renderResult(r) {
   </div>`;
 
   // Nytt fynd
-  if (rc.text) {
-    const findingText = cleanText(rc.text).slice(0, 300);
+  const findingText = extractFinding(rc.text || r.claude_answer || '');
+  if (findingText) {
     html += `
   <div class="finding-block">
     <div class="f-label"><div class="f-dot"></div>NYTT FYND — FRAMKOM EJ I PRIMÄRKÄLLORNAS URSPRUNGLIGA GRANSKNING</div>
@@ -549,16 +549,22 @@ function esc(s) {
   return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function cleanText(s) {
+
+function esc(s) {
   return (s || '')
-    .replace(/\*\*[^*]+:\*\*/g, '')  // **BEVIS 1:** etc
+    .replace(/\*\*[^*]+:\*\*/g, '')
     .replace(/\*+/g,'')
     .replace(/#{1,6}\s*/g,'')
     .replace(/\[REVIDERAD VERSION\]/gi,'')
-    .replace(/\[[^\]]+\]\(https?:[^)]+\)/g, '')  // [text](url)
-    .replace(/\(https?:[^)]+\)/g, '')  // (url)
+    .replace(/\[([^\]]+)\]\(https?:\/\/([^)]+)\)/g, (m, label, url) => {
+      return ' <a href="https://' + url + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;font-family:monospace;font-size:8px;padding:2px 6px;border-radius:3px;background:rgba(54,166,96,.07);border:1px solid rgba(54,166,96,.2);color:#36A660;text-decoration:none;vertical-align:middle;margin:0 2px;">' + label + '</a>';
+    })
+    .replace(/\(https?:[^)]+\)/g, '')
     .replace(/---+/g,'')
     .trim();
+}
+function cleanText(s) {
+  return (s || '').replace(/\*+/g,'').replace(/#+/g,'').replace(/\[REVIDERAD VERSION\]/gi,'').trim();
 }
 
 function cleanRTText(s) {
@@ -581,6 +587,17 @@ function confSegs(ranked) {
   return html;
 }
 
+function extractFinding(s) {
+  // Extraherar det faktiska fyndet — hoppar över status-rubriker och claims
+  const SKIP = ['övergripande status','overall status','claim ','statusbedömning',
+    'situationsöversikt','⚡','---','verifierade kärnpåståenden','senaste timmarnas'];
+  const lines = (s || '').split('\n').filter(l => {
+    const t = l.trim().toLowerCase();
+    return t.length > 40 && !SKIP.some(sk => t.startsWith(sk)) && !t.startsWith('#');
+  }).map(l => l.replace(/\*+/g,'').trim());
+  return lines.slice(0,2).join(' ').slice(0,300);
+}
+
 function cleanEngineText(s) {
   // Ta bort alla engine-prefix, markdown, interna kommandon
   const SKIP_STARTS = [
@@ -589,7 +606,10 @@ function cleanEngineText(s) {
     'nord stream-sprängningen —','vem sprängde nord stream?',
     'iran vs usa','iran-usa','reviderad version','uppdaterad:',
     'övergripande status','overall status','claim ','steg ','alt-tes',
-    'konfidensgrad:','inkorporerar','övergripande bedömning'
+    'konfidensgrad:','inkorporerar','övergripande bedömning',
+    'statusbedömning:','situationsöversikt','⚡','senaste timmarnas',
+    'tvåveckors vapenvila','vapenvila meddelad','kriget pausat',
+    'verifierade kärnpåståenden','claim '
   ];
   return (s || '')
     .replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6}\s*/g,'')

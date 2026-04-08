@@ -24,7 +24,7 @@ app = Flask(__name__, static_folder=_os.path.join(_BASE, "static"))
 
 @app.route("/")
 def index():
-    return send_from_directory("static", "index.html")
+    return open(os.path.join(_BASE, 'static', 'index.html')).read()
 
 
 @app.route("/analyze", methods=["POST"])
@@ -126,4 +126,4 @@ def _serialize(obj):
 
 if __name__ == "__main__":
     print("Sanningsmaskinen startar på http://localhost:5000")
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)
