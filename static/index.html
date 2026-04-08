@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sanningsmaskinen</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+:root {
+  --bg:#07070A; --surface:#0D0D11; --surface2:#131317; --surface3:#191920;
+  --border:#1E1E26; --border-show:#2E2E3A; --border-light:#3A3A4A;
+  --text:#EDEAE0; --text-body:#C4C0B6; --text-dim:#9A9690;
+  --text-muted:#585868; --text-label:#7A7888;
+  --green:#36A660; --green-glow:rgba(54,166,96,.07); --green-border:rgba(54,166,96,.2);
+  --amber:#D46C20; --amber-glow:rgba(212,108,32,.09); --amber-border:rgba(212,108,32,.22);
+  --red:#C43030; --red-glow:rgba(196,48,48,.08); --red-border:rgba(196,48,48,.22);
+  --blue:#48A8D4; --blue-glow:rgba(72,168,212,.07); --blue-border:rgba(72,168,212,.2);
+  --gold-bg:#F9F2D8; --gold-text:#181408; --gold-border:#B08808;
+  --gold-label:#7A6000;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;font-size:17px;line-height:1.72;}
+
+/* TOPBAR */
+.topbar{height:50px;border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;gap:14px;position:sticky;top:0;background:rgba(7,7,10,.97);backdrop-filter:blur(20px);z-index:100;}
+.logo-ring{width:22px;height:22px;border-radius:50%;border:1.5px solid #B08808;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-ring::after{content:'';width:7px;height:7px;background:#B08808;border-radius:50%;}
+.logo{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.24em;color:#A88020;text-transform:uppercase;}
+.tagline{font-style:italic;font-size:13px;color:var(--text-muted);font-weight:300;}
+.tb-right{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-muted);letter-spacing:.08em;}
+
+/* LAYOUT */
+.main{max-width:720px;margin:0 auto;padding:52px 28px 80px;}
+
+/* INPUT */
+.input-block{margin-bottom:48px;}
+.input-wrap{display:flex;gap:12px;align-items:flex-start;}
+textarea{flex:1;background:var(--surface);border:1px solid var(--border-show);border-radius:8px;padding:16px 18px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:300;resize:none;min-height:80px;outline:none;transition:border-color .15s;}
+textarea:focus{border-color:var(--border-light);}
+textarea::placeholder{color:var(--text-muted);}
+.analyze-btn{background:var(--text);color:var(--bg);border:none;border-radius:8px;padding:16px 24px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.12em;cursor:pointer;white-space:nowrap;transition:opacity .15s;}
+.analyze-btn:hover{opacity:.85;}
+.analyze-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* SECTION HEAD */
+.sec-head{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.24em;color:var(--text-label);text-transform:uppercase;font-weight:500;margin:2.4rem 0 1rem;display:flex;align-items:center;gap:12px;}
+.sec-head::after{content:'';flex:1;height:1px;background:var(--border-show);}
+
+/* QUESTION BLOCK */
+.q-block{margin-bottom:40px;padding-bottom:36px;position:relative;}
+.q-block::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--border-show) 0%,transparent 100%);}
+.q-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.28em;color:var(--text-muted);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.q-mode{font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 8px;border-radius:3px;background:var(--green-glow);color:var(--green);border:1px solid var(--green-border);}
+.q-text{font-family:'Instrument Serif',serif;font-size:21px;line-height:1.4;color:var(--text-dim);font-style:italic;}
+
+/* ANSWER */
+.answer-text{font-family:'Instrument Serif',serif;font-size:26px;line-height:1.45;color:var(--text);margin-bottom:14px;}
+.answer-sub{font-size:14px;color:var(--text-dim);font-style:italic;padding-left:14px;border-left:2px solid var(--border-show);margin-bottom:14px;}
+.answer-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border-show);margin-bottom:32px;}
+.conf-segs{display:flex;gap:3px;}
+.cseg{width:20px;height:3px;border-radius:2px;background:var(--border-show);}
+.cseg.on{background:var(--green);}
+.conf-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);}
+.chain{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-muted);display:flex;align-items:center;gap:5px;}
+.cs{padding:2px 6px;background:var(--green-glow);border:1px solid var(--green-border);border-radius:2px;color:var(--green);font-size:8px;}
+.ca{color:var(--border-light);}
+
+/* FINDING */
+.finding-block{background:var(--blue-glow);border:1px solid var(--blue-border);border-left:3px solid var(--blue);border-radius:8px;padding:18px 22px;margin-bottom:36px;}
+.f-label{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.22em;color:var(--blue);text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:8px;}
+.f-dot{width:5px;height:5px;border-radius:50%;background:var(--blue);animation:pulse 2s infinite;}
+.finding-text{font-size:15px;line-height:1.75;color:var(--text-body);}
+
+/* VAD VET VI */
+.article-text{font-size:16px;line-height:1.82;color:var(--text-body);margin-bottom:24px;}
+.article-text p{margin-bottom:14px;}
+
+/* H-KORT */
+.exp-row{display:flex;align-items:stretch;border:1px solid var(--border-show);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,background .15s;position:relative;overflow:hidden;background:var(--surface);}
+.exp-row:hover{border-color:var(--border-light);background:var(--surface2);}
+.exp-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.exp-row.high::before{background:var(--green);}
+.exp-row.med::before{background:var(--amber);}
+.exp-row.low::before{background:var(--text-muted);}
+.exp-pct-wrap{padding:18px 16px 18px 20px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;min-width:72px;flex-shrink:0;}
+.exp-pct{font-family:'Instrument Serif',serif;font-size:30px;line-height:1;}
+.ep-hi{color:var(--green);} .ep-md{color:var(--amber);} .ep-lo{color:var(--text-muted);}
+.exp-rank{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;color:var(--text-muted);}
+.exp-divider{width:1px;background:var(--border-show);flex-shrink:0;margin:12px 0;}
+.exp-content{flex:1;min-width:0;padding:16px 14px 16px 18px;}
+.exp-title{font-size:15px;font-weight:400;color:var(--text);line-height:1.5;margin-bottom:5px;}
+.exp-evidence{font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:10px;font-style:italic;}
+.exp-bottom{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.exp-verdict-h{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border-radius:3px;background:var(--green-glow);color:var(--green);border:1px solid var(--green-border);}
+.exp-verdict-p{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border-radius:3px;background:var(--amber-glow);color:var(--amber);border:1px solid var(--amber-border);}
+.exp-hint{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-muted);margin-top:6px;}
+.exp-chevron-wrap{padding:16px 14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.exp-chevron{font-size:20px;color:var(--border-light);transition:transform .2s;}
+.exp-row.open .exp-chevron{transform:rotate(90deg);}
+
+/* H-DETALJ */
+.hyp-detail{display:none;border:1px solid var(--border-show);border-top:none;border-radius:0 0 8px 8px;margin-top:-8px;margin-bottom:8px;background:var(--surface);}
+.hyp-detail.open{display:block;}
+.hd-sb{display:flex;align-items:center;gap:10px;padding:10px 18px 12px;border-bottom:1px solid var(--border);}
+.hd-sb-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text-muted);text-transform:uppercase;width:80px;flex-shrink:0;}
+.hd-sb-track{flex:1;height:4px;background:var(--border-show);border-radius:2px;overflow:hidden;}
+.hd-sb-fill{height:100%;border-radius:2px;}
+.sb-hi{background:var(--green);} .sb-md{background:var(--amber);} .sb-lo{background:var(--text-muted);}
+.hd-sb-val{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-muted);width:36px;text-align:right;}
+.hd-row{display:flex;gap:14px;padding:9px 18px;border-bottom:1px solid var(--border);font-size:13px;line-height:1.75;}
+.hd-row:last-child{border-bottom:none;}
+.hd-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;flex-shrink:0;width:80px;padding-top:2px;}
+.lbl-tes{color:var(--text-muted);} .lbl-bev{color:var(--green);} .lbl-mot{color:var(--amber);} .lbl-fal{color:var(--red);}
+.hd-txt{flex:1;color:var(--text-dim);}
+.fi-f{font-family:'JetBrains Mono',monospace;font-size:7.5px;padding:1px 5px;border-radius:3px;vertical-align:middle;margin-right:4px;background:var(--green-glow);color:var(--green);border:1px solid var(--green-border);}
+.fi-d{font-family:'JetBrains Mono',monospace;font-size:7.5px;padding:1px 5px;border-radius:3px;vertical-align:middle;margin-right:4px;background:var(--red-glow);color:var(--red);border:1px solid var(--red-border);}
+
+/* RED TEAM */
+.rt-block{background:linear-gradient(135deg,var(--amber-glow) 0%,transparent 60%);border:1px solid var(--amber-border);border-radius:10px;padding:22px 26px;margin-bottom:8px;}
+.rt-block.kollapsar{background:linear-gradient(135deg,var(--red-glow) 0%,transparent 60%);border-color:var(--red-border);}
+.rt-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:14px;}
+.rt-badge-wrap{flex-shrink:0;text-align:center;min-width:100px;}
+.rt-badge{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:4px 12px;border-radius:4px;display:block;text-align:center;background:var(--amber-glow);color:var(--amber);border:1px solid var(--amber-border);margin-bottom:4px;}
+.rt-badge.red{background:var(--red-glow);color:var(--red);border-color:var(--red-border);}
+.rt-word{font-family:'Instrument Serif',serif;font-size:32px;line-height:1;display:block;text-align:center;margin-bottom:4px;}
+.rt-word.grn{color:var(--green);} .rt-word.amb{color:var(--amber);} .rt-word.red{color:var(--red);}
+.rt-q{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text-muted);text-align:center;display:block;}
+.rt-title{font-size:15px;color:var(--text);margin-bottom:6px;}
+.rt-sub{font-size:14px;color:var(--text-dim);margin-bottom:10px;}
+.rt-chain{display:flex;align-items:center;flex-wrap:wrap;gap:5px;}
+.rt-step{font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 7px;border-radius:3px;color:var(--green);background:var(--green-glow);border:1px solid var(--green-border);}
+.rt-step.active{color:var(--amber);background:var(--amber-glow);border-color:var(--amber-border);font-weight:600;}
+.rt-arr{font-size:9px;color:var(--border-light);}
+.rt-expand-btn{width:100%;background:rgba(212,108,32,.05);border:none;border-top:1px solid var(--amber-border);padding:10px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;text-align:left;margin-top:14px;color:var(--amber);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.09em;}
+.rt-expand-btn.red{background:rgba(196,48,48,.05);border-top-color:var(--red-border);color:var(--red);}
+.rt-full{display:none;border-top:1px solid var(--amber-border);padding-top:16px;margin-top:8px;}
+.rt-full.open{display:block;}
+.rt-full p{font-size:13px;line-height:1.75;color:var(--text-dim);margin-bottom:10px;}
+
+/* VISA ARBETET */
+.deep-card{background:var(--surface);border:1px solid var(--border-show);border-radius:8px;overflow:hidden;margin-bottom:6px;}
+.deep-toggle{width:100%;background:transparent;border:none;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;text-align:left;}
+.deep-toggle:hover{background:var(--surface2);}
+.db-left{display:flex;align-items:center;gap:11px;}
+.db-icon{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);}
+.db-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;color:var(--text-dim);}
+.db-tag{font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 8px;border-radius:3px;background:var(--surface3);color:var(--text-muted);border:1px solid var(--border-show);}
+.deep-content{display:none;border-top:1px solid var(--border-show);padding:20px;}
+.deep-content.open{display:block;}
+.deep-content p{font-size:13px;line-height:1.75;color:var(--text-dim);margin-bottom:8px;}
+
+/* GOLD */
+.gold-spacer{height:52px;}
+.gold-block{background:var(--gold-bg);border:1px solid rgba(176,136,8,.2);border-left:4px solid var(--gold-border);border-radius:10px;padding:30px 32px 32px;margin-bottom:52px;}
+.gold-eyebrow{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.24em;color:var(--gold-label);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.gold-dot{width:6px;height:6px;border-radius:50%;background:var(--gold-border);}
+.gold-h{font-family:'Instrument Serif',serif;font-size:23px;line-height:1.35;color:var(--gold-text);font-weight:700;margin-bottom:18px;}
+.gold-body{font-size:16px;line-height:1.82;color:var(--gold-text);opacity:.88;}
+.gold-body p{margin-bottom:14px;}
+.gold-rev{margin-top:14px;padding:10px 14px;background:rgba(212,108,32,.08);border-left:2px solid var(--amber);border-radius:4px;font-size:13px;color:#5A3008;font-style:italic;}
+.gold-action{margin-top:14px;padding:10px 14px;background:rgba(176,136,8,.09);border-left:2px solid var(--gold-border);border-radius:4px;font-size:14px;color:var(--gold-text);opacity:.75;font-style:italic;}
+
+/* EXPORT */
+.export-row{display:flex;gap:8px;flex-wrap:wrap;padding-top:20px;border-top:1px solid var(--border-show);}
+.exp-btn{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;padding:9px 16px;border-radius:7px;cursor:pointer;border:1px solid var(--border-light);background:var(--surface2);color:var(--text-dim);transition:all .13s;}
+.exp-btn:hover{color:var(--text);background:var(--surface3);}
+.exp-btn.primary{background:var(--surface3);color:var(--text);}
+
+/* FOOTER */
+.footer{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.08em;color:var(--text-muted);text-align:center;padding:24px 0 0;margin-top:28px;border-top:1px solid var(--border-show);line-height:1.9;}
+
+/* LOADING */
+.loading{display:none;text-align:center;padding:48px 0;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--text-muted);}
+.loading.visible{display:block;}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border-show);border-top-color:var(--green);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:12px;}
+
+/* HISTORY SIDEBAR */
+.sidebar{position:fixed;left:0;top:50px;bottom:0;width:280px;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:16px;transform:translateX(-100%);transition:transform .2s;}
+.sidebar.open{transform:translateX(0);}
+.sidebar-toggle{position:fixed;left:12px;top:62px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-muted);background:transparent;border:1px solid var(--border-show);border-radius:4px;padding:4px 8px;cursor:pointer;z-index:99;}
+.hist-item{padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .13s;}
+.hist-item:hover{background:var(--surface2);}
+.hist-q{font-size:12px;color:var(--text-dim);margin-bottom:3px;}
+.hist-meta{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text-muted);}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-ring"></div>
+  <span class="logo">Sanningsmaskinen</span>
+  <span class="tagline">Vet vad du kan bevisa.</span>
+  <div class="tb-right" id="tb-right">v8.44 · Claude Opus 4.6 + GPT-4o</div>
+</div>
+
+<button class="sidebar-toggle" onclick="toggleSidebar()">☰ Historik</button>
+
+<div class="sidebar" id="sidebar">
+  <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;margin-bottom:12px;">Analyshistorik</div>
+  <div id="hist-list"></div>
+</div>
+
+<div class="main" id="main">
+
+  <!-- INPUT -->
+  <div class="input-block" id="input-block">
+    <div class="input-wrap">
+      <textarea id="question-input" placeholder="Vem sprängde Nord Stream? · Varför invaderade USA Irak 2003? · Vad förklarar SDs framgångar?" rows="3"></textarea>
+      <button class="analyze-btn" id="analyze-btn" onclick="runAnalysis()">ANALYSERA →</button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div><br>
+    Analyserar · Hämtar källor · Kör Red Team
+  </div>
+
+  <!-- RESULT -->
+  <div id="result" style="display:none;"></div>
+
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentResult = null;
+
+// ── ANALYSE ───────────────────────────────────────────────────────────────────
+async function runAnalysis() {
+  const q = document.getElementById('question-input').value.trim();
+  if (!q) return;
+
+  document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('result').style.display = 'none';
+
+  try {
+    const res = await fetch('/analyze', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question: q})
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    currentResult = data;
+    renderResult(data);
+    loadHistory();
+  } catch(e) {
+    document.getElementById('result').innerHTML = '<p style="color:var(--red);padding:20px;">Fel: ' + e.message + '</p>';
+    document.getElementById('result').style.display = 'block';
+  } finally {
+    document.getElementById('analyze-btn').disabled = false;
+    document.getElementById('loading').classList.remove('visible');
+  }
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function parseHypotheses(claudeAnswer) {
+  // Parsar H1/H2/H3 direkt från claude_answer-råtext
+  const blocks = (claudeAnswer || '').split(/(?=###\s*H[123])/);
+  const ranked = [];
+  blocks.forEach(block => {
+    const keyM = block.match(/###\s*(H[123])\s*\[([^\]]+)\]\s*[—-]+\s*(.+)/);
+    if (!keyM) return;
+    const key = keyM[1], label = keyM[2].trim(), title = keyM[3].trim();
+    const tesM = block.match(/\*\*TES:\*\*\s*(.+?)(?=\n\*\*|\n###|$)/s);
+    const tes = tesM ? tesM[1].replace(/\n/g,' ').trim() : '';
+    const styM = block.match(/\*\*STYRKA:\*\*\s*(HÖG|MEDEL|LÅG)/i);
+    const styrka = styM ? styM[1].toUpperCase() : 'MEDEL';
+    const conf = styrka === 'HÖG' ? 0.85 : styrka === 'LÅG' ? 0.25 : 0.55;
+    // Bevis
+    const bevSection = block.match(/\*\*TES:\*\*.+?(?=\*\*MOTARG|\*\*STYRKA|###|$)/s);
+    const bevLines = bevSection ? bevSection[0].split('\n').filter(l => l.trim().length > 20 && !l.includes('**TES')).slice(0,4) : [];
+    // Motarg
+    const motM = block.match(/\*\*MOTARG(?:UMENT)?:\*\*\s*(.+?)(?=\n\*\*|\n###|$)/s);
+    const motarg = motM ? [motM[1].replace(/\n/g,' ').trim()] : [];
+    // Falsifiering
+    const falM = block.match(/\*\*FALSIF[^:]*:\*\*\s*(.+?)(?=\n\*\*|\n###|$)/s);
+    const falsifiering = falM ? falM[1].replace(/\n/g,' ').trim() : '';
+    ranked.push({key, label, title, tes, styrka, conf, conf_pct: Math.round(conf*100), bevis: bevLines.map(l => l.trim()), motarg, falsifiering});
+  });
+  return ranked.sort((a,b) => b.conf - a.conf);
+}
+
+function renderResult(r) {
+  const ranked = (r.ranked && r.ranked.length > 0) ? r.ranked : parseHypotheses(r.claude_answer || '');
+  const rc = r.reality_check || {};
+  const verdict = getVerdict(r.red_team_report || '');
+  const today = new Date().toISOString().slice(0,10);
+
+  let html = '';
+
+  // Frågeblock
+  html += `
+  <div class="q-block">
+    <div class="q-label">FRÅGA <span class="q-mode">@ GRAVANDE JOURNALISTIK</span></div>
+    <div class="q-text">${esc(r.question)}</div>
+  </div>`;
+
+  // BLUF
+  const bluf = (ranked[0] && ranked[0].tes) ? ranked[0].tes : (cleanEngineText(r.claude_answer || '')[0] || '');
+  const sub = (ranked[0] && ranked[0].title) ? ranked[0].title : '';
+  html += `
+  <div class="answer-text">${esc(bluf)}</div>
+  ${sub ? `<div class="answer-sub">${esc(sub)}</div>` : ''}
+  <div class="answer-meta">
+    <div class="conf-wrap" style="display:flex;align-items:center;gap:9px;">
+      <div class="conf-segs">${confSegs(ranked)}</div>
+      <span class="conf-lbl" style="font-family:'JetBrains Mono',monospace;font-size:9px;">Medel tillförlitlighet</span>
+    </div>
+    <div class="chain">
+      <span class="cs">Primäranalys</span><span class="ca">→</span>
+      <span class="cs">GPT-kritik</span><span class="ca">→</span>
+      <span class="cs">Konflikt</span><span class="ca">→</span>
+      <span class="cs">Red Team</span><span class="ca">→</span>
+      <span class="cs">Reviderad</span>
+    </div>
+  </div>`;
+
+  // Nytt fynd
+  if (rc.text) {
+    const findingText = cleanText(rc.text).slice(0, 300);
+    html += `
+  <div class="finding-block">
+    <div class="f-label"><div class="f-dot"></div>NYTT FYND — FRAMKOM EJ I PRIMÄRKÄLLORNAS URSPRUNGLIGA GRANSKNING</div>
+    <div class="finding-text">${esc(findingText)}</div>
+  </div>`;
+  }
+
+  // Vad vet vi
+  const vadVetVi = extractVadVetVi(r);
+  if (vadVetVi) {
+    html += `<div class="sec-head">Vad vet vi</div><div class="article-text">${vadVetVi}</div>`;
+  }
+
+  // H-kort
+  html += `<div class="sec-head">Tre förklaringar — vad håller</div>`;
+  ranked.slice(0,3).forEach((h, i) => {
+    html += renderHCard(h, i);
+  });
+
+  // Red Team
+  html += renderRedTeam(r.red_team_report || '', verdict);
+
+  // Visa arbetet
+  html += `<div class="sec-head">Visa arbetet</div>`;
+  html += renderDeepCard('cf', 'Konfliktanalys — var Claude och GPT-4o var oense', r.conflict_report || '');
+  html += renderNerdCard(r, verdict);
+
+  // Guld
+  html += renderGold(r, ranked);
+
+  // Export
+  html += `
+  <div class="export-row">
+    <button class="exp-btn primary" onclick="downloadText()">↓ Textbriefing — komplett analys</button>
+    <button class="exp-btn" onclick="downloadRC()">↓ Reality Check</button>
+  </div>`;
+
+  // Footer
+  html += `<div class="footer">Sanningsmaskinen v8.44 · ${today} · ${esc(r.status || 'KLAR')}<br><span style="color:var(--border-show);">Claude Opus 4.6 + GPT-4o · Fyra granskningssteg · Källgradering E1–E5</span></div>`;
+
+  const el = document.getElementById('result');
+  el.innerHTML = html;
+  el.style.display = 'block';
+  el.scrollIntoView({behavior:'smooth'});
+}
+
+function renderHCard(h, i) {
+  const pct = Math.min(100, Math.round((h.conf_pct || h.conf * 100 || 50)));
+  const key = h.key || ('H' + (i+1));
+  const lbl = h.label || '';
+  const title = h.title || lbl;
+  const tes = (h.tes || '').slice(0, 180);
+  const styrka = (h.styrka || 'MEDEL').toUpperCase();
+  const isHigh = i === 0 && pct >= 60;
+  const rowCls = isHigh ? 'high' : (pct < 35 ? 'low' : 'med');
+  const pctCls = isHigh ? 'ep-hi' : (pct < 35 ? 'ep-lo' : 'ep-md');
+  const sbCls = isHigh ? 'sb-hi' : (pct < 35 ? 'sb-lo' : 'sb-md');
+  const verdHtml = isHigh
+    ? '<span class="exp-verdict-h">HÅLLER</span>'
+    : '<span class="exp-verdict-p">DELVIS STÖD</span>';
+  const uid = 'hd' + i;
+
+  const bevs = (h.bevis || []).slice(0,4).filter(b => b && b.length > 8);
+  const mots = (h.motarg || []).slice(0,2).filter(m => m && m.length > 8);
+  const fals = h.falsifiering || '';
+
+  let detailHtml = `
+    <div class="hd-sb">
+      <span class="hd-sb-lbl">Bevisstyrka</span>
+      <div class="hd-sb-track"><div class="hd-sb-fill ${sbCls}" style="width:${pct}%"></div></div>
+      <span class="hd-sb-val">${styrka}</span>
+    </div>
+    <div class="hd-row"><span class="hd-lbl lbl-tes">TES</span><div class="hd-txt">${esc(h.tes || '—')}</div></div>`;
+
+  bevs.forEach(b => {
+    detailHtml += `<div class="hd-row"><span class="hd-lbl lbl-bev">BEVIS</span><div class="hd-txt"><span class="fi-f">FAKTA</span>${esc(b)}</div></div>`;
+  });
+  mots.forEach(m => {
+    detailHtml += `<div class="hd-row"><span class="hd-lbl lbl-mot">MOTARG</span><div class="hd-txt">${esc(m)}</div></div>`;
+  });
+  if (fals) {
+    detailHtml += `<div class="hd-row"><span class="hd-lbl lbl-fal">FALSIF OM</span><div class="hd-txt"><span class="fi-d">DEBATTERAT</span>${esc(fals)}</div></div>`;
+  }
+
+  return `
+  <div class="exp-row ${rowCls}" id="card${uid}" onclick="toggleH('${uid}')">
+    <div class="exp-pct-wrap">
+      <div class="exp-pct ${pctCls}">${pct}%</div>
+      <div class="exp-rank">#${i+1}</div>
+    </div>
+    <div class="exp-divider"></div>
+    <div class="exp-content">
+      <div class="exp-title"><strong>${esc(key)} [${esc(lbl)}]</strong> &mdash; ${esc(title)}</div>
+      <div class="exp-evidence">${esc(tes)}</div>
+      <div class="exp-bottom">${verdHtml}</div>
+      <div class="exp-hint">&#9658; Visa TES &middot; BEVIS &middot; FALSIFIERAS OM</div>
+    </div>
+    <div class="exp-chevron-wrap"><span class="exp-chevron">&#8250;</span></div>
+  </div>
+  <div class="hyp-detail" id="${uid}">${detailHtml}</div>`;
+}
+
+function toggleH(uid) {
+  document.querySelectorAll('.hyp-detail').forEach(el => {
+    if (el.id !== uid) { el.classList.remove('open'); el.style.display = 'none'; }
+    document.querySelectorAll('.exp-row').forEach(r => r.classList.remove('open'));
+  });
+  const el = document.getElementById(uid);
+  const card = document.getElementById('card' + uid);
+  const isOpen = el.classList.contains('open');
+  if (isOpen) {
+    el.classList.remove('open'); el.style.display = 'none';
+    if (card) card.classList.remove('open');
+  } else {
+    el.style.display = 'block'; el.classList.add('open');
+    if (card) card.classList.add('open');
+  }
+}
+
+function renderRedTeam(txt, verdict) {
+  const {cls, word, summary} = verdict;
+  const isKollapsar = cls === 'red';
+  const blockCls = isKollapsar ? 'rt-block kollapsar' : 'rt-block';
+  const badgeCls = isKollapsar ? 'rt-badge red' : 'rt-badge';
+  const wordCls = 'rt-word ' + cls;
+  const btnCls = isKollapsar ? 'rt-expand-btn red' : 'rt-expand-btn';
+  const clean = cleanRTText(txt).slice(0, 2000);
+
+  return `
+  <div class="sec-head">Red Team — oberoende granskning</div>
+  <div class="${blockCls}">
+    <div class="rt-top">
+      <div class="rt-badge-wrap">
+        <span class="${badgeCls}">Red Team</span>
+        <span class="${wordCls}">${word}</span>
+        <span class="rt-q">Försökte motbevisa</span>
+      </div>
+      <div>
+        <div class="rt-title">En oberoende AI försökte aktivt förstöra analysen.</div>
+        <div class="rt-sub">KRITIK — ${summary}</div>
+        <div class="rt-chain">
+          <span class="rt-step">Primäranalys</span><span class="rt-arr">→</span>
+          <span class="rt-step">GPT-kritik</span><span class="rt-arr">→</span>
+          <span class="rt-step">Konfliktanalys</span><span class="rt-arr">→</span>
+          <span class="rt-step active">Red Team ✓</span><span class="rt-arr">→</span>
+          <span class="rt-step">Reviderad</span>
+        </div>
+      </div>
+    </div>
+    <button class="${btnCls}" onclick="toggleDeep('rt-full','rt-icon')">
+      <span id="rt-icon">▶</span>
+      <span>Läs hela Red Team-analysen — vad den försökte motbevisa och hur</span>
+    </button>
+    <div class="rt-full" id="rt-full">
+      <p>${esc(clean)}</p>
+    </div>
+  </div>`;
+}
+
+function renderDeepCard(id, title, content) {
+  const clean = cleanText(content).slice(0, 3000);
+  return `
+  <div class="deep-card">
+    <button class="deep-toggle" onclick="toggleDeep('${id}','${id}-icon')">
+      <div class="db-left">
+        <span class="db-icon" id="${id}-icon">▶</span>
+        <span class="db-title">${title}</span>
+      </div>
+    </button>
+    <div class="deep-content" id="${id}">
+      <p>${esc(clean)}</p>
+    </div>
+  </div>`;
+}
+
+function renderNerdCard(r, verdict) {
+  return `
+  <div class="deep-card">
+    <button class="deep-toggle" onclick="toggleDeep('nerd','nerd-icon')">
+      <div class="db-left">
+        <span class="db-icon" id="nerd-icon">▶</span>
+        <span class="db-title">Analysteknisk information — hur analysen byggdes</span>
+      </div>
+      <span class="db-tag">5 steg</span>
+    </button>
+    <div class="deep-content" id="nerd">
+      <div style="font-size:13px;line-height:1.75;color:var(--text-dim);">
+        <div style="margin-bottom:8px;"><span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green);margin-right:10px;">Steg 1</span>Primäranalys av Claude Opus 4.6 med H1/H2/H3, FAKTA/INFERENS/DEBATTERAT-märkning och E1–E5 källgradering.</div>
+        <div style="margin-bottom:8px;"><span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green);margin-right:10px;">Steg 2</span>Destruktiv kritik av GPT-4o — instruerat att aktivt söka svagheter.</div>
+        <div style="margin-bottom:8px;"><span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green);margin-right:10px;">Steg 3</span>Konfliktanalys — meningsskiljaktigheter identifierades och vägdes.</div>
+        <div style="margin-bottom:8px;"><span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--amber);margin-right:10px;">Steg 4</span>Red Team: ${verdict.word}.</div>
+        <div><span style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green);margin-right:10px;">Steg 5</span>Auto-rewrite genomförd. Status: ${esc(r.status || 'KLAR')}.</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderGold(r, ranked) {
+  const heading = ranked[0] ? ranked[0].tes : '';
+  const body = extractGoldBody(r);
+  const revised = r.status === 'REVIDERAD';
+  return `
+  <div class="gold-spacer"></div>
+  <div class="gold-block">
+    <div class="gold-eyebrow"><div class="gold-dot"></div>Reviderad analys — destillatet av fyra granskningssteg</div>
+    <div class="gold-h">${esc(heading)}</div>
+    <div class="gold-body">${body}</div>
+    ${revised ? '<div class="gold-rev"><strong>Reviderad:</strong> Primäranalysen justerades av Red Team-granskningen. Kärnsvaret kvarstår — se konfliktanalysen för detaljer.</div>' : ''}
+  </div>`;
+}
+
+function toggleDeep(id, iconId) {
+  const el = document.getElementById(id);
+  const ic = document.getElementById(iconId);
+  const open = el.classList.contains('open');
+  el.classList.toggle('open', !open);
+  if (ic) ic.textContent = open ? '▶' : '▼';
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function cleanText(s) {
+  return (s || '').replace(/\*+/g,'').replace(/#+/g,'').replace(/\[REVIDERAD VERSION\]/gi,'').trim();
+}
+
+function cleanRTText(s) {
+  const skip = ['STEG 1','STEG 2','STEG 3','STEG 4','ALT-TES','ALT-BEVIS','VARFÖR CLAUDE','T1-PREMISS','T3-KÄLL','T4-CLAIM'];
+  return (s || '').split('\n').filter(l => !skip.some(k => l.trim().toUpperCase().startsWith(k))).join('\n').replace(/\*+/g,'').replace(/#+/g,'').trim();
+}
+
+function getVerdict(txt) {
+  const up = (txt || '').toUpperCase();
+  if (up.includes('KOLLAPSAR')) return {cls:'red', word:'KOLLAPSAR', summary:'Alternativ tolkning kräver omskrivning'};
+  if (up.includes('MODIFIERAS')) return {cls:'amb', word:'MODIFIERAS', summary:'Analysen justeras utifrån alternativ modell'};
+  return {cls:'grn', word:'HÅLLER', summary:'Primäranalysen bekräftad av Red Team'};
+}
+
+function confSegs(ranked) {
+  const pct = ranked[0] ? Math.min(100, Math.round(ranked[0].conf_pct || ranked[0].conf * 100 || 50)) : 50;
+  const filled = Math.round(pct / 20);
+  let html = '';
+  for (let i = 0; i < 5; i++) html += `<div class="cseg${i < filled ? ' on' : ''}"></div>`;
+  return html;
+}
+
+function cleanEngineText(s) {
+  // Ta bort alla engine-prefix, markdown, interna kommandon
+  const SKIP_STARTS = [
+    'datum:','status:','sanningsmaskinen','[reviderad','jag söker','jag börjar',
+    'let me','i\'ll search','låt mig','🔴','---','###','##','#',
+    'nord stream-sprängningen —','vem sprängde nord stream?',
+    'iran vs usa','iran-usa','reviderad version','uppdaterad:',
+    'övergripande status','overall status','claim ','steg ','alt-tes',
+    'konfidensgrad:','inkorporerar','övergripande bedömning'
+  ];
+  return (s || '')
+    .replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6}\s*/g,'')
+    .replace(/\[REVIDERAD VERSION\]/gi,'')
+    .split('\n')
+    .filter(l => {
+      const t = l.trim().toLowerCase();
+      return t.length > 30 && !SKIP_STARTS.some(sk => t.startsWith(sk));
+    })
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
+}
+
+function extractVadVetVi(r) {
+  // Föredra claude_answer för faktainnehåll — final_analysis kan ha breaking-news-prefix
+  const src = r.claude_answer || r.final_analysis || '';
+  const lines = cleanEngineText(src);
+  // Ta rader som ser ut som faktameningar (inte hypotes-headers)
+  const paras = lines.filter(l => {
+    const u = l.toUpperCase();
+    return !u.startsWith('H1') && !u.startsWith('H2') && !u.startsWith('H3')
+      && !u.startsWith('TES:') && !u.startsWith('BEVIS:') && !u.startsWith('MOTARG')
+      && !u.startsWith('STYRKA:') && !u.startsWith('FALSIF');
+  }).slice(0, 3);
+  return paras.map(p => `<p>${esc(p)}</p>`).join('');
+}
+
+function extractGoldBody(r) {
+  // Guld-body: rena analytiska stycken, inte breaking-news
+  const src = r.final_analysis || r.claude_answer || '';
+  const lines = cleanEngineText(src);
+  const paras = lines.filter(l => {
+    const u = l.toUpperCase();
+    return l.length > 60
+      && !u.startsWith('H1') && !u.startsWith('H2') && !u.startsWith('H3')
+      && !u.startsWith('TES:') && !u.startsWith('BEVIS:') && !u.startsWith('MOTARG')
+      && !u.startsWith('STYRKA:') && !u.startsWith('FALSIF');
+  }).slice(0, 4);
+  return paras.map(p => `<p>${esc(p)}</p>`).join('');
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+async function loadHistory() {
+  try {
+    const res = await fetch('/history');
+    const entries = await res.json();
+    const list = document.getElementById('hist-list');
+    list.innerHTML = entries.map(e => `
+      <div class="hist-item" onclick="loadHistEntry('${e.filename}')">
+        <div class="hist-q">${esc((e.question||'').slice(0,60))}</div>
+        <div class="hist-meta">${e.status || ''} · ${(e.timestamp||'').slice(0,8)}</div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+async function loadHistEntry(filename) {
+  try {
+    const res = await fetch('/history/' + filename);
+    const data = await res.json();
+    currentResult = data;
+    document.getElementById('question-input').value = data.question || '';
+    renderResult(data);
+    toggleSidebar();
+  } catch(e) {}
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+function downloadText() {
+  if (!currentResult) return;
+  const r = currentResult;
+  const txt = [
+    'SANNINGSMASKINEN — INTELLIGENCE BRIEF',
+    'Fråga: ' + (r.question || ''),
+    '',
+    'SVAR:',
+    (r.ranked || [])[0]?.tes || '',
+    '',
+    'REVIDERAD ANALYS:',
+    cleanText(r.final_analysis || r.claude_answer || ''),
+  ].join('\n');
+  const blob = new Blob([txt], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sanningsmaskinen_brief.txt';
+  a.click();
+}
+
+function downloadRC() {
+  if (!currentResult) return;
+  const rc = currentResult.reality_check || {};
+  const txt = 'REALITY CHECK\n\n' + (rc.text || 'Ingen reality check tillgänglig.');
+  const blob = new Blob([txt], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'reality_check.txt';
+  a.click();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.getElementById('question-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.metaKey) runAnalysis();
+});
+
+loadHistory();
+</script>
+</body>
+</html>
