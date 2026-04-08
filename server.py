@@ -65,7 +65,7 @@ def analyze():
 @app.route("/history", methods=["GET"])
 def history():
     entries = []
-    history_dir = os.path.join(os.path.dirname(__file__), "history")
+    history_dir = os.path.join(_BASE, "history")
     if os.path.isdir(history_dir):
         files = sorted(
             [f for f in os.listdir(history_dir) if f.endswith(".json")],
@@ -87,13 +87,15 @@ def history():
     return jsonify(entries)
 
 
-@app.route("/history/<filename>", methods=["GET"])
+@app.route("/history/<path:filename>", methods=["GET"])
 def load_history(filename):
-    history_dir = os.path.join(os.path.dirname(__file__), "history")
+    from urllib.parse import unquote
+    filename = unquote(filename)
+    history_dir = os.path.join(_BASE, "history")
     path = os.path.join(history_dir, filename)
     if not os.path.exists(path):
         return jsonify({"error": "Hittades inte"}), 404
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return jsonify(json.load(f))
 
 

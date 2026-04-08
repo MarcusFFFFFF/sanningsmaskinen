@@ -402,7 +402,7 @@ function renderHCard(h, i) {
     <div class="hd-row"><span class="hd-lbl lbl-tes">TES</span><div class="hd-txt">${esc(h.tes || '—')}</div></div>`;
 
   bevs.forEach(b => {
-    detailHtml += `<div class="hd-row"><span class="hd-lbl lbl-bev">BEVIS</span><div class="hd-txt"><span class="fi-f">FAKTA</span>${esc(b)}</div></div>`;
+    detailHtml += `<div class="hd-row"><span class="hd-lbl lbl-bev">BEVIS</span><div class="hd-txt"><span class="fi-f">FAKTA</span>${linkify(b)}</div></div>`;
   });
   mots.forEach(m => {
     detailHtml += `<div class="hd-row"><span class="hd-lbl lbl-mot">MOTARG</span><div class="hd-txt">${esc(m)}</div></div>`;
@@ -487,7 +487,7 @@ function renderRedTeam(txt, verdict) {
 }
 
 function renderDeepCard(id, title, content) {
-  const clean = cleanText(content).slice(0, 3000);
+  const clean = linkify(cleanText(content).slice(0, 3000));
   return `
   <div class="deep-card">
     <button class="deep-toggle" onclick="toggleDeep('${id}','${id}-icon')">
@@ -526,7 +526,7 @@ function renderNerdCard(r, verdict) {
 
 function renderGold(r, ranked) {
   const heading = ranked[0] ? ranked[0].tes : '';
-  const body = extractGoldBody(r);
+  const body = extractGoldBody(r);  // linkify körs inuti extractGoldBody
   const revised = r.status === 'REVIDERAD';
   return `
   <div class="gold-spacer"></div>
@@ -563,6 +563,20 @@ function esc(s) {
     })
     .replace(/\(https?:[^)]+\)/g, '')
     .replace(/---+/g,'')
+    .trim();
+}
+
+function linkify(s) {
+  return (s || '')
+    .replace(/\*\*[^*]+:\*\*/g, '')
+    .replace(/\*+/g, '')
+    .replace(/#{1,6}\s*/g, '')
+    .replace(/\[REVIDERAD VERSION\]/gi, '')
+    .replace(/\[([^\]]+)\]\(https?:\/\/([^)]+)\)/g, function(m, label, url) {
+      return ' <a href="https://' + url + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;font-family:monospace;font-size:8px;padding:2px 6px;border-radius:3px;background:rgba(54,166,96,.07);border:1px solid rgba(54,166,96,.2);color:#36A660;text-decoration:none;vertical-align:middle;margin:0 2px;">' + label + '</a>';
+    })
+    .replace(/\(https?:[^)]+\)/g, '')
+    .replace(/---+/g, '')
     .trim();
 }
 function cleanText(s) {
@@ -644,7 +658,7 @@ function extractVadVetVi(r) {
       && !u.startsWith('TES:') && !u.startsWith('BEVIS:') && !u.startsWith('MOTARG')
       && !u.startsWith('STYRKA:') && !u.startsWith('FALSIF');
   }).slice(0, 3);
-  return paras.map(p => `<p>${esc(p)}</p>`).join('');
+  return paras.map(p => `<p>${linkify(p)}</p>`).join('');
 }
 
 function extractGoldBody(r) {
@@ -658,7 +672,7 @@ function extractGoldBody(r) {
       && !u.startsWith('TES:') && !u.startsWith('BEVIS:') && !u.startsWith('MOTARG')
       && !u.startsWith('STYRKA:') && !u.startsWith('FALSIF');
   }).slice(0, 4);
-  return paras.map(p => `<p>${esc(p)}</p>`).join('');
+  return paras.map(p => `<p>${linkify(p)}</p>`).join('');
 }
 
 // ── HISTORY ───────────────────────────────────────────────────────────────────
