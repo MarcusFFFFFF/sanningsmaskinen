@@ -1152,6 +1152,14 @@ document.getElementById('question-input').addEventListener('keydown', e => {
 // Förladda historik bara om pwd redan finns i sessionStorage
 if (getHistPwd()) loadHistory();
 
+// Auto-load från ?load=<filename> (öppnas från admin-vyn)
+const _loadParam = new URLSearchParams(window.location.search).get('load');
+if (_loadParam) {
+  if (!getHistPwd()) setHistPwd('sanningsmaskinen');
+  loadHistEntry(_loadParam);
+  history.replaceState(null, '', '/');
+}
+
 // ── iOS 18 SSE RECONNECT FIX ─────────────────────────────────────────────────
 var _activeEventSource = null;
 document.addEventListener('visibilitychange', function() {

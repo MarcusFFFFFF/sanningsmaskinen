@@ -509,7 +509,7 @@ def admin_page():
         .verdict {{font-family:monospace;background:#1a1a1a;padding:0.8rem 1rem;border-radius:6px;color:#c8a96e}}
         .final {{background:#1a1a1a;padding:1.2rem;border-radius:6px;white-space:pre-wrap;font-size:0.85rem;color:#ccc;max-height:600px;overflow:auto}}
         </style></head><body>
-        <p><a href="/admin?pwd={hesc(admin_pwd)}">← Tillbaka till översikten</a></p>
+        <p><a href="/admin?pwd={hesc(admin_pwd)}">← Tillbaka till översikten</a><a href="/?load={hesc(safe_name)}" target="_blank" style="margin-left:1rem;color:#c8a96e;text-decoration:none;font-size:0.85rem">↗ Öppna i appen</a></p>
         <h1>{hesc(question)}</h1>
         <div class="meta">
           <span>Datum: {hesc(timestamp)}</span>
