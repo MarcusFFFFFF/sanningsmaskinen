@@ -724,7 +724,7 @@ def generate_article(question: str, final_analysis: str, ranked: list) -> str:
 
     try:
         response = anthropic_client.messages.create(
-            model="claude-opus-4-6",
+            model="claude-sonnet-4-6",
             max_tokens=800,
             system=f"Du är en erfaren grävjournalist. Datum: {TODAY}. Skriv klar, faktabaserad journalistik.",
             messages=[{"role": "user", "content": prompt}],
