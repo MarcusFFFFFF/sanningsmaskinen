@@ -107,7 +107,7 @@ textarea::placeholder{color:var(--text-muted);}
 .exp-divider{width:1px;background:var(--border-show);flex-shrink:0;margin:12px 0;}
 .exp-content{flex:1;min-width:0;padding:clamp(12px,2.5vw,16px) clamp(10px,2vw,14px) clamp(12px,2.5vw,16px) clamp(14px,3vw,18px);}
 .exp-title{font-size:clamp(13px,3vw,15px);font-weight:400;color:var(--text);line-height:1.5;margin-bottom:5px;}
-.exp-evidence{font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:10px;font-style:italic;}
+.exp-evidence{font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:10px;font-style:italic;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden;text-overflow:ellipsis;overflow-wrap:break-word;}
 .exp-bottom{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
 .exp-verdict-h{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border-radius:3px;background:var(--green-glow);color:var(--green);border:1px solid var(--green-border);}
 .exp-verdict-p{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border-radius:3px;background:var(--amber-glow);color:var(--amber);border:1px solid var(--amber-border);}
@@ -547,7 +547,7 @@ function renderHCard(h, i) {
   const key = h.key || ('H' + (i+1));
   const lbl = h.label || '';
   const title = h.title || lbl;
-  const tes = (h.tes || '').slice(0, 180);
+  const tes = h.tes || '';
   const styrka = (h.styrka || 'MEDEL').toUpperCase();
   const isHigh = i === 0 && pct >= 60;
   const rowCls = isHigh ? 'high' : (pct < 35 ? 'low' : 'med');
