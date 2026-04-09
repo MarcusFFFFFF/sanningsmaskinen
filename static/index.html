@@ -207,7 +207,8 @@ textarea::placeholder{color:var(--text-muted);}
 .sidebar.open{transform:translateX(0);}
 .sidebar-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:199;opacity:0;pointer-events:none;transition:opacity .25s;}
 .sidebar-backdrop.visible{opacity:1;pointer-events:auto;}
-.sidebar-toggle{position:fixed;left:12px;top:62px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-muted);background:transparent;border:1px solid var(--border-show);border-radius:4px;padding:6px 10px;cursor:pointer;z-index:99;min-height:36px;}
+.sidebar-toggle{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-muted);background:transparent;border:1px solid var(--border-show);border-radius:4px;padding:6px 10px;cursor:pointer;min-height:32px;flex-shrink:0;letter-spacing:.08em;transition:color .15s,border-color .15s;}
+.sidebar-toggle:hover,.sidebar-toggle:focus-visible{color:var(--text);border-color:var(--border-light);outline:none;}
 .hist-item{padding:clamp(10px,2.5vw,10px) 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .13s;min-height:44px;display:flex;flex-direction:column;justify-content:center;}
 .hist-item:hover{background:var(--surface2);}
 .hist-q{font-size:12px;color:var(--text-dim);margin-bottom:3px;}
@@ -224,13 +225,12 @@ textarea::placeholder{color:var(--text-muted);}
 <body>
 
 <div class="topbar">
+  <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Visa historik">☰</button>
   <div class="logo-ring"></div>
   <span class="logo">Sanningsmaskinen</span>
   <span class="tagline">Vet vad du kan bevisa.</span>
   <div class="tb-right" id="tb-right">v8.44 · Claude Opus 4.6 + GPT-4o</div>
 </div>
-
-<button class="sidebar-toggle" onclick="toggleSidebar()">☰ Historik</button>
 
 <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
 <div class="sidebar" id="sidebar">

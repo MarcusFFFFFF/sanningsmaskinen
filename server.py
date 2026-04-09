@@ -189,20 +189,20 @@ def analyze_stream_post():
 
 def _stream_response(question):
     step_labels = [
-        "Verifierar fragan...",
+        "Verifierar frågan...",
         "Claude Opus bygger hypoteser...",
-        "GPT-4o kor destruktiv kritik...",
+        "GPT-4o kör destruktiv kritik...",
         "Analyserar epistemiska konflikter...",
         "Red Team granskar analysen...",
-        "Skriver om analysen baserat pa Red Team...",
+        "Skriver om analysen baserat på Red Team...",
     ]
     done_labels = [
         [],
-        ["Fragan verifierad"],
-        ["Fragan verifierad", "Hypoteser byggda"],
-        ["Fragan verifierad", "Hypoteser byggda", "Destruktiv kritik klar"],
-        ["Fragan verifierad", "Hypoteser byggda", "Destruktiv kritik klar", "Konflikter kartlagda"],
-        ["Fragan verifierad", "Hypoteser byggda", "Destruktiv kritik klar", "Konflikter kartlagda", "Red Team klar"],
+        ["Frågan verifierad"],
+        ["Frågan verifierad", "Hypoteser byggda"],
+        ["Frågan verifierad", "Hypoteser byggda", "Destruktiv kritik klar"],
+        ["Frågan verifierad", "Hypoteser byggda", "Destruktiv kritik klar", "Konflikter kartlagda"],
+        ["Frågan verifierad", "Hypoteser byggda", "Destruktiv kritik klar", "Konflikter kartlagda", "Red Team klar"],
     ]
 
     def generate():
