@@ -434,6 +434,58 @@ def load_history(filename):
         return jsonify(json.load(f))
 
 
+@app.route("/admin")
+def admin_page():
+    admin_pwd = os.environ.get("ADMIN_PASSWORD", "")
+    if not admin_pwd or request.args.get("pwd") != admin_pwd:
+        return Response("Ej behorig", status=403)
+    history_dir = os.path.join(_BASE, "history")
+    entries = []
+    if os.path.isdir(history_dir):
+        files = sorted([f for f in os.listdir(history_dir) if f.endswith(".json")], reverse=True)
+        for f in files:
+            try:
+                with open(os.path.join(history_dir, f), encoding="utf-8") as fh:
+                    d = json.load(fh)
+                    entries.append({
+                        "filename": f,
+                        "question": d.get("question", ""),
+                        "timestamp": d.get("timestamp", ""),
+                        "status": d.get("status", ""),
+                        "reality": d.get("reality_check", {}).get("status", ""),
+                        "session_id": d.get("session_id", "anon")
+                    })
+            except Exception:
+                pass
+    rows = ""
+    for e in entries:
+        rows += f"""<tr onclick="location.href='/history/{e['filename']}?pwd=sanningsmaskinen'" style="cursor:pointer">
+        <td>{e['timestamp']}</td>
+        <td>{e['session_id'][:8]}</td>
+        <td>{e['reality']}</td>
+        <td>{e['status']}</td>
+        <td style="max-width:500px">{e['question'][:120]}</td>
+        </tr>"""
+    html = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
+    <title>Sanningsmaskinen Admin</title>
+    <style>
+    body {{font-family:system-ui;background:#0f0f0f;color:#e0e0e0;padding:2rem}}
+    h1 {{color:#c8a96e;margin-bottom:1rem}}
+    table {{width:100%;border-collapse:collapse;font-size:0.85rem}}
+    th {{text-align:left;padding:0.5rem 1rem;background:#1a1a1a;color:#888;border-bottom:1px solid #333}}
+    td {{padding:0.5rem 1rem;border-bottom:1px solid #1e1e1e}}
+    tr:hover td {{background:#1a1a1a}}
+    .count {{color:#888;font-size:0.9rem;margin-bottom:1rem}}
+    </style></head><body>
+    <h1>Sanningsmaskinen — Admin</h1>
+    <p class="count">{len(entries)} analyser totalt</p>
+    <table>
+    <thead><tr><th>Datum</th><th>Session</th><th>Reality</th><th>Status</th><th>Fråga</th></tr></thead>
+    <tbody>{rows}</tbody>
+    </table></body></html>"""
+    return Response(html, mimetype="text/html")
+
+
 # ── HELPERS ───────────────────────────────────────────────────────────────────
 
 def _save_history(question, result, session_id="anon"):
