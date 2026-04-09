@@ -69,7 +69,7 @@ def sse(event, data):
 
 # ── PIPELINE RUNNER (shared by SSE + background) ──────────────────────────────
 
-def _run_pipeline(question, on_step=None):
+def _run_pipeline(question, on_step=None, sid="anon"):
     """
     Kor hela analyspipelinen.
     on_step(step_num) kallas efter varje steg om det ar definierat.
@@ -161,7 +161,7 @@ def _run_pipeline(question, on_step=None):
     )
 
     try:
-        _save_history(question, result)
+        _save_history(question, result, sid)
     except Exception:
         pass
 
@@ -179,11 +179,12 @@ def index():
 def analyze_stream_get():
     """EventSource GET — Safari/iOS-kompatibelt."""
     question = (request.args.get("q") or "").strip()
+    sid = re.sub(r"[^a-f0-9\-]", "", (request.args.get("sid") or "anon"))[:36] or "anon"
     if not question:
         def err():
             yield sse("error", {"message": "Ingen fraga angiven"})
         return Response(stream_with_context(err()), mimetype="text/event-stream")
-    return _stream_response(question)
+    return _stream_response(question, sid)
 
 
 @app.route("/analyze-stream", methods=["POST"])
@@ -198,7 +199,7 @@ def analyze_stream_post():
     return _stream_response(question)
 
 
-def _stream_response(question):
+def _stream_response(question, sid="anon"):
     step_labels = [
         "Verifierar frågan...",
         "Claude Opus bygger hypoteser...",
@@ -308,7 +309,7 @@ def _stream_response(question):
             }
 
             try:
-                _save_history(question, result)
+                _save_history(question, result, sid)
             except Exception as e:
                 print(f"[save_history error] {type(e).__name__}: {e}", flush=True)
 
@@ -391,8 +392,11 @@ def _check_history_pwd():
 
 @app.route("/history", methods=["GET"])
 def history():
-    if not _check_history_pwd():
+    admin_pwd = os.environ.get("ADMIN_PASSWORD", "")
+    is_admin = admin_pwd and (request.args.get("admin") == admin_pwd)
+    if not is_admin and not _check_history_pwd():
         return jsonify({"error": "forbidden"}), 403
+    sid = (request.args.get("sid") or "")
     entries = []
     history_dir = os.path.join(_BASE, "history")
     if os.path.isdir(history_dir):
@@ -401,13 +405,16 @@ def history():
             try:
                 with open(os.path.join(history_dir, f)) as fh:
                     data = json.load(fh)
-                    entries.append({
+                    entry = {
                         "filename": f,
                         "question": data.get("question", ""),
                         "timestamp": data.get("timestamp", ""),
                         "status": data.get("status", ""),
-                        "reality": data.get("reality_check", {}).get("status", "")
-                    })
+                        "reality": data.get("reality_check", {}).get("status", ""),
+                        "session_id": data.get("session_id", "")
+                    }
+                    if is_admin or not sid or entry["session_id"] == sid:
+                        entries.append(entry)
             except Exception:
                 pass
     return jsonify(entries)
@@ -429,14 +436,15 @@ def load_history(filename):
 
 # ── HELPERS ───────────────────────────────────────────────────────────────────
 
-def _save_history(question, result):
+def _save_history(question, result, session_id="anon"):
     history_dir = os.path.join(_BASE, "history")
     os.makedirs(history_dir, exist_ok=True)
     ts = date.today().strftime("%Y%m%d")
     safe_q = re.sub(r"[^\w\s-]", "", question)[:40].strip().replace(" ", "_")
-    filename = ts + "_" + safe_q + ".json"
+    filename = ts + "_" + session_id[:8] + "_" + safe_q + ".json"
     result["question"] = question
     result["timestamp"] = ts
+    result["session_id"] = session_id
     with open(os.path.join(history_dir, filename), "w", encoding="utf-8") as f:
         json.dump(_serialize(result), f, ensure_ascii=False, indent=2)
 
