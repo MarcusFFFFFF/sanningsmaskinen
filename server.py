@@ -439,6 +439,92 @@ def admin_page():
     admin_pwd = os.environ.get("ADMIN_PASSWORD", "")
     if not admin_pwd or request.args.get("pwd") != admin_pwd:
         return Response("Ej behorig", status=403)
+
+    # Detail-vy: ?file=<filename>
+    file_param = request.args.get("file", "").strip()
+    if file_param:
+        safe_name = os.path.basename(file_param)
+        if not safe_name.endswith(".json") or "/" in file_param or ".." in file_param:
+            return Response("Ogiltigt filnamn", status=400)
+        path = os.path.join(_BASE, "history", safe_name)
+        if not os.path.exists(path):
+            return Response("Hittades inte", status=404)
+        try:
+            with open(path, encoding="utf-8") as fh:
+                d = json.load(fh)
+        except Exception as e:
+            return Response(f"Kunde inte läsa: {e}", status=500)
+
+        try:
+            from normalizer import normalize_claude_answer, normalize_red_team
+            hyps = normalize_claude_answer(d.get("claude_answer", "")).get("hypotheses", [])
+            red_norm = normalize_red_team(d.get("red_team_report", ""))
+        except Exception:
+            hyps = []
+            red_norm = {"verdict": ""}
+
+        def hesc(s):
+            return (str(s) if s is not None else "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+        question = d.get("question", "")
+        reality_status = d.get("reality_check", {}).get("status", "")
+        final_analysis = d.get("final_analysis", "") or d.get("claude_answer", "")
+        verdict = red_norm.get("verdict", "")
+        session_id = d.get("session_id", "anon")
+        timestamp = d.get("timestamp", "")
+
+        hyp_html = ""
+        for h in hyps[:3]:
+            tes = hesc(h.get("tes", ""))
+            label = hesc(h.get("label", ""))
+            key = hesc(h.get("key", ""))
+            styrka = hesc(h.get("styrka", ""))
+            bevis_list = h.get("bevis", []) or []
+            bevis_html = "".join(f'<li>{hesc(b)}</li>' for b in bevis_list[:4])
+            hyp_html += f"""
+            <div class="hyp">
+              <div class="hyp-head"><span class="hyp-key">{key}</span> <span class="hyp-label">[{label}]</span> <span class="hyp-styrka">{styrka}</span></div>
+              <div class="hyp-tes">{tes}</div>
+              <ul class="hyp-bevis">{bevis_html}</ul>
+            </div>"""
+
+        detail_html = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
+        <title>Sanningsmaskinen Admin — {hesc(question[:60])}</title>
+        <style>
+        body {{font-family:system-ui;background:#0f0f0f;color:#e0e0e0;padding:2rem;max-width:900px;margin:0 auto;line-height:1.6}}
+        h1 {{color:#c8a96e;margin-bottom:0.5rem;font-size:1.4rem}}
+        h2 {{color:#888;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.1em;margin-top:2rem;margin-bottom:0.8rem;border-bottom:1px solid #333;padding-bottom:0.3rem}}
+        a {{color:#c8a96e;text-decoration:none}}
+        a:hover {{text-decoration:underline}}
+        .meta {{color:#888;font-size:0.85rem;margin-bottom:1.5rem}}
+        .meta span {{margin-right:1.5rem}}
+        .hyp {{background:#1a1a1a;padding:1rem 1.2rem;border-radius:6px;margin-bottom:1rem;border-left:3px solid #c8a96e}}
+        .hyp-head {{font-size:0.85rem;margin-bottom:0.6rem}}
+        .hyp-key {{color:#c8a96e;font-weight:600}}
+        .hyp-label {{color:#888}}
+        .hyp-styrka {{float:right;font-family:monospace;font-size:0.75rem;color:#888;background:#222;padding:2px 8px;border-radius:3px}}
+        .hyp-tes {{color:#e0e0e0;font-size:0.95rem;margin-bottom:0.6rem}}
+        .hyp-bevis {{margin:0;padding-left:1.2rem;font-size:0.8rem;color:#aaa}}
+        .hyp-bevis li {{margin-bottom:0.3rem}}
+        .verdict {{font-family:monospace;background:#1a1a1a;padding:0.8rem 1rem;border-radius:6px;color:#c8a96e}}
+        .final {{background:#1a1a1a;padding:1.2rem;border-radius:6px;white-space:pre-wrap;font-size:0.85rem;color:#ccc;max-height:600px;overflow:auto}}
+        </style></head><body>
+        <p><a href="/admin?pwd={hesc(admin_pwd)}">← Tillbaka till översikten</a></p>
+        <h1>{hesc(question)}</h1>
+        <div class="meta">
+          <span>Datum: {hesc(timestamp)}</span>
+          <span>Session: {hesc(session_id[:8])}</span>
+          <span>Reality: {hesc(reality_status)}</span>
+        </div>
+        <h2>Hypoteser</h2>
+        {hyp_html or '<p style="color:#666">Inga hypoteser parsades.</p>'}
+        <h2>Red Team — verdict</h2>
+        <div class="verdict">{hesc(verdict) or '<span style="color:#666">Ingen verdict.</span>'}</div>
+        <h2>Slutanalys</h2>
+        <div class="final">{hesc(final_analysis)}</div>
+        </body></html>"""
+        return Response(detail_html, mimetype="text/html")
+
     history_dir = os.path.join(_BASE, "history")
     entries = []
     if os.path.isdir(history_dir):
@@ -459,7 +545,7 @@ def admin_page():
                 pass
     rows = ""
     for e in entries:
-        rows += f"""<tr onclick="location.href='/history/{e['filename']}?pwd=sanningsmaskinen'" style="cursor:pointer">
+        rows += f"""<tr onclick="location.href='/admin?pwd={admin_pwd}&file={e['filename']}'" style="cursor:pointer">
         <td>{e['timestamp']}</td>
         <td>{e['session_id'][:8]}</td>
         <td>{e['reality']}</td>
