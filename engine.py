@@ -82,7 +82,7 @@ REGLER:
 THREE_LENSES = """TRE LINSER — IDENTISK STRUKTUR (viktig regel: lika djup för alla tre):
 
 H1[STRUKTURELL]: system, resurser, maktbalans (Waltz/Mearsheimer)
-H2[DOMESTIC POLITICS]: inrikespolitik, koalitioner, valintressen (Allison/Putnam)
+H2[INRIKESPOLITIK]: inrikespolitik, koalitioner, valintressen (Allison/Putnam)
 H3[AKTÖRPSYKOLOGI]: ledarens världsbild, erfarenheter, analogier (Jervis)
 Format per hypotes: TES | BEVIS1-3[E-nivå källa URL] | MOTARG1-2 | FALSIFIERINGSTEST | STYRKA[HÖG/MEDEL/LÅG]
 RANKING efter att alla tre testats. Avgörande test: vad krävs för att nr2 slår nr1?"""
@@ -327,7 +327,7 @@ def event_reality_check(question: str) -> dict:
     tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 5}]
 
     try:
-        response = anthropic_client.beta.messages.create(
+        response = anthropic_client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=1200,
             system=(
@@ -340,7 +340,6 @@ def event_reality_check(question: str) -> dict:
             ),
             messages=[{"role": "user", "content": prompt}],
             tools=tools,
-            betas=["web-search-2025-03-05"],
         )
         text = "".join(
             b.text for b in response.content
@@ -382,193 +381,59 @@ def event_reality_check(question: str) -> dict:
 
 def get_breaking_context(question: str, status: str) -> str:
     """
-    Sök aktivt efter aktuella nyheter för ALLA frågetyper.
-    För ONGOING/PARTIAL: fokus på eskaleringar senaste 6 timmarna.
-    För VERIFIED: fokus på aktuell relevans av den historiska frågan senaste 7 dagarna.
+    För ONGOING/PARTIAL-frågor: sök aktivt efter militära deployeringar,
+    deadlines och eskaleringar de senaste 6 timmarna.
     Returnerar en komprimerad kontext-sträng som injiceras i Claude-prompten.
     """
-    if status in ("ONGOING", "PARTIAL"):
-        tidsram = "de SENASTE 6 timmarna"
-        fokus = (
-            f"1. MILITÄRA DEPLOYERINGAR eller truppförflyttningar\n"
-            f"2. ULTIMATUM, deadlines eller tidsramar som löper ut\n"
-            f"3. ESKALERINGAR de senaste 12 timmarna\n"
-            f"4. MARKNADSRÖRELSER (oljepris, börser) som reaktion på händelserna"
-        )
-        max_uses = 4
-    else:
-        # VERIFIED / HYPOTHETICAL — sök aktuell relevans av historisk fråga
-        tidsram = "de SENASTE 7 dagarna"
-        fokus = (
-            f"1. AKTUELLA HÄNDELSER som direkt berör eller uppdaterar denna fråga\n"
-            f"2. NYA UTTALANDEN från berörda aktörer, stater eller organisationer\n"
-            f"3. FORSKNING, rapporter eller beslut som förändrar bilden\n"
-            f"4. POLITISKA KONSEKVENSER eller nutida relevans av det historiska skeendet"
-        )
-        max_uses = 3
+    if status not in ("ONGOING", "PARTIAL"):
+        return ""
 
+    # Bygg en riktad sökning baserad på nyckelord i frågan
     search_prompt = (
         f"Fråga: {question}\n"
         f"Datum: {TODAY}\n\n"
-        f"Sök efter nyheter från {tidsram} om denna fråga. "
+        f"Sök efter de SENASTE 6 timmarnas nyheter om denna fråga. "
         f"Fokusera specifikt på:\n"
-        f"{fokus}\n\n"
+        f"1. MILITÄRA DEPLOYERINGAR eller truppförflyttningar\n"
+        f"2. ULTIMATUM, deadlines eller tidsramar som löper ut\n"
+        f"3. ESKALERINGAR de senaste 12 timmarna\n"
+        f"4. MARKNADSRÖRELSER (oljepris, börser) som reaktion på händelserna\n\n"
         f"Svar KORT — max 400 ord. Bara bekräftade fakta med källhänvisning. "
-        f"Om inga relevanta nyheter finns — svara exakt: INGA AKTUELLA NYHETER\n"
-        f"Annars, format:\n"
-        f"BREAKING [datum]: [fakta] [Källa](url)\n"
-        f"BREAKING [datum]: [fakta] [Källa](url)\n"
-        f"Prioritera Reuters, AP, BBC, SVT."
+        f"Format:\n"
+        f"BREAKING [tidpunkt]: [fakta] [Källa](url)\n"
+        f"BREAKING [tidpunkt]: [fakta] [Källa](url)\n"
+        f"Prioritera Reuters, AP, Bloomberg, BBC."
     )
 
-    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": max_uses}]
+    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 4}]
     try:
-        r = anthropic_client.beta.messages.create(
+        r = anthropic_client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=600,
             system=(
                 f"Du är ett nyhetsspanningssystem. Datum: {TODAY}. "
-                f"Sök efter nyheter från {tidsram}. "
-                f"Prioritera Reuters, AP, BBC, SVT. Skriv på svenska. "
-                f"Var extremt koncis — bara bekräftade fakta. "
-                f"Om inga relevanta nyheter finns, svara exakt: INGA AKTUELLA NYHETER"
+                f"Sök ALLTID efter nyheter från de senaste 6 timmarna. "
+                f"Prioritera Reuters, AP, Bloomberg. Skriv på svenska. "
+                f"Var extremt koncis — bara de mest akuta fakta."
             ),
             messages=[{"role": "user", "content": search_prompt}],
             tools=tools,
-            betas=["web-search-2025-03-05"],
         )
         result = "".join(
             b.text for b in r.content
             if hasattr(b, "type") and b.type == "text"
         ).strip()
-        if result and len(result) > 50 and "INGA AKTUELLA NYHETER" not in result.upper():
-            items = _parse_breaking_items(result)
-            ctx = (
-                f"\n\n⚡ BREAKING CONTEXT — SENASTE NYHETERNA ({TODAY}):\n"
+        if result and len(result) > 50:
+            return (
+                f"\n\n⚡ BREAKING CONTEXT — SENASTE 6 TIMMARNA ({TODAY}):\n"
                 f"{result}\n"
-                f"INSTRUKTION: Integrera dessa fakta HÖGST UPP i din analys "
+                f"INSTRUKTION: Integrera dessa breaking-fakta HÖGST UPP i din analys "
                 f"under rubriken 'SENASTE TIMMARNAS HÄNDELSER'. "
-                f"Nämn specifikt alla militära deployeringar, politiska beslut och eskaleringar."
+                f"Nämn specifikt alla militära deployeringar, deadlines och eskaleringar."
             )
-            return ctx, items
     except Exception:
         pass
-    return "", []
-
-
-def _parse_breaking_items(text):
-    """Parsar breaking-text till en lista med korta faktasträngar."""
-    import re as _re
-    items = []
-    seen = set()
-    # Format 1: BREAKING [datum]: fakta
-    for line in text.splitlines():
-        s = line.strip()
-        m = _re.match(r'^BREAKING\s*\[[^\]]*\]\s*[:\-—]\s*(.+)', s, _re.IGNORECASE)
-        if m:
-            item = _re.sub(r'\[.*?\]\(.*?\)', '', m.group(1)).strip()[:150]
-            if len(item) > 30 and item not in seen:
-                seen.add(item); items.append(item)
-        if len(items) >= 4:
-            return items
-    # Format 2: "30 mars 2026: fakta" eller "- 30 mars 2026: fakta"
-    DATE_RE = _re.compile(r'^[-*]?\s*\d{1,2}\s+\w+\s+202[56][:\s]', _re.IGNORECASE)
-    for line in text.splitlines():
-        s = line.strip()
-        if DATE_RE.match(s):
-            item = _re.sub(r'^[-*]\s*', '', s)
-            item = _re.sub(r'\[.*?\]\(.*?\)', '', item).strip()[:150]
-            if len(item) > 30 and item not in seen:
-                seen.add(item); items.append(item)
-        if len(items) >= 4:
-            return items
-    # Format 3: meningar > 40 tecken med år
-    YEAR_RE = _re.compile(r'202[56]')
-    for line in text.splitlines():
-        s = line.strip()
-        if len(s) > 40 and YEAR_RE.search(s) and s not in seen:
-            item = _re.sub(r'\[.*?\]\(.*?\)', '', s).strip()[:150]
-            if len(item) > 30:
-                seen.add(item); items.append(item)
-        if len(items) >= 4:
-            return items
-    return items[:4]
-
-
-
-def _extract_news_from_analysis(text):
-    """
-    Garanterad fallback: extraherar nyhetsrader direkt ur analystext.
-    Enkel logik utan komplex regex — letar efter rader med 2026/2025.
-    """
-    if not text:
-        return []
-
-    META_WORDS = [
-        "jag soker", "jag borjar", "lat mig", "sanningsmaskinen v",
-        "konfidensgrad", "red team", "motarg", "falsifieras", "steg 1",
-        "steg 2", "steg 3", "steg 4", "steg 5", "tes:", "bevis",
-        "styrka:", "let me", "i will search", "searching"
-    ]
-
-    items = []
-    seen = set()
-
-    # Rensa markdown-links och stjärnor
-    import re as _re
-
-    def clean(s):
-        s = _re.sub(r'\[([^\]]+)\]\([^)]+\)', r'', s)
-        s = _re.sub(r'\*+|#+', '', s)
-        return s.strip()
-
-    def is_meta(s):
-        sl = s.lower()
-        return any(w in sl for w in META_WORDS)
-
-    lines = text.splitlines()
-
-    # Pass 1: bullet-rader som innehåller 2026 eller 2025
-    for line in lines:
-        s = line.strip()
-        if not s:
-            continue
-        starts_bullet = s.startswith('-') or s.startswith('*') or s.startswith('•') or s.startswith('>')
-        has_year = '2026' in s or '2025' in s
-        if starts_bullet and has_year and len(s) > 50 and not is_meta(s):
-            item = clean(s.lstrip('-*•> '))
-            if len(item) > 40 and item not in seen:
-                seen.add(item)
-                items.append(item[:150])
-        if len(items) >= 4:
-            return items
-
-    # Pass 2: rader som börjar med datum "30 mars 2026" eller "- 30 mars 2026"
-    if not items:
-        for line in lines:
-            s = line.strip().lstrip('-* ')
-            if _re.match(r'\d{1,2}\s+\w+\s+202', s) and len(s) > 40 and not is_meta(s):
-                item = clean(s)
-                if len(item) > 40 and item not in seen:
-                    seen.add(item)
-                    items.append(item[:150])
-            if len(items) >= 4:
-                return items
-
-    # Pass 3: alla rader med datum + > 60 tecken (sista utväg)
-    if not items:
-        for line in lines:
-            s = line.strip()
-            if len(s) > 60 and ('2026' in s or '2025' in s) and not is_meta(s):
-                if _re.search(r'\d{1,2}\s+mars\s+202', s, _re.IGNORECASE):
-                    item = clean(s)
-                    if len(item) > 40 and item not in seen:
-                        seen.add(item)
-                        items.append(item[:150])
-            if len(items) >= 4:
-                return items
-
-    return items[:4]
+    return ""
 
 
 def ask_claude(question: str, reality_check: dict) -> str:
@@ -618,15 +483,14 @@ officiella dokument (gov, parliament, un.org, europarl.eu).
     tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": max_search}]
 
     # Hämta breaking context för pågående händelser
-    breaking, _ = get_breaking_context(question, status)
+    breaking = get_breaking_context(question, status)
 
-    response = anthropic_client.beta.messages.create(
+    response = anthropic_client.messages.create(
         model="claude-opus-4-6",
         max_tokens=7000,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": question + rc_note + breaking}],
         tools=tools,
-        betas=["web-search-2025-03-05"],
     )
     return "".join(
         b.text for b in response.content
@@ -730,13 +594,12 @@ def analyze_conflicts(claude_answer: str, gpt_answer: str) -> str:
     )
     tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 1}]
     try:
-        r = anthropic_client.beta.messages.create(
+        r = anthropic_client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=800,
             system=f"Du är konfliktanalytiker. Datum: {TODAY}. Skriv på svenska. Var specifik.",
             messages=[{"role": "user", "content": prompt}],
             tools=tools,
-            betas=["web-search-2025-03-05"],
         )
         return "".join(
             b.text for b in r.content
@@ -803,20 +666,19 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
     )
     tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 5}]
     try:
-        r = anthropic_client.beta.messages.create(
+        r = anthropic_client.messages.create(
             model="claude-opus-4-6",
             max_tokens=3000,
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": prompt}],
-            tools=tools,
-            betas=["web-search-2025-03-05"],
+            tools=tools
         )
         return "".join(
             b.text for b in r.content
             if hasattr(b, "type") and b.type == "text"
         )
     except Exception as e:
-        return ""
+        return f"[Auto-rewrite misslyckades: {e}]"
 
 
 def generate_article(question: str, final_analysis: str, ranked: list) -> str:
@@ -856,7 +718,7 @@ def generate_article(question: str, final_analysis: str, ranked: list) -> str:
     )
 
     try:
-        response = anthropic_client.beta.messages.create(
+        response = anthropic_client.messages.create(
             model="claude-opus-4-6",
             max_tokens=800,
             system=f"Du är en erfaren grävjournalist. Datum: {TODAY}. Skriv klar, faktabaserad journalistik.",
@@ -971,7 +833,7 @@ def deliver_ground_layers(question, claude_answer, gpt_answer,
         f"FRÅGAN INGEN STÄLLER: [strukturell fråga]\n"
         f"LAYER 3 — TRE HYPOTESER\n"
         f"H1[STRUKTURELL]: [tes] — Styrka:[HÖG/MEDEL/LÅG]\n"
-        f"H2[DOMESTIC POLITICS]: [tes] — Styrka:[HÖG/MEDEL/LÅG]\n"
+        f"H2[INRIKESPOLITIK]: [tes] — Styrka:[HÖG/MEDEL/LÅG]\n"
         f"H3[AKTÖRPSYKOLOGI]: [tes] — Styrka:[HÖG/MEDEL/LÅG]\n"
         f"VINNANDE: [vilken+varför] | TEST: [vad krävs för att nr2 slår nr1]\n"
         f"LAYER 4 — AKTÖRERNA\n"
@@ -985,7 +847,7 @@ def deliver_ground_layers(question, claude_answer, gpt_answer,
     )
 
     try:
-        r = anthropic_client.beta.messages.create(
+        r = anthropic_client.messages.create(
             model="claude-opus-4-6",
             max_tokens=3000,
             system=SYSTEM_PROMPT,
@@ -1045,7 +907,7 @@ def deliver_deep_dives(question, claude_answer, gpt_answer,
         f"SIFFROR: [3 siffror | vad det betyder | E-nivå källa URL]\n"
         f"FÖRDJUPNING 2 — TRE LINSER I DETALJ\n"
         f"H1 STRUKTURELL: kärntesen | 2 bevis[källa] | 1 motargument | falsifieringstest\n"
-        f"H2 DOMESTIC: kärntesen | 2 bevis[källa] | 1 motargument | falsifieringstest\n"
+        f"H2 INRIKESPOLITIK: kärntesen | 2 bevis[källa] | 1 motargument | falsifieringstest\n"
         f"H3 PSYKOLOGI: kärntesen | 2 bevis[källa] | 1 motargument | falsifieringstest\n"
         f"KÄLLKVALITETSAUDIT: [E3 märkt som E5? Saknade tier-1? Inferens som fakta?]\n"
         f"FÖRDJUPNING 3 — FULLSTÄNDIG ANALYTIKER-OUTPUT\n"
@@ -1057,7 +919,7 @@ def deliver_deep_dives(question, claude_answer, gpt_answer,
     )
 
     try:
-        r = anthropic_client.beta.messages.create(
+        r = anthropic_client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=2500,
             system=SYSTEM_PROMPT,
@@ -1089,7 +951,6 @@ def run_full_pipeline(question: str, force_proceed: bool = False) -> dict:
         "degraded": False,
         "status": "RUNNING",
         "depth_recommendation": None,
-        "breaking_items": [],
     }
 
     rc = event_reality_check(question)
@@ -1101,7 +962,6 @@ def run_full_pipeline(question: str, force_proceed: bool = False) -> dict:
     if not rc["proceed"] and force_proceed:
         rc["proceed"] = True
 
-    _, result["breaking_items"] = get_breaking_context(question, rc.get("status","VERIFIED"))
     result["claude_answer"] = ask_claude(question, rc)
     result["gpt_answer"] = ask_gpt_critic(question, result["claude_answer"], rc["status"])
     result["conflict_report"] = analyze_conflicts(result["claude_answer"], result["gpt_answer"])
@@ -1124,16 +984,6 @@ def run_full_pipeline(question: str, force_proceed: bool = False) -> dict:
         result["final_analysis"] = auto_rewrite(
             question, result["claude_answer"], red_report
         )
-
-    # Garanterad fallback: scanna BADA kallorna — claude_answer forst (har alltid nyhetsbullets)
-    if not result.get("breaking_items"):
-        items = []
-        for src in [result.get("claude_answer",""), result.get("final_analysis","")]:
-            if src:
-                items = _extract_news_from_analysis(src)
-                if items:
-                    break
-        result["breaking_items"] = items
 
     result["depth_recommendation"] = assess_depth_recommendation(result)
 
