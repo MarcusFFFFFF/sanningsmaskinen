@@ -716,10 +716,11 @@ def run_red_team(question: str, claude_answer: str, conflict_report: str) -> tup
 
 
 def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str:
-    # Web search återinförs ENDAST när Red Team sa KOLLAPSAR — då behöver vi
-    # bygga om från grunden med färsk fakta. MODIFIERAS räcker det att
-    # omstrukturera utan ny sökning.
+    # Web search alltid på, men olika budget beroende på verdict:
+    # KOLLAPSAR = 5 sökningar (bygg om från grunden med färsk fakta)
+    # MODIFIERAS = 2 sökningar (verifiera selektivt det Red Team flaggat)
     is_collapsed = "KOLLAPSAR" in (red_team_report or "").upper()
+    max_uses = 5 if is_collapsed else 2
 
     prompt = (
         f"Red Team: analys behöver revideras. Datum: {TODAY}\n"
@@ -733,8 +734,10 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
             f"för att uppdatera fakta. Prioritera Reuters, AP, Bloomberg, BBC. "
             f"Format: [Källnamn, {TODAY}](https://url)"
             if is_collapsed else
-            f"Behåll alla källänkar från originalet — sök inte nya källor, "
-            f"omstrukturera baserat på Red Teams kritik."
+            f"MODIFIERAS — omstrukturera baserat på Red Teams kritik och behåll "
+            f"alla källänkar från originalet. Använd web search SELEKTIVT (max 2) "
+            f"för att verifiera det Red Team specifikt ifrågasatte. "
+            f"Format för nya länkar: [Källnamn, {TODAY}](https://url)"
         )
         + "\n\nFORMAT — KRITISKT: Börja DIREKT med analysen. "
         + "Skriv ALDRIG om din process, vad du planerar att söka, "
@@ -758,9 +761,8 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
             "cache_control": {"type": "ephemeral"},
         }],
         "messages": [{"role": "user", "content": prompt}],
+        "tools": [{"type": "web_search_20250305", "name": "web_search", "max_uses": max_uses}],
     }
-    if is_collapsed:
-        kwargs["tools"] = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 5}]
 
     try:
         r = anthropic_client.messages.create(**kwargs)
