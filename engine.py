@@ -664,12 +664,9 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
         f"RED TEAM:\n{red_team_report[:800]}\n"
         f"Förbättra: kör tre linser om, degradera svaga påståenden [HYPOTES], "
         f"inkludera ALT-H1/H2/H3. Märk [REVIDERAD VERSION].\n"
-        f"VIKTIGT: Sök de SENASTE nyheterna (max 24h gamla) för att uppdatera fakta. "
-        f"Prioritera Reuters, AP, Bloomberg. "
-        f"Behåll alla källänkar från originalet och lägg till nya där möjligt. "
-        f"Format: [Källnamn, {TODAY}](https://url)"
+        f"Behåll alla källänkar från originalet — sök inte nya källor, "
+        f"omstrukturera baserat på Red Teams kritik."
     )
-    tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 5}]
     try:
         r = anthropic_client.messages.create(
             model="claude-opus-4-6",
@@ -680,7 +677,6 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
                 "cache_control": {"type": "ephemeral"},
             }],
             messages=[{"role": "user", "content": prompt}],
-            tools=tools
         )
         return "".join(
             b.text for b in r.content
