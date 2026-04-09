@@ -489,7 +489,11 @@ officiella dokument (gov, parliament, un.org, europarl.eu).
     response = anthropic_client.messages.create(
         model="claude-opus-4-6",
         max_tokens=7000,
-        system=SYSTEM_PROMPT,
+        system=[{
+            "type": "text",
+            "text": SYSTEM_PROMPT,
+            "cache_control": {"type": "ephemeral"},
+        }],
         messages=[{"role": "user", "content": question + rc_note + breaking}],
         tools=tools,
     )
@@ -670,7 +674,11 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
         r = anthropic_client.messages.create(
             model="claude-opus-4-6",
             max_tokens=3000,
-            system=SYSTEM_PROMPT,
+            system=[{
+                "type": "text",
+                "text": SYSTEM_PROMPT,
+                "cache_control": {"type": "ephemeral"},
+            }],
             messages=[{"role": "user", "content": prompt}],
             tools=tools
         )
