@@ -510,6 +510,9 @@ officiella dokument (gov, parliament, un.org, europarl.eu).
         "Prioritera Reuters, AP News, Bloomberg, BBC, Al Jazeera, CNN framför äldre källor.\n"
         "Om frågan gäller en pågående händelse: börja med det SENASTE som hänt idag.\n"
         "Ange alltid källans publiceringsdatum i länktexten: [E4 — Reuters, 23 mars 2026](url)"
+        "\n\nKRITISK LÄNKREGEL: VARJE faktapåstående MÅSTE ha en klickbar "
+        "länk i format [Källnamn](https://url). Inga påståenden utan länk "
+        "är tillåtna. Om du inte har en URL, skriv inte påståendet."
     )
 
     # Fler sökningar för pågående händelser
@@ -742,6 +745,9 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
         + "\n\nKRITISK LÄNKREGEL: VARJE faktapåstående MÅSTE ha en klickbar "
         + "länk i format [Källnamn](https://url). Inga påståenden utan länk "
         + "är tillåtna. Om du inte har en URL, skriv inte påståendet."
+        + "\n\nINGA RUBRIKER: Skriv ALDRIG '🔴', '🚨' eller någon "
+        + "lägesrapport-rubrik. Börja direkt med fakta och analys utan "
+        + "emoji-prefix eller status-headers."
     )
     kwargs = {
         "model": "claude-opus-4-6",
