@@ -42,6 +42,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .badge-avbojt{background:#fef2f2;color:#991b1b;}
 .badge-motstand{background:#fffbeb;color:#92400e;}
 .badge-forwarded{background:#f5f3ff;color:#4c1d95;}
+.badge-ejkontaktad{background:#f3f4f6;color:#6b7280;}
 .card-date{font-size:11px;color:#bbb;}
 .card-body{margin-top:12px;padding-top:12px;border-top:1px solid #f0f0ea;display:none;}
 .card.open .card-body{display:block;}
@@ -98,6 +99,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <option>Avböjt</option>
       <option>Kvalificerat motstånd</option>
       <option>Vidarebefordrat</option>
+      <option>Ej kontaktad</option>
     </select>
     <button class="btn-add" onclick="openModal()">+ Ny kontakt</button>
   </div>
@@ -108,6 +110,87 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="learnings">
     <h2>Lärdomar</h2>
     <div class="learning-list" id="learnings-list"></div>
+  </div>
+
+  <div class="learnings" style="margin-top:32px;">
+    <h2>Affärsplan — Sanningsmaskinen (uppdaterad 27 mars 2026)</h2>
+    <div style="font-size:13px;color:#555;margin-top:10px;line-height:1.7;">
+
+      <div style="font-weight:600;color:#111;margin-bottom:4px;">Övergripande mål</div>
+      <p style="margin-bottom:12px;">Sanningsmaskinen ska bli det självklara verktyget för journalister, researchers och myndigheter som behöver transparent, evidensbaserad och självkritisk analys.</p>
+
+      <div style="font-weight:600;color:#111;margin-bottom:8px;">Prissättning & antaganden</div>
+      <div style="padding-left:12px;border-left:2px solid #e0e0da;margin-bottom:16px;">
+        ARPA: 3 000 kr/mån (Pro/Team-mix)<br>
+        Konvertering cold outreach → demo: 8–12 %<br>
+        Konvertering demo → betalande: 15–20 %<br>
+        Churn: &lt; 15 % per år<br>
+        Marginal: 75–80 %
+      </div>
+
+      <div style="font-weight:600;color:#111;margin-bottom:8px;">Månadsprognos 2026 — MRR &amp; ARR (rättad)</div>
+      <div style="overflow-x:auto;margin-bottom:16px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="background:#f7f7f5;text-align:left;">
+              <th style="padding:6px 10px;border-bottom:1px solid #e5e5e0;">Månad</th>
+              <th style="padding:6px 10px;border-bottom:1px solid #e5e5e0;">Nya kunder</th>
+              <th style="padding:6px 10px;border-bottom:1px solid #e5e5e0;">Kumulativa kunder</th>
+              <th style="padding:6px 10px;border-bottom:1px solid #e5e5e0;">MRR (kr)</th>
+              <th style="padding:6px 10px;border-bottom:1px solid #e5e5e0;">ARR run-rate (kr)</th>
+              <th style="padding:6px 10px;border-bottom:1px solid #e5e5e0;">Fokus</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding:5px 10px;border-bottom:1px solid #f0f0ea;">Mars 2026</td><td>0</td><td>0</td><td>0</td><td>0</td><td>Outreach startar, validering</td></tr>
+            <tr style="background:#fafafa;"><td style="padding:5px 10px;border-bottom:1px solid #f0f0ea;">April 2026</td><td>1–2</td><td>1–2</td><td>3 000–6 000</td><td>36 000–72 000</td><td>Första betalande kund!</td></tr>
+            <tr><td style="padding:5px 10px;border-bottom:1px solid #f0f0ea;">Maj 2026</td><td>2–3</td><td>3–5</td><td>9 000–15 000</td><td>108 000–180 000</td><td>Fler journalister, uppföljningar</td></tr>
+            <tr style="background:#fafafa;"><td style="padding:5px 10px;border-bottom:1px solid #f0f0ea;">Juni 2026</td><td>2–4</td><td>5–9</td><td>15 000–27 000</td><td>180 000–324 000</td><td>Researchers + myndigheter</td></tr>
+            <tr><td style="padding:5px 10px;border-bottom:1px solid #f0f0ea;">Juli 2026</td><td>1–2</td><td>6–11</td><td>18 000–33 000</td><td>216 000–396 000</td><td>Semestertakt, uppföljning</td></tr>
+            <tr style="background:#fafafa;"><td style="padding:5px 10px;border-bottom:1px solid #f0f0ea;">Augusti 2026</td><td>2–3</td><td>8–14</td><td>24 000–42 000</td><td>288 000–504 000</td><td>Större redaktioner, enterprise-pilot</td></tr>
+            <tr><td style="padding:5px 10px;border-bottom:1px solid #f0f0ea;">September 2026</td><td>3–4</td><td>11–18</td><td>33 000–54 000</td><td>396 000–648 000</td><td>FOI, MSB, UI, SIPRI</td></tr>
+            <tr style="background:#fafafa;"><td style="padding:5px 10px;border-bottom:1px solid #f0f0ea;">Oktober 2026</td><td>3–5</td><td>14–23</td><td>42 000–69 000</td><td>504 000–828 000</td><td>Första Team/Enterprise-deal</td></tr>
+            <tr><td style="padding:5px 10px;border-bottom:1px solid #f0f0ea;">November 2026</td><td>4–5</td><td>18–28</td><td>54 000–84 000</td><td>648 000–1 008 000</td><td>Q4-budgetar, årsavtal</td></tr>
+            <tr style="background:#fafafa;"><td style="padding:5px 10px;border-bottom:1px solid #f0f0ea;font-weight:600;">December 2026</td><td>3–4</td><td>21–32</td><td>63 000–96 000</td><td style="font-weight:600;">756 000–1 152 000</td><td>Avslut + förberedelse 2027</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="font-weight:600;color:#111;margin-bottom:8px;">Scenarios vid årsskiftet 2026/2027</div>
+      <div style="padding-left:12px;border-left:2px solid #e0e0da;margin-bottom:16px;">
+        Konservativt: ~15 kunder → MRR 45 000 → ARR 540 000 SEK<br>
+        Realistiskt: ~25 kunder → MRR 75 000 → ARR 900 000 SEK<br>
+        Optimistiskt: ~35 kunder → MRR 105 000 → ARR 1 260 000 SEK
+      </div>
+
+      <div style="font-weight:600;color:#111;margin-bottom:8px;">Fas 1 — Mars–april 2026</div>
+      <div style="padding-left:12px;border-left:2px solid #e0e0da;margin-bottom:12px;">
+        Mål: Första 1–2 betalande kunder<br>
+        ARR-mål: 36 000–72 000 SEK (ej 100 000 — det krävs 3–4 mån)<br>
+        Fokus: Journalister &amp; researchers
+      </div>
+
+      <div style="font-weight:600;color:#111;margin-bottom:8px;">Fas 2 — Maj–september 2026</div>
+      <div style="padding-left:12px;border-left:2px solid #e0e0da;margin-bottom:12px;">
+        Mål: 10–18 betalande kunder → ARR 360 000–650 000 SEK<br>
+        Fokus: 3–5 redaktioner + 2–3 myndigheter/think tanks
+      </div>
+
+      <div style="font-weight:600;color:#111;margin-bottom:8px;">Fas 3 — 2027</div>
+      <div style="padding-left:12px;border-left:2px solid #e0e0da;margin-bottom:12px;">
+        Mål: 10 000 000 SEK ARR<br>
+        Enterprise-deal med stora mediehus, FOI/MSB och hedgefonder
+      </div>
+
+      <div style="font-weight:600;color:#111;margin-bottom:8px;">Viktiga milstolpar</div>
+      <div style="padding-left:12px;border-left:2px solid #e0e0da;">
+        April: Första betalande kund<br>
+        Juni: 5+ kunder, ARR 180 000+<br>
+        September: 10+ kunder, ARR 400 000+<br>
+        December: 25+ kunder, ARR 900 000 (realistiskt)
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -141,7 +224,7 @@ const STORE_KEY = 'sm_outreach_v1';
 const LEARN_KEY = 'sm_learnings_v1';
 
 const INIT_CONTACTS = [
-  {id:'c1',name:'Malin Crona',org:'SVT / ToFindOut',role:'Journalist',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-26',text:'Mail skickat.'},{date:'2026-03-27',text:'Uppföljning skickad med Iran-exempel.'}],nextStep:'Avvakta svar'},
+  {id:'c1',name:'Malin Crona',org:'SVT / ToFindOut',role:'Journalist',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-26',text:'Mail skickat.'},{date:'2026-03-27',text:'Uppföljning skickad med Iran-exempel och länk till appen.'},{date:'2026-03-28',text:'Driftstörningsmail skickat — appen hade problem men är nu stabil. Ingen respons ännu.'}],nextStep:'Följ upp — försenat från torsdag-fredag vecka 13.'},
   {id:'c2',name:'Kollega (underrättelsetjänst)',org:'Personlig kontakt',role:'—',channel:'Personlig kontakt',status:'Inväntar svar',logs:[{date:'2026-03-26',text:'Kontakt tagen.'}],nextStep:''},
   {id:'c3',name:'Johanna Kjellén',org:'Läranderonder',role:'Rektor / Författare',channel:'WhatsApp',status:'Inväntar svar',logs:[{date:'2026-03-26',text:'WhatsApp skickat.'}],nextStep:''},
   {id:'c4',name:'IT-kontakt SVT',org:'SVT',role:'IT',channel:'Personlig kontakt',status:'Inväntar svar',logs:[{date:'2026-03-26',text:'Personlig kontakt tagen.'}],nextStep:''},
@@ -149,10 +232,55 @@ const INIT_CONTACTS = [
   {id:'c6',name:'UI — Utrikespolitiska institutet',org:'UI',role:'—',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat.'}],nextStep:''},
   {id:'c7',name:'Stephanie Blenckner',org:'SIPRI',role:'Communications Director',channel:'Mail',status:'Svar mottaget',logs:[{date:'2026-03-27',text:'Ringde växeln → fick direkt namn och mail. Mail skickat till blenckner@sipri.org.'}],nextStep:'Avvakta svar'},
   {id:'c8',name:'MCF (fd MSB)',org:'Myndigheten för civil beredskap',role:'—',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till registrator@mcf.se.'}],nextStep:''},
-  {id:'c9',name:'Kristoffer Örstadius',org:'DN Gräv',role:'Journalist',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till kristoffer.orstadius@dn.se.'}],nextStep:''},
-  {id:'c10',name:'Pär Björkman',org:'DN Verifieringsdesk',role:'Journalist',channel:'Mail',status:'Svar mottaget',logs:[{date:'2026-03-27',text:'Mail skickat med Iran-exempel. Kom in via Jakob Rickardsson.'}],nextStep:'Avvakta svar'},
+  {id:'c9',name:'Kristoffer Örstadius',org:'DN Gräv',role:'Journalist',channel:'Mail',status:'Svar mottaget',logs:[{date:'2026-03-27',text:'Mail skickat till kristoffer.orstadius@dn.se.'},{date:'2026-03-27',text:'Svarade 11:39. Intresserad men för mycket på bordet just nu. Sparar kontakten — dörren öppen.'}],nextStep:'Återkontakta om 6–8 veckor'},
+  {id:'c10',name:'Pär Björkman',org:'DN Verifieringsdesk',role:'Journalist',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat med Iran-exempel. Kom in via Jakob Rickardsson.'},{date:'2026-03-30',text:'Mail skickat om Korea-frågebuggen — RC-parsern missade VERIFIED på grund av substring-trap. Nu fixad i v8.35. Korea-analysen är nu en stark demonstrationsfråga.'}],nextStep:'Avvakta svar.'},
   {id:'c11',name:'Lars Truedson',org:'Tredje Statsmakten',role:'Journalist',channel:'Mail',status:'Kvalificerat motstånd',logs:[{date:'2026-03-17',text:'Kvalificerat motstånd — dörren öppen.'},{date:'2026-03-27',text:'Uppföljningsmail skickat med Iran-exempel.'}],nextStep:'Avvakta svar'},
   {id:'c12',name:'Jakob Rickardsson',org:'DN',role:'Journalist',channel:'Mail',status:'Vidarebefordrat',logs:[{date:'2026-03-27',text:'Svarade och vidarebefordrade till Pär Björkman på DN Verifieringsdesk.'}],nextStep:''},
+  {id:'c13',name:'Konrad Cronsioe',org:'Aftonbladet',role:'AI-redaktör',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till konrad.cronsioe@aftonbladet.se. Träffar hans oro om hallucination och källkritik rakt.'}],nextStep:'Avvakta svar. Om inget svar om 1 vecka, Martin Schori är högre prioritet.'},
+  {id:'c14',name:'Martin Schori',org:'Aftonbladet',role:'Director of AI & Innovation',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till martin.schori@schibsted.com. Mail hittad via INMA. Träffar hans 2026-tes om förtroende och autenticitet.'}],nextStep:'Avvakta svar. Högre prioritet än Konrad — har mandat och pratar aktivt om förtroende som 2026-frågan.'},
+  {id:'c15',name:'Christian Holmén',org:'Expressen Granskning',role:'Grävchef',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till christian.holmen@expressen.se. granskning@expressen.se ej bekräftad — skickade direkt till grävchef.'}],nextStep:'Avvakta svar.'},
+  {id:'c16',name:'Hans Peterson Hammer',org:'GP Gräv',role:'Grävchef',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till hans.peterson.hammer@gp.se. Ex-chef Uppdrag granskning. Riktat mot hans citat "ingenting är heligt".'}],nextStep:'Avvakta svar. Stark kandidat — förstår hypotestestning instinktivt.'},
+  {id:'c17',name:'Vicktor Olsson',org:'TT Nyhetsbyrån',role:'Redaktionschef',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till vicktor.olsson@tt.se. TT är multiplikatorn — når hela mediesverige. Riktat mot TT Insikt-lanseringen 2024.'}],nextStep:'Avvakta svar. Strategiskt viktigaste målet — ett ja här sprider sig till alla TT-abonnenter.'},
+  {id:'c18',name:'Olle Zachrison',org:'Sveriges Radio',role:'Chef AI & Nyhetsstrategi',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till olle.zachrison@sverigesradio.se. Heltidstjänst AI-strategi på SR. Riktat mot hans text om att öppenhet bygger trovärdighet.'}],nextStep:'Avvakta svar. Stark match — hans distinktion AI för leverans vs innehåll speglar Sanningsmaskinens ansats.'},
+  {id:'c20',name:'Erik Wisterberg',org:'SvD',role:'Grävreporter / Tech & AI',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till erik.wisterberg@svd.se. Bevakar AI och grävjournalistik — ovanlig kombination. Riktat mot hans dubbla roll i Tech Brief och grävredaktionen.'}],nextStep:'Avvakta svar. Om han fastnar kan han bli ambassadör internt på SvD.'},
+  {id:'c21',name:'Arena Idé',org:'Think tank',role:'—',channel:'Mail',status:'Ej kontaktad',logs:[],nextStep:'Skicka mail till info@arenaide.se'},
+  {id:'c22',name:'Timbro',org:'Think tank',role:'—',channel:'Mail',status:'Ej kontaktad',logs:[],nextStep:'Skicka mail till info@timbro.se'},
+  {id:'c23',name:'Must',org:'Militära underrättelse- och säkerhetstjänsten',role:'—',channel:'Mail',status:'Ej kontaktad',logs:[],nextStep:'Skicka mail till must@mil.se'},
+  {id:'c24',name:'FRA',org:'Försvarets radioanstalt',role:'—',channel:'Mail',status:'Ej kontaktad',logs:[],nextStep:'Skicka mail till fra@fra.se'},
+  {id:'c25',name:'Säkerhetspolisen',org:'SÄPO',role:'—',channel:'Mail',status:'Ej kontaktad',logs:[],nextStep:'Skicka mail till registrator@sakerhetspolisen.se'},
+  {id:'c26',name:'Regeringskansliet UD',org:'Utrikesdepartementet',role:'—',channel:'Mail',status:'Ej kontaktad',logs:[],nextStep:'Skicka mail till ud@regeringskansliet.se'},
+  {id:'c27',name:'Norrsken Foundation',org:'Investerare',role:'—',channel:'Mail',status:'Ej kontaktad',logs:[],nextStep:'Skicka mail till hello@norrsken.org'},
+  {id:'c28',name:'Creandum',org:'Investerare',role:'—',channel:'Mail',status:'Ej kontaktad',logs:[],nextStep:'Skicka mail till info@creandum.com'},
+  {id:'c30',name:'Thomas Gemal',org:'Palantir Technologies',role:'Deployment Strategist',channel:'LinkedIn',status:'Svar mottaget',logs:[{date:'2026-03-28',text:'Kontakt skapad på LinkedIn. Meddelande skickat.'},{date:'2026-03-30',text:'Bekräftat: han läste meddelandet direkt samma lördag förmiddag. Aktiv på LinkedIn, söker samarbeten (#HIRING-badge). 12 år som Deployment Strategist på Palantir. Bio: "I love data and helping unlock the truth that is hiding within it" — exakt Sanningsmaskinens mission. Bakgrund: Director Product Management på TransUnion + Vesta Corp, Santa Clara University. Potentiell partner för enterprise-sales mot myndigheter och institutioner. GitHub-repot sannolikt genomgånget av honom som due diligence (Traffic/Pulse-sidorna visade aktivitet samma dag).'},{date:'2026-03-31',text:'Svarade 18:02 med 👍 + "Det förstår jag 100%. Lycka till." — erbjöd implicit jobb/samarbete på Palantir. Marcus tackade nej artigt och höll dörren öppen. Parkerad.'}],nextStep:'Kontakta igen om 2–3 månader när produkten är mer mogen.'},
+  {id:'c31',name:'Micke Eyeframe',org:'Extern testare',role:'Fotograf / vän',channel:'iMessage',status:'Vidarebefordrat',logs:[
+    {date:'2026-03-29',text:'Körde 4 analyser kvällen 29 mars. 2 av 4 gick igenom: SD-frågan (PARTIAL + REVIDERAD, H3 95% Åkesson) och Estonia (VERIFIED, H1 95% Strukturell). 2 misslyckades: Liberalerna-fråga (okänd orsak — troligen för smal inrikespolitisk fråga eller GPT-4o timeout) och "Varför åkte Leksand ur SHL" (sportfråga = fel frågetyp för verktyget). Micke noterade att det "stannade" efter alla steg på de misslyckade — troligen session state-bug (fixad i demo_fix.zip). Telefonmöte inbokat 07:00 den 30 mars.'},
+    {date:'2026-03-30',text:'Analys av Estonia-sökningen: VERIFIED med tre bekräftade claims, E4/E5-källor från december 2025. H1 95% Strukturell (designfel RoRo), Red Team MODIFIERAS. Mycket stark epistemisk kvalitet. UI-problem noterade: engelska Reuters-citat i analytisk bedömning, "None"-text synlig, prompttext läckte in i Breaking-kolumnen — alla tre fixade i demo_fix.zip. SD-analysen: H3 95% Aktörpsykologi (Åkesson normalisering), Red Team KOLLAPSAR → omskrivning. Verktyget hanterade kontroversiell politisk fråga balanserat utan att ta sida. PDF sida 3 hade generiska FALSIFIERAS OM-texter — fixat.'},
+    {date:'2026-03-30',text:'Vidarebefordrade spontant till grävare på Dokument inifrån — utan uppmaning. Starkaste möjliga signal från en extern testare. Avvaktar respons från grävarna.'}
+  ],nextStep:'Avvakta respons från grävarna Micke vidarebefordrade till.'},
+  {id:'c29',name:'Almi Invest',org:'Investerare',role:'—',channel:'Mail',status:'Ej kontaktad',logs:[],nextStep:'Skicka mail till info@almi.se'},
+  {id:'c19',name:'Anna Tiberg / SvD Granskning',org:'SvD',role:'Grävchef',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-03-27',text:'Mail skickat till anna.tiberg@svd.se — studsade. Autosvar från anna.tiberg@schibsted.com: hänvisar till granskning@svd.se.'},{date:'2026-03-27',text:'Nytt anpassat mail skickat till granskning@svd.se. Riktat mot deras unika kombination av reportrar + dataanalytiker (Max Karpefors).'}],nextStep:'Avvakta svar via granskning@svd.se. SvD och GP samarbetar redan på gräv — dubbeltäckning möjlig.'},
+  {id:'c30',name:'Peter Wolodarski',org:'Dagens Nyheter',role:'Chefredaktör',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'Kommentera inlägg om AI/journalistik — starkare än kallt mail.'},
+  {id:'c31',name:'Anna Careborg',org:'SvD / Schibsted',role:'Publisher',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'Arkitekten bakom SvDs techsatsning. Connection request + DM.'},
+  {id:'c47',name:'Anna Careborg',org:'SVT',role:'Nyhets- & sportdirektör',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-04-01',text:'Mail skickat till anna.careborg@svt.se. Institutionell beslutsfattare — kortaste möjliga mail, direkt länk.'}],nextStep:'Avvakta svar. Högsta SVT-nivå, svarsfrekvens okänd.'},
+  {id:'c32',name:'Naja Nielsen',role:'Mediechef / AI-ansvarig',org:'SVT',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-04-01',text:'Mail skickat till naja.nielsen@svt.se. Refererade hennes AI-panel på Nordic AI in Media Summit mars 2026.'}],nextStep:'Avvakta svar.'},
+  {id:'c33',name:'Casper Klynge',org:'Microsoft Europa',role:'VP Mediepolitik',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'Pratar dagligen om AI och journalistik med europeiska mediehus. Stor multiplikator.'},
+  {id:'c34',name:'Gard Steiro',org:'VG / Schibsted Norge',role:'Chefredaktör',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-04-01',text:'Mail skickat till gard.steiro@vg.no. Nämnde Agnes Stenbom som parallell kontakt på Schibsted Sverige.'}],nextStep:'Avvakta svar.'},
+  {id:'c35',name:'Espen Egil Hansen',org:'Aftenposten / fristående',role:'Tidigare chefredaktör',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'Stor röst i nordisk AI-debatt. Kommentera hans inlägg först.'},
+  {id:'c36',name:'Fabian Heckenberger',org:'Süddeutsche Zeitung',role:'Managing Editor AI',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'Tysk kvalitetstidning, aktiv i exakt din fråga. Internationell ingång.'},
+  {id:'c37',name:'Christo Grozev',org:'Bellingcat / fristående',role:'Grundare',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'Extremt aktiv om AI och källkritik. En kommentar från honom är värd 100 mail.'},
+  {id:'c38',name:'Joachim Dyfvermark',org:'SVT Uppdrag granskning',role:'Journalist / Producer',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-04-01',text:'Mail skickat till joachim.dyfvermark@svt.se. Fokus på grävjournalistik och hypotestestning.'}],nextStep:'Avvakta svar. Alternativ: WhatsApp +46 70 622 75 75 (publik på X).'},
+  {id:'c39',name:'Rasmus Kleis Nielsen',org:'University of Copenhagen / Reuters Institute Oxford',role:'Professor / Senior Research Associate',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-04-01',text:'Mail skickat till rasmus.kleis.nielsen@politics.ox.ac.uk. Akademisk ton — nyfiken på hans perspektiv, inte en pitch.'}],nextStep:'Avvakta svar.'},
+  {id:'c40',name:'Clara Jiménez Cruz',org:'Maldita.es',role:'Grundare',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'Europas ledande faktakollsorganisation. Pratar dagligen om AI och desinformation.'},
+  {id:'c41',name:'Hans Otterling',org:'Northzone',role:'Investerare',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'Investerar i nordiska tech-bolag. Aktiv på LinkedIn.'},
+  {id:'c42',name:'Hampus Jakobsson',org:'Angel / fristående',role:'Investerare',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'Stor röst i svensk tech-debatt. Följer AI noga.'},
+  {id:'c43',name:'Pär-Jörgen Pärson',org:'Northzone',role:'Investerare',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'Investerade i Spotify tidigt. Pratar mycket om AI. Northzone-duo med Otterling.'},
+  {id:'c44',name:'Annika Nordgren Christensen',org:'FOI',role:'Styrelseordförande',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'LinkedIn-aktiv. Bättre ingång till FOI än info@foi.se.'},
+  {id:'c45',name:'Micael Bydén',org:'Försvarsmakten',role:'Överbefälhavare',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'Ovanligt mål men aktiv på LinkedIn om informationskrigföring. Lång tidshorisont.'},
+  {id:'c46',name:'Dan Josefsson',org:'SVT / Fristående',role:'Frilansjournalist',channel:'LinkedIn',status:'Ej kontaktad',logs:[],nextStep:'Kontakta när produkten är mer mogen. 3× Stora journalistpriset, 3× Guldspaden. @danjosefsson på X.'},
+  {id:'c48',name:'Agnes Stenbom',org:'Schibsted / Nordic AI Journalism',role:'Responsible AI Specialist',channel:'Mail',status:'Inväntar svar',logs:[{date:'2026-04-01',text:'Mail skickat till agnes.stenbom@schibsted.com. Frågade om hon och jag delar samma grundfråga om epistemisk ansvarighet i AI-journalistik. Demo-länk inkluderad.'}],nextStep:'Avvakta svar. Strategiskt viktigast på listan — ett ja = Schibsted-koncernen.'},
+  {id:'c49',name:'Helena Gailani',org:'Sveriges Radio (Ekot) / Omni',role:'Reporter / Nyhetsredaktör',channel:'LinkedIn',status:'Svar mottaget',logs:[{date:'2026-04-01',text:'LinkedIn DM skickat med Ekot-koppling. Svarade direkt: "Hej Marcus! Tack för tipset." Besökte appen inom minuter efter svar men körde ingen analys.'}],nextStep:'Avvakta — kom tillbaka om hon kör en analys eller hör av sig igen.'},
+  {id:'c50',name:'Erik Glaad',org:'Stiftelsen Expo',role:'Reporter',channel:'LinkedIn',status:'Inväntar svar',logs:[{date:'2026-04-02',text:'LinkedIn DM skickat. Refererade Guldspaden andra året i rad för "I ministerns närhet". Pitch: verktyget strukturerar den analytiska process journalisten redan gör i huvudet. Länk till sanningsmaskinen.streamlit.app inkluderad. Gemensamma kontakter: Gurgîn Bakircioglu, Simon Sarnecki m.fl.'}],nextStep:'Avvakta svar. Jonathan Leman (medforskarare, Guldspaden) är naturlig följdkontakt om Erik inte svarar.'},
+  {id:'c51',name:'Kerstin Wersäll',org:'Medieträning & Krishantering',role:'Egenföretagare / fd grävande journalist',channel:'LinkedIn',status:'Svar mottaget',logs:[{date:'2026-04-02',text:'Kerstin följer Marcus sedan april 2026 — hon tog initiativet. LinkedIn DM skickat: refererade hennes inlägg om grävande journalistik och gråskalor. Bad om äkta feedback, inte en säljpitch. Länk till appen inkluderad. Bakgrund: fd grävande journalist, Kreab senior rådgivare, nu egenföretagare medieträning & krishantering. Ser produkten från båda sidor av bordet — journalist och granskad.'}],nextStep:'Avvakta svar. Potentiell betalande kund (medieträning = förstå hur journalister tänker). Potentiell feedbackpartner. Kan öppna dörrar via 500+ kontakter.'},
 ];
 
 const INIT_LEARNINGS = [
@@ -190,7 +318,8 @@ function badgeClass(s) {
   return {
     'Inväntar svar':'badge-pending','Svar mottaget':'badge-svar',
     'Demo bokad':'badge-bokad','Avböjt':'badge-avbojt',
-    'Kvalificerat motstånd':'badge-motstand','Vidarebefordrat':'badge-forwarded'
+    'Kvalificerat motstånd':'badge-motstand','Vidarebefordrat':'badge-forwarded',
+    'Ej kontaktad':'badge-ejkontaktad'
   }[s] || 'badge-pending';
 }
 function fmtDate(d) {
@@ -198,6 +327,92 @@ function fmtDate(d) {
   const dt = new Date(d + 'T12:00:00');
   return dt.toLocaleDateString('sv-SE', {day:'numeric', month:'short'});
 }
+
+const devLog = [
+  // ── LAUNCH & TIDIGA FIXAR ────────────────────────────────────────────────
+  {date:'2026-03-27',type:'LAUNCH',version:'v8.19',text:'Sanningsmaskinen går live på sanningsmaskinen.streamlit.app. Dag 1: 9 unika besökare. Stabil bas: demo_j3.zip. PDF fungerar med riktiga hypoteskort.'},
+  {date:'2026-03-27',type:'KOD-FIX',version:'v8.19',text:'requirements.txt: fpdf2>=2.7.0 och reportlab låg på samma rad — separerades till två rader. Orsakade installationsfel vid deploy.'},
+  {date:'2026-03-27',type:'KOD-FIX',version:'v8.19',text:'Auto-rewrite: visade tidigare tyst fail vid Anthropic overload — returnerar nu tom sträng och fortsätter istället för att krascha.'},
+  {date:'2026-03-27',type:'KOD-FIX',version:'v8.19',text:'Pipeline-krasch: hoppade tidigare tyst till startsidan utan felmeddelande — visar nu felet explicit för användaren.'},
+  {date:'2026-03-27',type:'KOD-FIX',version:'v8.19',text:'UI: Alla tomma st.text_input("") och st.selectbox("") fick labels med label_visibility="collapsed" — rensade Streamlit-varningar i konsolen.'},
+  {date:'2026-03-27',type:'KOD-FIX',version:'v8.19',text:'History: 67 dubbletter borttagna från history/-mappen som ackumulerats under utveckling.'},
+  {date:'2026-03-27',type:'BUG-KVAR',version:'v8.19',text:'React #185 i Safari sidebar: selectbox-bug i Streamlit 1.55.0 — inte vårt fel, påverkar inte funktionalitet. Ej åtgärdat.'},
+  {date:'2026-03-27',type:'BUG-KVAR',version:'v8.19',text:'Röd favicon vid launch — oklar orsak, troligen tillfälligt. Spontant löst.'},
+  {date:'2026-03-27',type:'BUG-KVAR',version:'v8.19',text:'Besökares analyser sparas inte permanent — försvinner vid Streamlit Cloud-omstart (varje ny commit triggar nollställning av filsystem). Persistent lagring ej implementerat ännu.'},
+  // ── 28-29 MARS: OUTREACH & OBSERVATIONER ─────────────────────────────────
+  {date:'2026-03-28',type:'OBSERVATION',text:'GitHub klonspik: 57 kloner, 42 unika klonare på en dag — förklaring: Streamlit Cloud klonar repot vid varje deploy/commit, inte externa användare. 11 unika besökare på appen dag 1.'},
+  {date:'2026-03-28',type:'OBSERVATION',text:'API-status: Claude API 98.24% uptime senaste 30 dagar. Oregelbundna röda/orangea dagar i stapeldiagram — förklarar varför externa testare ibland får fel utan att det är ett kodproblem.'},
+  {date:'2026-03-29',type:'TEST',text:'Micke Eyeframe testar 4 analyser kvällen 29 mars. Resultat: 2 av 4 lyckades (SD + Estonia). 2 misslyckades: Liberalerna-fråga (för smal inrikespolitisk fråga, möjligen GPT-4o timeout) + "Varför åkte Leksand ur SHL" (sportfråga = fel frågetyp). Stannade utan felmeddelande — session state-bug identifierad.'},
+  {date:'2026-03-29',type:'ANALYS-KVALITET',text:'Estonia-körning: VERIFIED, tre claims bekräftade med E4/E5-källor (dec 2025-rapport). H1 95% Strukturell (designfel RoRo), Red Team MODIFIERAS. Stark epistemisk kvalitet — KONSPIRATIONSTEORIER-sektion med röd X avfärdar 6 alternativa teorier med källhänvisningar.'},
+  {date:'2026-03-29',type:'ANALYS-KVALITET',text:'SD-körning: PARTIAL + REVIDERAD. H3 95% Aktörpsykologi (Åkesson normalisering + underdog-narrativ), Red Team KOLLAPSAR → full omskrivning. Verktyget hanterade kontroversiell politisk fråga utan att ta sida.'},
+  // ── KOD-LOGG 30 MARS (MORGON) ───────────────────────────────────────────────
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f59cb8b',tid:'08:30',text:'Hero-sektion: Lagt till 2×2-förklaringsrutnät ovanför exempelfrågorna. Innehåll: HYPOTESER (H1/H2/H3 = tre konkurrerande förklaringar), BEVISSTYRKA (95%=starkt stöd, HÖG=primärkällor), KÄLLGRADERING (E5–E1 med rätt riktning verifierad mot engine.py), RÄTT FRÅGETYP. Orsak: Micke Eyeframe förstod inte vad H, procent eller E-skalan betyder — grundläggande onboarding saknades.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f59cb8b',tid:'08:30',text:'Steg-rutorna omformulerade: PRIMÄRANALYS→FAKTAKONTROLL, DESTRUKTIV KRITIK→TRE FÖRKLARINGAR, RED TEAM→OBEROENDE GRANSKNING. Orsak: Micke frågade hur verktyget jobbar — tidigare text avslöjade systemet (GPT-4o etc) och var för teknisk för icke-initierade.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f59cb8b',tid:'08:30',text:'E-skala verifierad mot engine.py: E5=primärkälla (starkast), E4=granskad journalism, E3=sekundär analys (Wikipedia korrekt satt till E3), E2=oklar källa, E1=spekulation (svagast). Tidigare fel i konversationen — Claude gissade riktningen fel två gånger utan att kolla koden. Borde ha begärt filen direkt.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f59cb8b',tid:'09:15',text:'Fix 9 (faktafråge-filter) borttagen. Orsak: Filtret blockade på nyckelord (vann, åkte ur, förlorade etc) men det är fel lager — analytiska frågor som "Varför åkte Leksand ur SHL?" eller "Vilket datum valdes Trump andra gången och hur många domar hade han?" blockades felaktigt. Reality Check hanterar redan fel frågetyper korrekt. Leksand-buggen berodde troligen på session state-bug (Fix 7), inte frågetypen.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f59cb8b',tid:'09:20',text:'Hero RÄTT FRÅGETYP-text genomgick tre versioner: (1) "inte faktafrågor eller sportresultat" — för brett, faktaverifiering är en kärnfunktion. (2) "inte frågor vars svar är ett namn, datum eller siffra" — fortfarande fel, Trump-frågan (datum+siffra+komplex kontext) är en perfekt Sanningsmaskinen-fråga. (3) Final: "Fungerar för komplexa frågor där svaret inte är självklart: Varför, Hur kom det sig att, Vad driver, Vad förklarar..." — ingen negativ halva, Reality Check tar resten.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f59cb8b',tid:'09:25',text:'normalizer.py pushad för första gången — saknades i commit f809e8a trots att den patchades i natt. Innehåller Fix 3: förbättrad RC-parser med **CLAIM-format-stöd och ÖVERGRIPANDE STATUS-exkludering.'},
+  // ── KOD-LOGG 30 MARS (NATT) ──────────────────────────────────────────────
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f809e8a',text:'Fix 1: Prompttext filtreras från Breaking-kolumnen via META_SKIP_RE regex — intern Claude-tanke syns inte längre för användaren.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f809e8a',text:'Fix 2: FALSIFIERAS OM i PDF sida 3 är nu frågespecifik — genereras dynamiskt från hypotesens tes-text istället för generisk placeholder "Bevis som direkt motsager hypotesens karnantagande."'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f809e8a',text:'Fix 3: RC DISPUTED-bug fixad — "DELVIS" och "PARTIAL" triggar inte längre felaktigt DISPUTED-status. Structured parser hanterar nu **CLAIM-format och ÖVERGRIPANDE STATUS exkluderas.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f809e8a',text:'Fix 4: None-rendering fixad — null-guards tillagda i exec-slutsats och nyckelinsikt. _safe() appliceras korrekt på alla fält.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f809e8a',text:'Fix 5: Engelska citat filtreras från analytisk bedömning via _is_english() helper — Reuters-citat hamnar inte längre som rubriktext.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f809e8a',text:'Fix 6: Streamlit-bannern dold med CSS — [data-testid="stToolbar"], footer och stDecoration satta till display:none. Röd "Hosted with Streamlit"-banner syns inte längre.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f809e8a',text:'Fix 7: Session state rensas automatiskt vid ny analys — last_raw, ranked och url_pool deleteras innan ny pipeline startar. Förebygger datablandning mellan körningar.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f809e8a',text:'Fix 8: Tydlig feltext vid API-timeout — "API-belastning hög, försök om en minut" vid overload/timeout, "Vänta 30 sekunder" vid rate limit. Inte längre tyst fail.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.24',commit:'f809e8a',text:'Fix 9: Faktafråge-filter tillagt — sportfrågor (Leksand/SHL) och faktafrågor får direkt vägledning: "Sanningsmaskinen är byggd för komplexa analytiska frågor, inte faktafrågor med ett rätt svar."'},
+  // ── ANALYS-LOGG ──────────────────────────────────────────────────────────
+  {date:'2026-03-30',type:'ANALYS-KVALITET',text:'Estonia-sökning: VERIFIED, tre claims bekräftade med E4/E5-källor (december 2025-rapport). H1 95% Strukturell (designfel RoRo-färja), H2 30%, H3 20%. Red Team: MODIFIERAS — kollisionshypotesen lyfts men avfärdas korrekt. KONSPIRATIONSTEORIER-sektion med röd ❌ är ett starkt demoelement. SD-sökning: PARTIAL + REVIDERAD. H3 95% Aktörpsykologi (Åkesson normalisering + underdog-narrativ), H1 23% Strukturell, H2 20% Domestic Politics. Red Team: KOLLAPSAR → komplett omskrivning. Verktyget hanterade kontroversiell politisk fråga balanserat.'},
+  {date:'2026-03-30',type:'GITHUB',text:'Veckan 21–28 mars: 21 commits, 53 filer ändrade, 8 433 additions, 2 564 deletions. Klonspik 25–26 mars: 94 kloner, 67 unika — förklaring: Streamlit Cloud deployar vid varje commit. Inga externa GitHub-besökare utöver 2 unika. Traffic/Pulse-sidorna besökta — troligen Thomas Gemal som due diligence.'},
+  {date:'2026-03-30',type:'API-STATUS',text:'Claude API uptime senaste 30 dagar: 98.24%. Oregelbundna röda/orangea dagar i stapeldiagrammet. API var GRÖNT kvällen 29 mars när Micke testade — Liberalerna-buggen är inte API-relaterad. Leksand-frågan: korrekt avvisad (sportfråga). Liberalerna-frågan: troligen GPT-4o (OpenAI-sidan) timeout eller för smal inrikespolitisk fråga.'},
+  {date:'2026-03-30',type:'JUNO',text:'JUNO (nj.se/juno) identifierat som potentiell integration/partner. Norstedts Juridiks rättsdatabas: 2 miljoner domar, kommenterade lagar, 1 000+ juridiska experter. Har precis lanserat JUNO AI — chattbaserad men ger ett svar utan synlig osäkerhet. Domar är E1-källor — högsta källgraderingen. En Sanningsmaskinen-integration mot JUNO skulle ge dramatiskt starkare källgradering för juridiska och politiska analyser. Ej kontaktad ännu.'},
+  {date:'2026-03-30',type:'UI-JÄMFÖRELSE',text:'JUNO jämfört med Sanningsmaskinen: JUNO är ett sökverktyg (du vet vad du letar efter), Sanningsmaskinen analyserar (du behöver inte veta). JUNO AI ger ett svar — ingen synlig osäkerhet. Sanningsmaskinen ger tre konkurrerande förklaringar med falsifieringstest. De är komplementära, inte konkurrenter. JUNO-designen är luftig och auktoritativ — lärdom: Sanningsmaskinen kan bli mer JUNO-lik i sin "ingång" utan att tappa djupet.'},
+  {date:'2026-03-30',type:'LINKEDIN',text:'LinkedIn-inlägg publicerat samma dag det skrevs (30 mars). Text: "Jag är fotograf. Jag vet att bilder kan ljuga. Det senaste året har jag byggt något nytt..." — ingen länk, ingen hashtag, avslutar med "hör av dig direkt". Ingen länk = filtrerar rätt målgrupp, de som hör av sig är redan kvalificerade. Thomas Gemal (Palantir) är den hetaste LinkedIn-kontakten — läste meddelandet direkt samma lördag förmiddag.'},
+
+  // ── KOREA-DEBUGGING & V8.25-V8.32 (30 MARS EM) ─────────────────────────────
+  {date:'2026-03-30',type:'ANALYS-KVALITET',tid:'12:02',text:'Korea-analys körd av troligen Pär Björkman (DN Verifieringsdesk): "Varför blev Korea Nord och syd?" — klassisk verifieringsfråga med känt svar. VERIFIED + REVIDERAD. H1 95% stormaktspolitik. Analytisk kärna stark. Två brister identifierade: (1) Breaking-rutan tom trots aktuell Nordkorea-kontext. (2) Nyckelinsikt plockade fel mening — bisats med källnamn inbakat.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.25',tid:'12:45',text:'Fix 1 engine.py: get_breaking_context() körde bara för ONGOING/PARTIAL — nu för ALLA frågetyper. Fix 2 app.py: nyckelinsikt alltid ranked[0].tes direkt — 13 rader komplex regex ersatt med en rad.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.26',tid:'13:30',text:'Fix slutsats: datummönster och nyhetsnyckelord tillagda i filter. Fix breaking: bullet-items godkänns bara om de innehåller 2026/2025 — historiska bullets filtreras.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.27',tid:'14:00',text:'Slutsats alltid ranked[0].tes — samma princip som nyckelinsikt. Versionsnummer uppdaterat i topbar, footer och filhuvud.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.28',tid:'14:30',text:'pdf_export.py: _get_key_insight() alltid ranked[0].tes första meningen. _get_breaking() fångar datumrader ("29 mars 2026: ...") i PDF och app.py.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.29',tid:'15:00',text:'Strukturerat breaking_items-fält i result-dict. get_breaking_context() returnerar tuple (ctx, items). Ny _parse_breaking_items() parsar breaking-text till strukturerad lista.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.30',tid:'15:30',text:'Garanterad fallback i engine.py: _extract_news_from_analysis() scannar claude_answer/final_analysis om breaking_items är tom.'},
+  {date:'2026-03-30',type:'BUG-KVAR',version:'v8.30',tid:'15:50',text:'Rotorsak identifierad: _extract_news_from_analysis() hade felaktig regex-escaping. Dessutom: fallback scannade final_analysis (utan nyhetsbullets) och aldrig claude_answer som alltid har dem.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.31',tid:'16:00',text:'Ny _extract_news_from_analysis() utan regex-komplexitet. Fallback-ordning fixad: claude_answer scannas FÖRST. Testad mot Korea-text: hittade 4 items.'},
+  {date:'2026-03-30',type:'KOD-FIX',version:'v8.32',tid:'17:15',text:'Definitiv lösning: breaking-extraktion _app_extract_breaking() lagd direkt i app.py rendering-koden — oberoende av engine.py. Tre pass: bullets med år, datumrader, inbäddade datum. Bekräftad live 17:15 — 4 aktuella Korea-items.'},
+  {date:'2026-03-30',type:'ANALYS-KVALITET',tid:'18:14',text:'Korea-körning 5 (v8.32) — bekräftat stabil. Breaking: 4 aktuella items (29, 28, 28, 27 mars 2026). Analytisk bedömning: "Delningen var och förblir en produkt av geopolitisk maktbalans — inte koreansk vilja." H1 95%, H2 57% (klättrat från 20%), H3 20%. PDF alla tre sidor håller. Micke Eyeframe vidarebefordrade spontant till två topp-grävare (Dokument inifrån) — starkaste möjliga signal.'},
+
+  // ── 31 MARS: BUGFIXAR v8.33–v8.43 ────────────────────────────────────────────
+  {date:'2026-03-31',type:'KOD-FIX',version:'v8.33',text:'VERIFIED substring-trap fixad på 3 ställen i app.py. Breaking metadata-filter utökat med typ:/källa:. PDF aktör-trunkering vid ordgräns.'},
+  {date:'2026-03-31',type:'KOD-FIX',version:'v8.34',text:'_canon_rc_status() implementerad — canonical normalizer för alla RC-statusvarianter. EJ BEKRÄFTAD→UNVERIFIED, alla varianter normaliseras korrekt till VERIFIED/UNVERIFIED/DISPUTED/ONGOING.'},
+  {date:'2026-03-31',type:'KOD-FIX',version:'v8.35',text:'engine.py: UNVERIFIED kontrolleras före VERIFIED (substring-trap fix). Övergripande RC-piller korrekt för alla frågetyper.'},
+  {date:'2026-03-31',type:'KOD-FIX',version:'v8.36',text:'RC-parser omskriven: hanterar pipe-format (en rad) OCH multi-line format. Engine skriver båda format beroende på frågetyp.'},
+  {date:'2026-03-31',type:'KOD-FIX',version:'v8.37',text:'"Ja fortsätt"-bugg fixad. st.rerun() låg i finally-blocket → hero-reload vid avbrott. Nu med spinner och korrekt except/else-struktur — kör inte om det misslyckas.'},
+  {date:'2026-03-31',type:'KOD-FIX',version:'v8.38',text:'Breaking metadata-filter utökat: ämne:, klassificering:, konfidensnivå:, av konflikten, av kriget, status: aktiv/pågående/ingen/verifierad/ej.'},
+  {date:'2026-03-31',type:'KOD-FIX',version:'v8.39',text:'Sidebar collapsed default (initial_sidebar_state="collapsed"). History pagination max 20/sida. Safari desktop crash löst. React #185-buggen stängd — st.tabs() ersatt med knappar + session_state.'},
+  {date:'2026-03-31',type:'KOD-FIX',version:'v8.41',text:'Senaste 10 analyser (list_history()[:10]) renderas som klickbara st.button() direkt på startsidan — fungerar mobil + desktop utan sidebar.'},
+  {date:'2026-03-31',type:'KOD-FIX',version:'v8.42',text:'Utökade till 10 senaste (från 5).'},
+  {date:'2026-03-31',type:'KOD-FIX',version:'v8.43',text:'Sparad-prompt-rad och pil-rad (← Din analys är sparad) borttagna. Repot gjort publikt. Beslut: koden är inte IP:n — execution, distribution, relationer är moaten.'},
+  {date:'2026-03-31',type:'TEST',text:'Iran-fråga kördes 4+ gånger — stark analys, primärkällor, Breaking korrekt, demo-kvalitet bekräftad. Trump demens kördes 5+ gånger — RC-buggarna hittades och fixades under sessionen. Mobiltest genomfört av Marcus + kompis — fungerar fullt ut på Safari mobil.'},
+  {date:'2026-03-31',type:'OBSERVATION',text:'Thomas Gemal (Palantir) svarade 18:02 med 👍 + "Det förstår jag 100%. Lycka till." — erbjöd implicit jobb/samarbete på Palantir. Marcus tackade nej artigt och höll dörren öppen. Parkerad — kontakta igen om 2–3 månader.'},
+  {date:'2026-03-31',type:'PRODUKT',text:'Affärsstrategi år 1–5 genomgången. Beta: öppen Streamlit Cloud. Enterprise: lokal installation, egna API-nycklar, data hos kunden. Patent ej relevant nu. PRV-varumärkesregistrering rekommenderas när namn är låst. Exit vs långsikt — första 6 mån identiska, skiljer vid kapitalbeslut år 2–3.'},
+  {date:'2026-03-31',type:'LINKEDIN',text:'LinkedIn-inlägg om Iran-analysen publicerat. Skärmbild: RC-tabell med ONGOING + 3 VERIFIED claims (tankerattack utanför Dubai, Hormuzsundet, Trumps dubbelspel). Inlägget avslutar med länk till appen.'},
+
+  // ── 1 APRIL: OUTREACH-SPRINT ────────────────────────────────────────────────
+  {date:'2026-04-01',type:'OUTREACH',text:'LinkedIn-bakgrundsbild uppdaterad till Sanningsmaskinen-banner (v2 — mörk, journalistisk, H1/H2/H3-bars, VERIFIED-pill). Profilbild täcker inte längre texten.'},
+  {date:'2026-04-01',type:'OUTREACH',text:'Helena Gailani (SR Ekot / Omni) kontaktad via LinkedIn DM 23:32. Svarade inom 2 min: "Tack för tipset." Besökte appen direkt. Ingen analys körd ännu.'},
+  {date:'2026-04-01',type:'OUTREACH',text:'Outreach-sprint: mail skickat till Agnes Stenbom (agnes.stenbom@schibsted.com), Anna Careborg SVT (anna.careborg@svt.se), Naja Nielsen (naja.nielsen@svt.se), Joachim Dyfvermark (joachim.dyfvermark@svt.se), Gard Steiro (gard.steiro@vg.no), Rasmus Kleis Nielsen (rasmus.kleis.nielsen@politics.ox.ac.uk). Totalt 6 mail denna session.'},
+  {date:'2026-04-01',type:'OBSERVATION',text:'GitHub-statistik kväll 31 mars: 185 kloner, 130 unika klonare (14 dagar). Stor spik 29–31 mars (~88 kloner ett dygn) — sannolikt Streamlit Cloud deploys från v8.33–v8.43 (10+ commits). En människa granskade Pulse + Traffic specifikt — mönster identiskt med Thomas Gemal-spiken.'},
+
+  // ── 1–2 APRIL: INTELLIGENCE CANVAS v3 ──────────────────────────────────────
+  {date:'2026-04-01',type:'PRODUKT',text:'Intelligence Canvas v3 byggt som fristående HTML-app (iran_workspace.html). Infinite canvas med pan/zoom, drag-and-drop chips, egna noder (PERSON/PLATS/OKÄND/FRÅGETECKEN/SPÅR/KÄLLA), fri koppling, högerklick AI-meny (Fördjupa/Kritik/Red Team), AI-noder sparas i canvas, tidslinje, dokumentinjektion PDF/TXT→claims, klickbara källchips, filter, garbage-rensning, minimap, sök i canvas, export HTML-briefing + SVG. Allt i en fil ~76KB.'},
+  {date:'2026-04-01',type:'PRODUKT',text:'Micke-version skapad: Workspace_micke/iran_workspace_micke.html. Ny Anthropic API-nyckel genererad för demo. Skickas via zip.'},
+  {date:'2026-04-02',type:'OUTREACH',text:'Erik Glaad (Expo, Guldspaden 2× i rad för "I ministerns närhet") kontaktad via LinkedIn DM. Länk till appen inkluderad. Jonathan Leman (medforskarare) identifierad som naturlig följdkontakt.'},
+  {date:'2026-04-02',type:'OUTREACH',text:'Kerstin Wersäll (fd grävande journalist, nu medieträning/krishantering, Kreab) kontaktad via LinkedIn DM. Hon hade följt Marcus sedan april 2026 — hennes initiativ. Refererade hennes inlägg om gråskalor i grävjournalistik. Bad om äkta feedback. Unik position: ser produkten från journalistens OCH den granskades perspektiv.'},
+  {date:'2026-04-02',type:'PRODUKT',text:'Grundprinciper v1.0 dokumenterade: sanningsmaskinen_grundprinciper.md. Innehåller: E-graderingens okränkbarhet, stiftelse-struktur med råd/revisor/ombudsman, prövningsmodell för kunder, Väktarsystemet (blockchain + adversarial AI + öppen API), löpande integritet, årligt bokslut, open source-timing i lager, avsnittet Användarintegritet och rätten att tänka fritt. Skrivet innan första fakturan — det är poängen.'},
+  {date:'2026-04-02',type:'OBSERVATION',text:'Khamenei bekräftat död 28 februari 2026 i USA-israelisk attack (verifierat via Al Jazeera, NPR, NBC, Wikipedia). Iran-scenariot i Intelligence Canvas är inte fiktivt — det är pågående verklighet. Google AI (Gemini) hallucerade källhänvisningar för samma påstående — bekräftar behovet av Sanningsmaskinens epistemiska struktur.'}
+];
 
 function render() {
   const q = document.getElementById('search').value.toLowerCase();
@@ -300,6 +515,30 @@ function exportJSON() {
 }
 
 loadData();
+
+function renderDevLog() {
+  const el = document.getElementById('devlog-section');
+  if (!el) return;
+  const typeColors = {
+    'KOD-FIX':'#1a3a2a','LAUNCH':'#0d3b6e','BUG-KVAR':'#7a2a2a','TEST':'#2a4a6a','OBSERVATION':'#3a3a2a','BUG-KVAR':'#7a2a2a','TEST':'#2a4a6a','OBSERVATION':'#3a3a2a','ANALYS-KVALITET':'#1d3557','PRODUKT':'#2d6a4f','ANALYS-KVALITET':'#1d3557','GITHUB':'#6b4226',
+    'API-STATUS':'#7b2d8b','JUNO':'#1a4a6b','UI-JÄMFÖRELSE':'#4a3728','LINKEDIN':'#0077b5'
+  };
+  el.innerHTML = devLog.map(e => `
+    <div style="border-left:3px solid ${typeColors[e.type]||'#999'};padding:0.7rem 1rem;margin-bottom:0.8rem;background:#fafaf8;border-radius:0 4px 4px 0;">
+      <div style="display:flex;gap:0.8rem;align-items:center;margin-bottom:0.3rem;">
+        <span style="font-size:0.68rem;font-family:monospace;color:#888;">${e.date}${e.tid ? ' · ' + e.tid : ''}</span>
+        <span style="font-size:0.65rem;font-weight:700;letter-spacing:0.08em;color:${typeColors[e.type]||'#666'};background:${typeColors[e.type]||'#eee'}22;padding:0.1rem 0.5rem;border-radius:3px;">${e.type}</span>
+      </div>
+      <div style="font-size:0.82rem;color:#333;line-height:1.55;">${e.text}</div>
+    </div>
+  `).join('');
+}
+
+setTimeout(renderDevLog, 100);
 </script>
+<div style="max-width:900px;margin:2rem auto;padding:0 1.5rem;">
+  <h2 style="font-size:0.85rem;font-weight:700;letter-spacing:0.12em;color:#666;margin-bottom:1rem;border-bottom:2px solid #e0ddd5;padding-bottom:0.5rem;">SESSION-LOGG — KOD, ANALYS & RESEARCH</h2>
+  <div id="devlog-section"></div>
+</div>
 </body>
 </html>
