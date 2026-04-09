@@ -133,6 +133,8 @@ RBKG  = colors.HexColor("#180b0a")   # --red-bg
 BLU   = colors.HexColor("#6eb6ff")   # --blu
 BDIM  = colors.HexColor("#23486d")   # --blu-dim
 BBKG  = colors.HexColor("#0a1220")   # --blu-bg
+# Admin/PDF gold — matchar admin-vyns rubrikfärg
+GOLD  = colors.HexColor("#c8a96e")   # --gold (PDF + admin headings)
 
 W, H     = A4
 ML       = 48
@@ -196,14 +198,23 @@ def _ok_line(s):
             and not (s.startswith('|') and s.count('|') >= 2))
 
 def _trunc(txt, n):
+    """Trunkera vid sista hela meningen inom n+30 tecken. Aldrig '…'."""
     t = _clean(txt)
     if not t: return ""
     if len(t) <= n: return t
-    chunk = t[:n]
-    for m in reversed(list(re.finditer(r'[.!?]\s', chunk))):
-        if m.end() > n * 0.42: return t[:m.end()].rstrip()
-    sp = chunk.rfind(' ')
-    return (t[:sp] if sp > n * 0.4 else chunk).rstrip() + '…'
+    # Hitta SISTA meningsgränsen inom n+30 (lite slack för att fånga hel mening)
+    extended = t[:n + 30]
+    last_end = -1
+    for m in re.finditer(r'[.!?](?:\s|$)', extended):
+        if m.end() <= n + 30:
+            last_end = m.end()
+    if last_end > n * 0.5:
+        return t[:last_end].rstrip()
+    # Ingen meningsgräns inom rimlig räckvidd — ta sista hela ordet och avsluta med punkt
+    cut = t[:n]
+    sp = cut.rfind(' ')
+    base = (t[:sp] if sp > 0 else cut).rstrip().rstrip('.,;:—-')
+    return base + '.'
 
 def _sentences(text, min_l=35, max_l=260):
     for s in re.split(r'(?<=[.!?])\s+', _clean(text)):
@@ -217,7 +228,7 @@ def _first_sent(text, min_l=35, max_l=260):
 # ── HERO: answers the question directly — concrete real-world status ──────────
 def _get_hero(r):
     if r.get("_hero_override"):
-        return _trunc(r["_hero_override"], 185)
+        return _trunc(r["_hero_override"], 380)
 
     STATUS_WORDS = re.compile(
         r'(?:är|blockerad|stängt|öppet|kontrollerar|pågår|bekräftad|'
@@ -235,46 +246,80 @@ def _get_hero(r):
         re.IGNORECASE
     )
 
-    # Try article first — first status-affirming sentence
+    def _collect(src, max_chars=380):
+        """Hämta upp till 2-3 meningar från src som passar AVOID/STATUS."""
+        out, total = [], 0
+        for s in _sentences(src or "", 35, 220):
+            if AVOID.match(s):
+                continue
+            out.append(s)
+            total += len(s) + 1
+            if total >= max_chars or len(out) >= 3:
+                break
+        return " ".join(out).strip()
+
+    # Try article first — first status-affirming sentence + 1-2 follow-up sentences
     art = r.get("article","")
-    for s in _sentences(art, 45, 200):
-        if not AVOID.match(s) and STATUS_WORDS.search(s):
-            return _trunc(s, 185)
+    if art:
+        # Hitta första status-meningen och följ med 1-2 till
+        sents = list(_sentences(art, 35, 220))
+        for i, s in enumerate(sents):
+            if not AVOID.match(s) and STATUS_WORDS.search(s):
+                chosen = [s]
+                for nxt in sents[i+1:i+3]:
+                    if not AVOID.match(nxt):
+                        chosen.append(nxt)
+                return _trunc(" ".join(chosen), 380)
 
     # Try H1 tes (ranked[0] = starkaste)
     ranked = r.get("ranked") or []
     if ranked:
         tes = _clean(ranked[0].get("tes",""))
-        s   = _first_sent(tes, 40, 200)
-        if s and not AVOID.match(s):
-            return _trunc(s, 185)
+        s = _collect(tes, 380)
+        if s:
+            return _trunc(s, 380)
 
-    # Fallback: first clean sentence
+    # Fallback: collect 2-3 clean sentences
     for src in [art, r.get("insight",""), r.get("final_analysis","")]:
-        for s in _sentences(src or "", 35, 200):
-            if not AVOID.match(s):
-                return _trunc(s, 185)
+        s = _collect(src, 380)
+        if s:
+            return _trunc(s, 380)
     return ""
 
 # ── KEY INSIGHT: mechanism — HOW the situation works ─────────────────────────
 def _get_key_insight(r, hero=""):
     if r.get("_insight_override"):
-        return _trunc(r["_insight_override"], 170)
-    # Alltid TES fran starkaste hypotesen - forsta meningen
+        return _trunc(r["_insight_override"], 300)
+    # TES från starkaste hypotesen — första 1-2 meningarna
     ranked = r.get("ranked") or []
     if ranked:
         tes = _clean(ranked[0].get("tes", ""))
-        sentences = list(_sentences(tes, 20, 200))
+        sentences = list(_sentences(tes, 20, 220))
         if sentences:
-            return _trunc(sentences[0], 170)
+            joined = " ".join(sentences[:2])
+            return _trunc(joined, 300)
     return ""
 # ── BREAKING ─────────────────────────────────────────────────────────────────
 def _get_breaking(r):
-    # Hämta direkt från strukturerat fält — satt av engine.py
+    # 1) Hämta från legacy strukturerat fält om det finns (gamla historikfiler)
     items = r.get("breaking_items") or []
     if items:
-        return [_trunc(_clean(i), 115) for i in items[:4]]
-    # Fallback: sök i råtext efter BREAKING-format
+        return [_trunc(_clean(i), 180) for i in items[:4]]
+    # 2) Föredra article (journalistisk sammanfattning) — första 2-3 starka meningarna
+    art = r.get("article", "") or ""
+    if art and len(art.strip()) > 100:
+        result, seen = [], set()
+        for s in _sentences(art, 40, 220):
+            key = s[:50]
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(_trunc(s, 180))
+            if len(result) >= 4:
+                break
+        if result:
+            return result[:4]
+    # 3) Fallback: sök i råtext efter BREAKING-format
     txt = (r.get("claude_answer") or "") + "\n" + (r.get("final_analysis") or "")
     result, seen = [], set()
     DATE_LINE = re.compile(r'^[-*]?\s*\d{1,2}\s+\w+\s+202[56][:\s]', re.IGNORECASE)
@@ -282,73 +327,16 @@ def _get_breaking(r):
         s = line.strip()
         m = re.match(r'^BREAKING\s*\[[^\]]*\]\s*[:\-—]\s*(.+)', s, re.I)
         if m:
-            item = _trunc(_clean(re.sub(r'\[.*?\]\(.*?\)', '', m.group(1))), 115)
+            item = _trunc(_clean(re.sub(r'\[.*?\]\(.*?\)', '', m.group(1))), 180)
             if len(item) > 30 and item not in seen:
                 seen.add(item); result.append(item)
         elif DATE_LINE.match(s):
-            item = _trunc(_clean(re.sub(r'^[-*]\s*', '', s)), 115)
+            item = _trunc(_clean(re.sub(r'^[-*]\s*', '', s)), 180)
             if len(item) > 30 and item not in seen:
                 seen.add(item); result.append(item)
         if len(result) >= 4:
             break
     return result[:4]
-# ── SNAPSHOT 2×2 — short, scannable, real-world language ─────────────────────
-def _get_snapshot(r):
-    ranked = r.get("ranked") or []
-    op     = r.get("operativ") or {}
-    rc_st  = (r.get("reality_check") or {}).get("status","")
-
-    # LÄGE — max ~25 chars, plain status
-    nu = _trunc(_clean(op.get("nu","")), 30)
-    # Strip trailing "…" and clean
-    nu = re.sub(r'[—\-]\s*se\s+full\w+.*$', '', nu, flags=re.I).strip().rstrip('…').strip()
-    # Kortare fallback utan trunkering
-    if not nu or not _ok_line(nu) or len(nu) < 5 or nu.endswith(" se") or nu.endswith("— se"):
-        nu = {"VERIFIED":"Bekraftad fakta","ONGOING":"Pagaende utredning",
-              "PARTIAL":"Delvis bekraftad","ANALYTICAL":"Strukturell fraga",
-              "HYPOTHETICAL":"Hypotetisk"}.get(rc_st, "Under analys")
-    # Strip trailing "— se" om det smyger sig in
-    nu = re.sub(r'\s*[—-]\s*se\s*$', '', nu).strip()
-    nu = _trunc(nu, 35)
-
-    # PRIMÄR AKTÖR — at most 3–4 meaningful words, not a sentence
-    aktör = _trunc(_clean(r.get("_aktör_override","")), 35)
-    if not aktör and ranked:
-        # Use full title, truncate at word boundary within 35 chars
-        title = _clean(ranked[0].get("title",""))
-        if len(title) <= 35:
-            aktör = title
-        else:
-            # Truncate at last space before char 35
-            cut = title[:35]
-            last_space = cut.rfind(" ")
-            aktör = cut[:last_space].strip() if last_space > 0 else cut
-    if not aktör or not _ok_line(aktör):
-        aktör = "Ej fastställd"
-    # Ensure it's short — no sentences
-    aktör = aktör.split('.')[0].split(',')[0][:35].strip()
-
-    # BEVISSTYRKA — correct styrka→label mapping
-    ev = "Otillräcklig"
-    if ranked:
-        styrka = (ranked[0].get("styrka") or "MEDEL").upper()
-        pct    = int(ranked[0].get("conf_pct", int(ranked[0].get("conf",0.5)*100)))
-        # Correct mapping: HÖG = Hög (not Stark to avoid mismatch)
-        ev_lbl = {"HÖG":"Hög","MEDEL-HÖG":"Medel–Hög","MEDEL":"Medel","LÅG":"Låg"
-                  }.get(styrka, "Medel")
-        ev = f"{ev_lbl} ({pct}%)"
-
-    # RISKNIVÅ — single word or very short phrase
-    risk = _trunc(_clean(op.get("risk","")), 30)
-    risk = re.sub(r'\s*—.*$', '', risk).strip()   # strip explanation after dash
-    if not risk or not _ok_line(risk) or len(risk) < 2:
-        pct  = int(ranked[0].get("conf_pct",50)) if ranked else 50
-        risk = "Hög" if pct >= 70 else "Medel" if pct >= 42 else "Låg"
-    # Capitalize
-    risk = risk[0].upper() + risk[1:] if risk else risk
-
-    return [("LÄGE", nu), ("PRIMÄR AKTÖR", aktör), ("BEVISSTYRKA", ev), ("RISKNIVÅ", risk)]
-
 # ── NARRATIVE PARAGRAPHS — strict noise filtering ────────────────────────────
 def _get_paras(r, max_p=5):
     # Extra patterns that must never appear in narrative
@@ -390,12 +378,22 @@ def _get_scenarios(r):
 
     out = []
     for i, h in enumerate(ranked[:3]):
-        # Label (STRUKTURELL etc.) som rubrik, title som beskrivning
         lbl = _trunc(_clean(h.get("label", f"Utfall {i+1}")), 40)
         if not lbl:
             lbl = f"Utfall {i+1}"
-        desc = _trunc(_clean(h.get("title", h.get("tes", ""))), 100)
-        if not desc or not _ok_line(desc):
+        # Föredra title + första meningen av tes för fyllig scenariobeskrivning
+        title = _clean(h.get("title", ""))
+        tes_first = _first_sent(_clean(h.get("tes", "")), 30, 200)
+        if title and tes_first and title.lower() not in tes_first.lower():
+            desc = f"{title}. {tes_first}"
+        elif tes_first:
+            desc = tes_first
+        elif title:
+            desc = title
+        else:
+            desc = "Se djupanalys för detaljer."
+        desc = _trunc(desc, 220)
+        if not _ok_line(desc):
             desc = "Se djupanalys för detaljer."
         out.append((lbl, desc))
 
@@ -429,7 +427,7 @@ def _get_verdict(r):
     raw = raw.strip().lstrip('—').strip()
     if raw and len(raw) > 15 and not _NOISE.match(raw):
         raw = raw[0].upper() + raw[1:]
-        return _trunc(f"{prefix} {raw}", 165)
+        return _trunc(f"{prefix} {raw}", 320)
     return prefix
 
 def _get_facts(r):
@@ -546,23 +544,23 @@ class Doc:
     def _foot(self):
         today = date.today().strftime("%Y-%m-%d")
         self.HL(28, lw=0.3, col=RULE)
-        self.T(ML, 17, f"Sanningsmaskinen - Intelligence Brief - {today}", 7, INK3, MONO)
+        self.T(ML, 17, f"Sanningsmaskinen · Intelligence Brief · {today}", 7, INK3, MONO)
         self.T(MR, 17, str(self._pg), 7, INK3, MONOB, 'r')
 
     def save(self): self._foot(); self.cv.save()
 
     def masthead(self, label, today, status=""):
         # Topbar — exakt som UI:ts topbar-mark + topbar-title
-        self.T(ML,      H-22, "SANNINGSMASKINEN", 7.5, GRN,  MONOB)
+        self.T(ML,      H-22, "SANNINGSMASKINEN", 7.5, GOLD, MONOB)
         self.T(ML+118,  H-22, "Intelligence Brief", 7.5, INK3, MONO)
         self.T(MR,      H-22, today, 7.5, INK4, MONO, 'r')
-        # Grön accentlinje — precis som UI:ts topbar border-bottom
-        self.HL(H-29, lw=1.2, col=GRN)
+        # Guldfärgad accentlinje — precis som admin-vyns rubrikfärg
+        self.HL(H-29, lw=1.2, col=GOLD)
         # Sub-label (sidnamn) och status — som UI:ts topbar-sub
         self.T(ML, H-40, label, 6.5, INK4, MONO)
         if status:
-            ed = {"VERIFIED":"● VERIFIED","ONGOING":"* PAGAENDE","PARTIAL":"◑ DELVIS",
-                  "ANALYTICAL":"o ANALYTISK","HYPOTHETICAL":"o HYPOTETISK",
+            ed = {"VERIFIED":"● VERIFIED","ONGOING":"⟳ PÅGÅENDE","PARTIAL":"◑ DELVIS",
+                  "ANALYTICAL":"○ ANALYTISK","HYPOTHETICAL":"○ HYPOTETISK",
                   "REVIDERAD":"~ REVIDERAD","KLAR":"+ KLAR"}.get(status.upper(), status)
             self.T(MR, H-40, ed, 6.5, INK3, MONOB, 'r')
         return H - 58
@@ -596,7 +594,7 @@ def _draw_link_bar(doc, r):
     pairs = _get_full_urls(r)
     if not pairs: return
     doc.HL(48, lw=0.3, col=RULE2)
-    doc.T(ML, 37, "KALLOR", 6, INK4, MONOB)
+    doc.T(ML, 37, "KÄLLOR", 6, GOLD, MONOB)
     x = ML + 44
     for domain, url in pairs[:6]:
         label = domain[:22]
@@ -622,14 +620,12 @@ def build_p1(doc, r):
     ranked = r.get("ranked") or []
     FL     = FLOOR_P1
 
-    y = doc.masthead("BESLUTSSIDA  -  1 / 3", today, doc_st or rc_st)
+    y = doc.masthead("BESLUTSSIDA · 1 / 3", today, doc_st or rc_st)
 
     # ── QUESTION — stor serif rubrik som UI:ts fraga-box ─────────────────────
     q = _trunc(r.get("question",""), 92)
-    # Liten mono-label ovanför (som UI:ts "FRÅGA - datum")
-    doc.T(ML, y, f"FRAGA  -  {today}", 6.5, INK4, MONO)
+    doc.T(ML, y, f"FRÅGA · {today}", 6.5, GOLD, MONO)
     y -= 14
-    # Stor serif-rubrik
     y = doc.W(ML, y, q, 22, INK, SERIFB, mw=TW, lh=28, floor=FL, mx=2)
     y -= EL_GAP
     doc.HL(y, lw=0.5, col=RULE2)
@@ -638,120 +634,115 @@ def build_p1(doc, r):
     # ── BREAKING ──────────────────────────────────────────────────────────────
     brk = _get_breaking(r)
     if brk and y > FL + 65:
-        y = doc.section_label(y, ">>  BREAKING  -  SENASTE TIMMARNA", RED)
+        y = doc.section_label(y, "BREAKING · SENASTE TIMMARNA", RED)
         for item in brk:
             if y < FL + 28: break
             doc.DOT(ML+4, y+3.5, 2.2, RED)
             y = doc.W(ML+13, y, item, 9, INK2, SERIF,
-                      mw=TW-15, lh=13.5, floor=FL, mx=2)
+                      mw=TW-15, lh=13.5, floor=FL, mx=3)
             y -= 5
         y = doc.divider(y, gap_above=8, gap_below=SEC_GAP)
 
-    # ── HERO ASSESSMENT — som UI:ts exec-slutsats ─────────────────────────────
+    # ── HERO ASSESSMENT — utökad, 3-5 rader ──────────────────────────────────
     hero = _get_hero(r)
-    if hero and y > FL + 52:
-        bh = PAD + 14 + 18*2 + PAD
-        bh = min(bh, 82)
-        doc.RECT(ML, y-bh, TW, bh, GBKG)  # --grn-bg
-        doc.LBAR(ML, y-bh, y+2, GRN, 4)
-        doc.T(ML+PAD, y-11, "ANALYTISK BEDOMNING", 6.5, GRN, BOLD)
-        # Serif för brödtexten — som exec-slutsats i UI
-        doc.W(ML+PAD, y-27, hero, 11, INK, SERIFB,
-              mw=TW-PAD*2, lh=16, floor=y-bh+8, mx=3)
-        y -= bh + SEC_GAP
+    if hero and y > FL + 70:
+        bh = 100
+        doc.RECT(ML, y-bh, TW, bh, GBKG)
+        doc.LBAR(ML, y-bh, y+2, GOLD, 4)
+        doc.T(ML+PAD, y-13, "ANALYTISK BEDÖMNING", 6.5, GOLD, BOLD)
+        doc.W(ML+PAD, y-28, hero, 10, INK, SERIFB,
+              mw=TW-PAD*2, lh=14, floor=y-bh+8, mx=5)
+        y -= bh + 18
 
-    # ── KEY INSIGHT — som UI:ts exec-nyckel ───────────────────────────────────
+    # ── KEY INSIGHT — utökad, 2 meningar ─────────────────────────────────────
     insight = _get_key_insight(r, hero)
-    if insight and y > FL + 28:
-        doc.LBAR(ML+2, y-36, y+4, AMB, 2.5)
-        doc.T(ML+12, y-9,  "NYCKELINSIKT", 6.5, AMB, BOLD)
-        doc.W(ML+12, y-22, insight, 9.5, AMB, SERIFI,
-              mw=TW-14, lh=14, floor=FL, mx=2)
-        y -= 44
-        y = doc.divider(y, gap_above=4, gap_below=SEC_GAP)
+    if insight and y > FL + 40:
+        ih = 48
+        doc.LBAR(ML+2, y-ih+4, y+4, AMB, 2.5)
+        doc.T(ML+12, y-9, "NYCKELINSIKT", 6.5, AMB, BOLD)
+        doc.W(ML+12, y-22, insight, 9, AMB, SERIFI,
+              mw=TW-14, lh=13, floor=y-ih+6, mx=3)
+        y -= ih + 2
+        y = doc.divider(y, gap_above=4, gap_below=18)
 
-    # ── SNAPSHOT 2×2 GRID — som UI:ts zone-kort ──────────────────────────────
-    snap = _get_snapshot(r)
-    if snap and y > FL + 52:
-        cw  = (TW - 10) / 2
-        rh  = 40
-        for i, (lbl, val) in enumerate(snap[:4]):
-            cx = ML if i % 2 == 0 else ML + cw + 10
-            ry = y - (i // 2) * rh
-            if ry < FL + 8: break
-            col_accent = GRN if i < 2 else AMB
-            doc.RECT(cx, ry-rh+4, cw, rh-2, BG2)
-            doc.LBAR(cx, ry-rh+4, ry+2, col_accent, 3)
-            doc.T(cx+10, ry-13, lbl, 6, INK4, BOLD)
-            doc.W(cx+10, ry-26, val, 8.5, INK, SERIFB,
-                  mw=cw-16, lh=12, floor=ry-rh+6, mx=2)
-        y -= 2*rh + EL_GAP
-        y = doc.divider(y, gap_above=4, gap_below=SEC_GAP)
-
-    # ── HYPOTES-RANKING — vinnare prominent, alla tre med bars ──────────────
-    if ranked and y > FL + 65:
-        y = doc.section_label(y, "HYPOTES-RANKING", INK4)
-        BAR_W = TW * 0.44
+    # ── HYPOTES-RANKING — med tes-text under varje rad ───────────────────────
+    if ranked and y > FL + 130:
+        y = doc.section_label(y, "HYPOTES-RANKING", GOLD)
+        BAR_W = TW * 0.36
         HCOLS_R = [GRN, AMB, RED]
         HDIMS_R = [GBKG, ABKG, RBKG]
         for i, h in enumerate(ranked[:3]):
-            if y < FL + 18: break
+            if y < FL + 50: break
             col  = HCOLS_R[i] if i < 3 else INK3
             dim  = HDIMS_R[i] if i < 3 else BG2
             pct  = int(h.get("conf_pct", int(h.get("conf",0.5)*100)))
             key  = h.get("key","")
             lbl  = h.get("label","")
-            titl = _trunc(h.get("title",""), 36)
-            row_h = 30 if i == 0 else 24
-            # Vinnarrad har bakgrundsfarg
+            titl = _trunc(h.get("title",""), 80)
+            tes_sent = _first_sent(_clean(h.get("tes","")), 30, 240)
+            tes_short = _trunc(tes_sent, 200) if tes_sent else ""
+
+            # Header-rad (key, label, title, bar, %)
+            head_h = 26
             if i == 0:
-                doc.RECT(ML, y-row_h+4, TW, row_h, dim)
-                doc.LBAR(ML, y-row_h+4, y+4, col, 4)
-                doc.T(ML+12, y-7,  "#1", 7, col, MONOB)
+                doc.RECT(ML, y-head_h+2, TW, head_h, dim)
+                doc.LBAR(ML, y-head_h+2, y+4, col, 4)
+                doc.T(ML+12, y-9, "#1", 7, col, MONOB)
             else:
-                doc.T(ML+4, y-7, f"#{i+1}", 6.5, INK4, MONO)
-            doc.T(ML+28, y-7,  f"{key}", 9.5, col, MONOB)
-            doc.T(ML+56, y-7,  lbl,      7,   col, MONO)
-            doc.T(ML+56, y-18, titl,     7.5, INK2, SERIF)
+                doc.T(ML+4, y-9, f"#{i+1}", 6.5, INK4, MONO)
+            doc.T(ML+28, y-9, key, 9.5, col, MONOB)
+            doc.T(ML+58, y-9, lbl, 7, col, MONO)
+            doc.T(ML+58, y-19, titl, 8, INK2, SERIFB)
             # Bar
             bx = MR - BAR_W - 36
-            doc.RECT(bx, y-11, BAR_W, 5, RULE2)
-            doc.RECT(bx, y-11, max(4, BAR_W*pct/100), 5, col)
-            doc.T(MR, y-7, f"{pct}%", 10.5 if i==0 else 9, col, MONOB, 'r')
-            y -= row_h
+            doc.RECT(bx, y-13, BAR_W, 4, RULE2)
+            doc.RECT(bx, y-13, max(4, BAR_W*pct/100), 4, col)
+            doc.T(MR, y-10, f"{pct}%", 10.5 if i==0 else 9, col, MONOB, 'r')
+            y -= head_h + 2
+
+            # TES-text på egen rad UNDER header-raden
+            if tes_short:
+                tes_floor = y - 32
+                y = doc.W(ML+28, y, tes_short, 7.5, INK3, SERIFI,
+                          mw=TW-32, lh=10.5, floor=tes_floor, mx=2)
+                y -= 6
+            y -= 6
         y -= 4
         y = doc.divider(y, gap_above=6, gap_below=SEC_GAP)
 
-    # ── SLUTSATS — stark pressbriefing-mening, ej intern verdict ────────────
-    # Bygg "På 2 minuter"-slutsatsen: vinnarhypotes + tes + vad som falsifierar
+    # ── SLUTSATS — multimening "Vad säga på mötet" ──────────────────────────
     concl_override = r.get("_conclusion_override","")
-    op = r.get("operativ") or {}
-    verdict = _get_verdict(r)
     concl = ""
     if concl_override:
-        concl = _trunc(concl_override, 220)
+        concl = _trunc(concl_override, 500)
     elif ranked:
         w = ranked[0]
         wpct  = int(w.get("conf_pct", int(w.get("conf",0.5)*100)))
         wkey  = w.get("key","")
         wlbl  = w.get("label","")
-        wtes  = _first_sent(_clean(w.get("tes","")), 40, 160)
-        wfals = _first_sent(_clean(w.get("falsifiering","")), 30, 100)
-        # Bygg en mening journalist kan saga pa ett mote
-        wtitl = _clean(w.get("title",""))
+        wtes  = _first_sent(_clean(w.get("tes","")), 30, 280)
+        wfals = _first_sent(_clean(w.get("falsifiering","")), 25, 220)
+        wbevs = w.get("bevis") or []
+        wbev_first = ""
+        for b in wbevs:
+            cand = _first_sent(_clean(str(b)), 30, 220)
+            if cand:
+                wbev_first = cand
+                break
+        parts = []
         if wtes:
-            concl = _trunc(f"{wkey} ({wlbl}, {wpct}%): {wtes}", 195)
-        elif wtitl and len(wtitl) > 10:
-            concl = _trunc(f"{wkey} ({wlbl}, {wpct}%): {wtitl}", 195)
-        else:
-            concl = _trunc(f"{wpct}% stöd för {wlbl}-hypotesen. Se djupanalys.", 180)
+            parts.append(f"{wkey} ({wlbl}, {wpct}%): {wtes}")
+        if wbev_first:
+            parts.append(f"Starkast stöd: {wbev_first}")
+        if wfals:
+            parts.append(f"Faller om: {wfals}")
+        concl = _trunc(" ".join(parts), 600) if parts else ""
     if not concl:
-        concl = verdict or "Se djupanalys."
-    if concl and y > FL + 22:
-        # Skriv rubriken med SERIFB som stöder svenska
-        doc.T(ML, y, "VAD SKA DU SAGA PA MOTET?", 6.5, GRN, SERIFB)
+        concl = _get_verdict(r) or "Se djupanalys för fullständig slutsats."
+    if concl and y > FL + 40:
+        doc.T(ML, y, "VAD SKA DU SÄGA PÅ MÖTET?", 6.5, GOLD, BOLD)
         y -= 11
-        doc.W(ML, y, concl, 9.5, INK, SERIFB, mw=TW, lh=14, floor=FL, mx=4)
+        doc.W(ML, y, concl, 9.5, INK, SERIFB, mw=TW, lh=14, floor=FL, mx=8)
 
     _draw_link_bar(doc, r)
 
@@ -767,10 +758,10 @@ def build_p2(doc, r):
     scens = _get_scenarios(r)
     FL    = FLOOR_P2
 
-    y = doc.masthead("NARRATIV  -  2 / 3", today)
+    y = doc.masthead("NARRATIV · 2 / 3", today)
 
-    doc.T(ML, y, "BAKGRUND & KONTEXT", 6.5, INK4, BOLD)
-    doc.HL(y-9, lw=0.6, col=GRN)   # grön linje som UI
+    doc.T(ML, y, "BAKGRUND & KONTEXT", 6.5, GOLD, BOLD)
+    doc.HL(y-9, lw=0.6, col=GOLD)
     y -= 22
 
     # Headline — stor serif som UI:ts exec-slutsats
@@ -815,17 +806,17 @@ def build_p2(doc, r):
     # Scenarios — möjliga utfall med hypotetikels färger
     if scens and y > FL + 52:
         doc.HL(y, lw=0.4, col=RULE2); y -= SEC_GAP - 4
-        y = doc.section_label(y, "MOJLIGA UTFALL")
+        y = doc.section_label(y, "MÖJLIGA UTFALL", GOLD)
         SCOL = [GRN, AMB, RED]
         for i, (lbl, desc) in enumerate(scens):
-            if y < FL + 14: break
+            if y < FL + 18: break
             col = SCOL[i % 3]
             doc.DOT(ML+4, y+3.5, 2.5, col)
             doc.T(ML+14, y, lbl, 8.5, col, BOLD)
             y -= 14
             y = doc.W(ML+14, y, desc, 9, INK2, SERIF,
-                      mw=TW-16, lh=13, floor=FL, mx=2)
-            y -= 10
+                      mw=TW-16, lh=13, floor=FL, mx=4)
+            y -= 12
 
     _draw_link_bar(doc, r)
 
@@ -841,10 +832,10 @@ def build_p3(doc, r):
     FL     = FLOOR_P3
     HCOLS  = [GRN, AMB, RED]
 
-    y = doc.masthead("DJUPANALYS  -  3 / 3", today)
+    y = doc.masthead("DJUPANALYS · 3 / 3", today)
 
-    doc.T(ML, y, "HYPOTESANALYS", 6.5, INK4, BOLD)
-    doc.HL(y-9, lw=0.6, col=GRN)  # grön linje som UI
+    doc.T(ML, y, "HYPOTESANALYS", 6.5, GOLD, BOLD)
+    doc.HL(y-9, lw=0.6, col=GOLD)
     y -= 22
 
     # ── H1 / H2 / H3 ─────────────────────────────────────────────────────────
@@ -857,22 +848,22 @@ def build_p3(doc, r):
         bar  = HBAR[i]  if i < 3 else RULE2
         key  = h.get("key","")
         lbl  = h.get("label","")
-        titl = _trunc(h.get("title", h.get("tes","")), 70)
-        tes  = _trunc(h.get("tes",""), 220)
-        bevs = [_trunc(_clean(b), 160) for b in (h.get("bevis") or [])[:3]
+        titl = _trunc(h.get("title", h.get("tes","")), 120)
+        tes  = _trunc(h.get("tes",""), 400)
+        bevs = [_trunc(_clean(b), 220) for b in (h.get("bevis") or [])[:3]
                 if b and _ok_line(_clean(str(b)))]
         mot_raw = h.get("motarg") or []
         if isinstance(mot_raw, list):
             mot_raw = mot_raw[0] if mot_raw else ""
-        mot  = _trunc(_clean(str(mot_raw)), 125)
+        mot  = _trunc(_clean(str(mot_raw)), 220)
         fals_raw = _clean(h.get("falsifiering",""))
         fals_raw = re.sub(r'\[PÅGÅENDE[^\]]*\]', '', fals_raw, flags=re.I).strip()
         fals_raw = re.sub(r'PÅGÅENDE\s*—[^\n]+', '', fals_raw, flags=re.I).strip()
-        fals = _trunc(fals_raw, 95) if _ok_line(fals_raw) else ""
+        fals = _trunc(fals_raw, 180) if _ok_line(fals_raw) else ""
         pct  = int(h.get("conf_pct", int(h.get("conf",0.5)*100)))
 
         if not tes:   tes  = titl or "Hypotesen saknar specificerad tes."
-        if not bevs:  bevs = ["Evidens ej specificerad i kallmaterial."]
+        if not bevs:  bevs = ["Evidens ej specificerad i källmaterial."]
         if not mot:   mot  = "Inga identifierade motargument."
         if not fals:
             tes_raw = (h.get("tes","") or "").strip()
@@ -944,35 +935,35 @@ def build_p3(doc, r):
     # ── METODRUTA — förklarar verktygets epistemiska process ────────────────
     if y > FL + 80:
         doc.HL(y, lw=0.4, col=RULE2); y -= 14
-        y = doc.section_label(y, "SA HER FUNGERAR ANALYSEN", INK4)
+        y = doc.section_label(y, "SÅ HÄR FUNGERAR ANALYSEN", GOLD)
         METHOD_LINES = [
-            ("H1/H2/H3", "Tre konkurrerande hypoteser testas mot evidens — ingen ges foretrade fran borjan."),
-            ("Red Team", "GPT-4o attackerar analysen, soker felaktiga premisser och alternativa forklaringar som primäranalysen missat."),
-            ("VERDICT", "HALLER = primartesen stod emot kritiken.  MODIFIERAS = justeringar gjorda.  KOLLAPSAR = omskriven."),
-            ("Kallor", "E1=primärkalla/officiell  E2=kvalitetsmedia  E3=sekundar  E4=rapport  E5=Wikipedia/aggregat."),
+            ("H1/H2/H3", "Tre konkurrerande hypoteser testas mot evidens — ingen ges företräde från början."),
+            ("Red Team", "GPT-4o attackerar analysen, söker felaktiga premisser och alternativa förklaringar som primäranalysen missat."),
+            ("VERDICT", "HÅLLER = primärtesen stod emot kritiken.  MODIFIERAS = justeringar gjorda.  KOLLAPSAR = omskriven."),
+            ("Källor", "E5=primärkälla/officiell  E4=kvalitetsmedia  E3=sekundär  E2=rapport  E1=Wikipedia/aggregat."),
         ]
         for lbl, desc in METHOD_LINES:
             if y < FL + 14: break
-            doc.T(ML, y, lbl, 7, GRN, BOLD)
-            doc.W(ML+60, y, desc, 7.5, INK2, SERIF, mw=TW-62, lh=11, floor=FL, mx=1)
+            doc.T(ML, y, lbl, 7, GOLD, BOLD)
+            doc.W(ML+60, y, desc, 7.5, INK2, SERIF, mw=TW-62, lh=11, floor=FL, mx=2)
             y -= 14
 
     # ── CRITIQUE ──────────────────────────────────────────────────────────────
     verdict = _get_verdict(r)
-    if verdict and y > FL + 40:
+    if verdict and y > FL + 50:
         doc.HL(y-4, lw=0.4, col=RULE); y -= SEC_GAP
-        y = doc.section_label(y, "KRITIK  ·  ALTERNATIV TOLKNING", AMB)
-        doc.LBAR(ML+2, y-30, y+2, AMB, 2)
+        y = doc.section_label(y, "KRITIK · ALTERNATIV TOLKNING", AMB)
+        doc.LBAR(ML+2, y-50, y+2, AMB, 2)
         y = doc.W(ML+10, y, verdict, 9.5, INK2, SERIFI,
-                  mw=TW-12, lh=14, floor=FL, mx=2)
+                  mw=TW-12, lh=14, floor=FL, mx=4)
 
     # ── FINAL ASSESSMENT ──────────────────────────────────────────────────────
     hero = _get_hero(r)
-    if hero and y > FL + 32:
+    if hero and y > FL + 50:
         doc.HL(y-6, lw=0.4, col=RULE); y -= SEC_GAP
-        y = doc.section_label(y, "ANALYTISK SLUTBEDOMNING")
+        y = doc.section_label(y, "ANALYTISK SLUTBEDÖMNING", GOLD)
         doc.W(ML, y, hero, 10, INK, SERIFB,
-              mw=TW, lh=15, floor=FL, mx=2)
+              mw=TW, lh=15, floor=FL, mx=5)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
