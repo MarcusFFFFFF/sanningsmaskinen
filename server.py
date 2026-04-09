@@ -126,14 +126,19 @@ def _run_pipeline(question, on_step=None):
         if on_step: on_step(5)
 
     try:
-        from normalizer import parse_hypotheses, compute_hypothesis_scores
-        hyps = parse_hypotheses(result["claude_answer"])
-        result["ranked"] = sorted(
-            compute_hypothesis_scores(hyps),
-            key=lambda h: h.get("conf", 0),
-            reverse=True
+        from normalizer import normalize_claude_answer, compute_hypothesis_scores, _ensure_three_hypotheses
+        hyps = normalize_claude_answer(result["claude_answer"])["hypotheses"]
+        result["ranked"] = _ensure_three_hypotheses(
+            sorted(
+                compute_hypothesis_scores(hyps),
+                key=lambda h: h.get("conf", 0),
+                reverse=True
+            )
         )
-    except Exception:
+    except Exception as e:
+        import traceback
+        print(f"[normalizer error in _run_pipeline] {type(e).__name__}: {e}", flush=True)
+        traceback.print_exc()
         result["ranked"] = []
 
     article_source = result["final_analysis"] or result["claude_answer"]
@@ -253,10 +258,15 @@ def _stream_response(question):
                 final_analysis = auto_rewrite(question, claude_answer, red_report)
 
             try:
-                from normalizer import parse_hypotheses, compute_hypothesis_scores
-                hyps = parse_hypotheses(claude_answer)
-                ranked = sorted(compute_hypothesis_scores(hyps), key=lambda h: h.get("conf", 0), reverse=True)
-            except Exception:
+                from normalizer import normalize_claude_answer, compute_hypothesis_scores, _ensure_three_hypotheses
+                hyps = normalize_claude_answer(claude_answer)["hypotheses"]
+                ranked = _ensure_three_hypotheses(
+                    sorted(compute_hypothesis_scores(hyps), key=lambda h: h.get("conf", 0), reverse=True)
+                )
+            except Exception as e:
+                import traceback
+                print(f"[normalizer error in _stream_response] {type(e).__name__}: {e}", flush=True)
+                traceback.print_exc()
                 ranked = []
 
             article_source = final_analysis or claude_answer
