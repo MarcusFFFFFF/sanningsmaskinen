@@ -756,6 +756,11 @@ function renderRedTeamDetail(raw) {
 function renderConflictReport(raw) {
   if (!raw) return '<p style="color:var(--text-muted);font-size:13px;">Ingen konfliktdata.</p>';
 
+  // Detektera engine-felmeddelanden och visa stilren fallback istället för rådump
+  if (/API-fel|METODOLOGISKT PROBLEM|returnerade ett|Går inte att fastställa/i.test(raw)) {
+    return '<p style="color:var(--text-muted);font-size:13px;">Konfliktanalys ej tillgänglig — GPT-kritiken returnerade inget svar.</p>';
+  }
+
   // Dela upp i KONFLIKT-block på ### eller **KONFLIKT
   var blocks = raw.split(/\n(?=\*\*KONFLIKT\s+\d+|##\s*KONFLIKT\s+\d+)/i).filter(function(b){ return /KONFLIKT/i.test(b); });
   if (!blocks.length) {
