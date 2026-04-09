@@ -487,13 +487,22 @@ function renderResult(r) {
 
   // Nytt fynd
   const articleText = (r.article || '').replace(/\*+/g,'').replace(/#{1,6}\s*/g,'').trim();
-  const findingText = articleText ? articleText.slice(0,300) : '';
+  // Trimma på närmaste mellanslag efter ~500 tecken så vi inte chuggar [label](url)-par
+  let findingText = '';
+  if (articleText) {
+    if (articleText.length <= 500) {
+      findingText = articleText;
+    } else {
+      const cut = articleText.indexOf(' ', 500);
+      findingText = articleText.slice(0, cut > 0 ? cut : 500);
+    }
+  }
 
   if (findingText) {
     html += `
   <div class="finding-block">
     <div class="f-label"><div class="f-dot"></div>BREAKING — SENASTE UTVECKLING</div>
-    <div class="finding-text">${esc(findingText)}</div>
+    <div class="finding-text">${linkify(findingText)}</div>
   </div>`;
   }
 
@@ -974,27 +983,31 @@ function extractVadVetVi(r) {
   // Föredra claude_answer för faktainnehåll — final_analysis kan ha breaking-news-prefix
   const src = r.claude_answer || r.final_analysis || '';
   const lines = cleanEngineText(src);
-  // Ta rader som ser ut som faktameningar (inte hypotes-headers)
+  // Ta rader som ser ut som faktameningar (inte hypotes-headers).
+  // Rader med markdown-länkar [label](http...) släpps alltid igenom — de bär källor.
   const paras = lines.filter(l => {
+    if (/\]\(https?:/.test(l)) return true;
     const u = l.toUpperCase();
     return !u.startsWith('H1') && !u.startsWith('H2') && !u.startsWith('H3')
       && !u.startsWith('TES:') && !u.startsWith('BEVIS:') && !u.startsWith('MOTARG')
       && !u.startsWith('STYRKA:') && !u.startsWith('FALSIF');
-  }).slice(0, 3);
+  }).slice(0, 4);
   return paras.map(p => `<p>${linkify(p)}</p>`).join('');
 }
 
 function extractGoldBody(r) {
-  // Guld-body: rena analytiska stycken, inte breaking-news
+  // Guld-body: rena analytiska stycken, inte breaking-news.
+  // Rader med markdown-länkar släpps alltid igenom så källor blir klickbara chips.
   const src = r.final_analysis || r.claude_answer || '';
   const lines = cleanEngineText(src);
   const paras = lines.filter(l => {
+    if (/\]\(https?:/.test(l) && l.length > 40) return true;
     const u = l.toUpperCase();
     return l.length > 60
       && !u.startsWith('H1') && !u.startsWith('H2') && !u.startsWith('H3')
       && !u.startsWith('TES:') && !u.startsWith('BEVIS:') && !u.startsWith('MOTARG')
       && !u.startsWith('STYRKA:') && !u.startsWith('FALSIF');
-  }).slice(0, 4);
+  }).slice(0, 5);
   return paras.map(p => `<p>${linkify(p)}</p>`).join('');
 }
 
