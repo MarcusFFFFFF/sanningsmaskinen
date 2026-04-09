@@ -13,3 +13,18 @@ patch_*.sh
 .env
 .DS_Store
 !history/.gitkeep
+
+# Runtime / lokal state
+data/
+
+# Backup-arkiv och Finder-duplikat
+*.zip
+Arkiv*/
+Skärmavbild*.png
+* 2.py
+* 2.html
+* 2.md
+*(1).md
+
+# Gamla UI-mockups
+UPDATE UI/
