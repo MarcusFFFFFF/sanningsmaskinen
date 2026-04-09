@@ -560,6 +560,7 @@ function renderResult(r) {
   <div class="export-row">
     <button class="exp-btn primary" onclick="downloadText()">↓ Textbriefing — komplett analys</button>
     <button class="exp-btn" onclick="downloadRC()">↓ Reality Check</button>
+    <button class="exp-btn" onclick="downloadPDF()">↓ PDF — fullständig analys</button>
   </div>`;
 
   // Footer
@@ -1167,6 +1168,16 @@ function downloadRC() {
   a.href = URL.createObjectURL(blob);
   a.download = 'reality_check.txt';
   a.click();
+}
+
+function downloadPDF() {
+  if (!currentResult || !currentResult.filename) {
+    alert('PDF kräver en sparad analys. Kör en ny analys först.');
+    return;
+  }
+  const pwd = getHistPwd() || 'sanningsmaskinen';
+  const url = '/pdf/' + encodeURIComponent(currentResult.filename) + '?pwd=' + encodeURIComponent(pwd);
+  window.location.href = url;
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────

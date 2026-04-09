@@ -16,6 +16,7 @@ from engine import (
     analyze_conflicts, run_red_team, auto_rewrite,
     generate_article, assess_depth_recommendation
 )
+from pdf_export import build_pdf
 
 _BASE = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=os.path.join(_BASE, "static"))
@@ -428,6 +429,33 @@ def load_history(filename):
         return jsonify(json.load(f))
 
 
+@app.route("/pdf/<path:filename>", methods=["GET"])
+def download_pdf(filename):
+    if not _check_history_pwd():
+        return jsonify({"error": "forbidden"}), 403
+    from urllib.parse import unquote
+    filename = unquote(filename)
+    safe = os.path.basename(filename)
+    if not safe.endswith(".json") or "/" in filename or ".." in filename:
+        return jsonify({"error": "invalid filename"}), 400
+    path = os.path.join(_BASE, "history", safe)
+    if not os.path.exists(path):
+        return jsonify({"error": "Hittades inte"}), 404
+    try:
+        with open(path, encoding="utf-8") as f:
+            result = json.load(f)
+        pdf_bytes = build_pdf(result)
+    except Exception as e:
+        print(f"[pdf_export error] {type(e).__name__}: {e}", flush=True)
+        return jsonify({"error": f"PDF-generering misslyckades: {e}"}), 500
+    pdf_name = safe.replace(".json", ".pdf")
+    return Response(
+        pdf_bytes,
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{pdf_name}"'}
+    )
+
+
 @app.route("/admin")
 def admin_page():
     admin_pwd = os.environ.get("ADMIN_PASSWORD", "")
@@ -579,6 +607,7 @@ def _save_history(question, result, session_id="anon"):
     result["question"] = question
     result["timestamp"] = ts
     result["session_id"] = session_id
+    result["filename"] = filename
     path = os.path.join(history_dir, filename)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(_serialize(result), f, ensure_ascii=False, indent=2)
