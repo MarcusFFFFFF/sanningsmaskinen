@@ -617,12 +617,23 @@ def analyze_conflicts(claude_answer: str, gpt_answer: str) -> str:
 def run_red_team(question: str, claude_answer: str, conflict_report: str) -> tuple:
     structured = _extract_structured_summary(claude_answer)
 
+    # Faktaankare: råa utdrag ur början och slutet av primäranalysen så Red Team
+    # ser de aktuella aktörerna och datumen i sin ursprungliga prosa.
+    head = claude_answer[:800]
+    tail = claude_answer[-800:] if len(claude_answer) > 1600 else ""
+
     prompt = (
-        f"RED TEAM. Ditt uppdrag: BYGG en fullständig konkurrerande analys som slår ut "
-        f"Claude:s vinnande hypotes. Datum: {TODAY}\n"
-        f"FRÅGA: {question}\n"
-        f"CLAUDE:S ANALYS (strukturerad):\n{structured}\n"
-        f"KONFLIKTER: {conflict_report[:400]}\n\n"
+        f"RED TEAM. Datum: {TODAY}\n"
+        f"FRÅGA: {question}\n\n"
+        f"━━━ FAKTAANKARE — ENDA TILLÅTNA FAKTAKÄLLAN ━━━\n"
+        f"PRIMÄRANALYS (öppning):\n{head}\n\n"
+        f"PRIMÄRANALYS (slut):\n{tail}\n"
+        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"CLAUDE:S STRUKTURERADE HYPOTESER:\n{structured}\n\n"
+        f"GPT-KRITIKERNS KONFLIKTKARTA:\n{conflict_report[:600]}\n\n"
+        f"DITT UPPDRAG: Bygg en konkurrerande analys som slår ut Claude:s vinnande hypotes. "
+        f"Använd ENDAST aktörsnamn, datum, presidenter och politiska beslut som finns "
+        f"i FAKTAANKARET ovan. Hitta ALDRIG på information som inte står där.\n\n"
         f"STEG 1 — T1-PREMISS: Finns felaktiga eller obekräftade faktapåståenden? "
         f"[Citera exakt, ange varför det är tveksamt]\n"
         f"STEG 2 — KONKURRERANDE MODELL: Bygg en fullständig alternativ förklaring "
@@ -647,7 +658,12 @@ def run_red_team(question: str, claude_answer: str, conflict_report: str) -> tup
                 f"Du är Red Team-analytiker. Datum: {TODAY}. "
                 f"Ditt jobb är att FALSIFIERA Claude:s slutsats — inte lista generella invändningar. "
                 f"Bygg en fullständig konkurrerande modell med konkreta bevis. "
-                f"Om du inte kan hitta starka motbevis, säg det — men försök hårt."
+                f"Om du inte kan hitta starka motbevis, säg det — men försök hårt.\n\n"
+                f"KRITISK FAKTAREGEL: Använd ALDRIG din egen träningsdata för att verifiera "
+                f"fakta om aktuella händelser, presidenter, ledare eller politiska beslut. "
+                f"Håll dig STRIKT till de fakta som finns i FAKTAANKARET i user-meddelandet. "
+                f"Om primäranalysen säger att Trump är president 2026, så är Trump president — "
+                f"din träningsdata är inte aktuell. Skriv på svenska."
             )},
             {"role": "user", "content": safe_encode(prompt)}
         ]
@@ -657,6 +673,11 @@ def run_red_team(question: str, claude_answer: str, conflict_report: str) -> tup
 
 
 def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str:
+    # Web search återinförs ENDAST när Red Team sa KOLLAPSAR — då behöver vi
+    # bygga om från grunden med färsk fakta. MODIFIERAS räcker det att
+    # omstrukturera utan ny sökning.
+    is_collapsed = "KOLLAPSAR" in (red_team_report or "").upper()
+
     prompt = (
         f"Red Team: analys behöver revideras. Datum: {TODAY}\n"
         f"FRÅGA: {question}\n"
@@ -664,20 +685,30 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
         f"RED TEAM:\n{red_team_report[:800]}\n"
         f"Förbättra: kör tre linser om, degradera svaga påståenden [HYPOTES], "
         f"inkludera ALT-H1/H2/H3. Märk [REVIDERAD VERSION].\n"
-        f"Behåll alla källänkar från originalet — sök inte nya källor, "
-        f"omstrukturera baserat på Red Teams kritik."
-    )
-    try:
-        r = anthropic_client.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=3000,
-            system=[{
-                "type": "text",
-                "text": SYSTEM_PROMPT,
-                "cache_control": {"type": "ephemeral"},
-            }],
-            messages=[{"role": "user", "content": prompt}],
+        + (
+            f"KOLLAPSAR — bygg om från grunden. Sök nya källor via web search "
+            f"för att uppdatera fakta. Prioritera Reuters, AP, Bloomberg, BBC. "
+            f"Format: [Källnamn, {TODAY}](https://url)"
+            if is_collapsed else
+            f"Behåll alla källänkar från originalet — sök inte nya källor, "
+            f"omstrukturera baserat på Red Teams kritik."
         )
+    )
+    kwargs = {
+        "model": "claude-opus-4-6",
+        "max_tokens": 3000,
+        "system": [{
+            "type": "text",
+            "text": SYSTEM_PROMPT,
+            "cache_control": {"type": "ephemeral"},
+        }],
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    if is_collapsed:
+        kwargs["tools"] = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 5}]
+
+    try:
+        r = anthropic_client.messages.create(**kwargs)
         return "".join(
             b.text for b in r.content
             if hasattr(b, "type") and b.type == "text"

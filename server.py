@@ -107,15 +107,10 @@ def _run_pipeline(question, on_step=None, sid="anon"):
     result["gpt_answer"] = ask_gpt_critic(question, result["claude_answer"], rc["status"])
     if on_step: on_step(2)
 
-    # analyze_conflicts och run_red_team är inbördes oberoende — kör parallellt.
-    # red_team får tom conflict_report eftersom de delar input (claude_answer + gpt) men inte beror på varandra.
-    with ThreadPoolExecutor(max_workers=2) as ex:
-        f_conflicts = ex.submit(analyze_conflicts, result["claude_answer"], result["gpt_answer"])
-        f_red       = ex.submit(run_red_team, question, result["claude_answer"], "")
-        result["conflict_report"] = f_conflicts.result()
-        red_report, should_rewrite = f_red.result()
+    result["conflict_report"] = analyze_conflicts(result["claude_answer"], result["gpt_answer"])
     if on_step: on_step(3)
 
+    red_report, should_rewrite = run_red_team(question, result["claude_answer"], result["conflict_report"])
     result["red_team_report"] = red_report
     result["collapsed"] = should_rewrite
     result["red_team_ok"] = bool(
@@ -246,14 +241,11 @@ def _stream_response(question, sid="anon"):
             yield sse("progress", {"step": 2, "label": step_labels[2], "done": done_labels[2]})
             gpt_answer = ask_gpt_critic(question, claude_answer, rc["status"])
 
-            # Steg 3 + 4 körs parallellt. Visa båda labels samtidigt så användaren ser att de pågår.
             yield sse("progress", {"step": 3, "label": step_labels[3], "done": done_labels[3]})
+            conflict_report = analyze_conflicts(claude_answer, gpt_answer)
+
             yield sse("progress", {"step": 4, "label": step_labels[4], "done": done_labels[4]})
-            with ThreadPoolExecutor(max_workers=2) as ex:
-                f_conflicts = ex.submit(analyze_conflicts, claude_answer, gpt_answer)
-                f_red       = ex.submit(run_red_team, question, claude_answer, "")
-                conflict_report = f_conflicts.result()
-                red_report, should_rewrite = f_red.result()
+            red_report, should_rewrite = run_red_team(question, claude_answer, conflict_report)
 
             red_team_ok = bool(
                 red_report
