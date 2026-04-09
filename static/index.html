@@ -235,6 +235,12 @@ textarea::placeholder{color:var(--text-muted);}
 <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
 <div class="sidebar" id="sidebar">
   <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--text-muted);text-transform:uppercase;margin-bottom:12px;">Analyshistorik</div>
+  <div id="hist-auth" style="display:none;margin-bottom:14px;">
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;line-height:1.5;">Historiken är skyddad. Ange lösenord.</div>
+    <input type="password" id="hist-pwd-input" placeholder="Lösenord" style="width:100%;background:var(--surface);border:1px solid var(--border-show);border-radius:6px;padding:8px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;margin-bottom:8px;" />
+    <button onclick="submitHistPwd()" style="width:100%;background:var(--text);color:var(--bg);border:none;border-radius:6px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.1em;cursor:pointer;min-height:36px;">LÅS UPP</button>
+    <div id="hist-pwd-err" style="display:none;color:var(--red);font-size:11px;margin-top:6px;"></div>
+  </div>
   <div id="hist-list"></div>
 </div>
 
@@ -993,10 +999,52 @@ function extractGoldBody(r) {
 }
 
 // ── HISTORY ───────────────────────────────────────────────────────────────────
+function getHistPwd() {
+  try { return sessionStorage.getItem('histPwd') || ''; } catch(e) { return ''; }
+}
+function setHistPwd(p) {
+  try { sessionStorage.setItem('histPwd', p); } catch(e) {}
+}
+function clearHistPwd() {
+  try { sessionStorage.removeItem('histPwd'); } catch(e) {}
+}
+
+function showHistAuth(errMsg) {
+  document.getElementById('hist-auth').style.display = 'block';
+  document.getElementById('hist-list').style.display = 'none';
+  var err = document.getElementById('hist-pwd-err');
+  if (errMsg) { err.textContent = errMsg; err.style.display = 'block'; }
+  else { err.style.display = 'none'; }
+  setTimeout(function(){
+    var inp = document.getElementById('hist-pwd-input');
+    if (inp) inp.focus();
+  }, 50);
+}
+
+function hideHistAuth() {
+  document.getElementById('hist-auth').style.display = 'none';
+  document.getElementById('hist-list').style.display = 'block';
+}
+
+async function submitHistPwd() {
+  var pwd = (document.getElementById('hist-pwd-input').value || '').trim();
+  if (!pwd) return;
+  setHistPwd(pwd);
+  await loadHistory();
+}
+
 async function loadHistory() {
+  var pwd = getHistPwd();
+  if (!pwd) { showHistAuth(); return; }
   try {
-    const res = await fetch('/history');
+    const res = await fetch('/history?pwd=' + encodeURIComponent(pwd));
+    if (res.status === 403) {
+      clearHistPwd();
+      showHistAuth('Fel lösenord.');
+      return;
+    }
     const entries = await res.json();
+    hideHistAuth();
     const list = document.getElementById('hist-list');
     list.innerHTML = entries.map(e => `
       <div class="hist-item" onclick="loadHistEntry('${e.filename}')">
@@ -1007,8 +1055,15 @@ async function loadHistory() {
 }
 
 async function loadHistEntry(filename) {
+  var pwd = getHistPwd();
+  if (!pwd) { showHistAuth(); return; }
   try {
-    const res = await fetch('/history/' + filename);
+    const res = await fetch('/history/' + filename + '?pwd=' + encodeURIComponent(pwd));
+    if (res.status === 403) {
+      clearHistPwd();
+      showHistAuth('Fel lösenord.');
+      return;
+    }
     const data = await res.json();
     currentResult = data;
     document.getElementById('question-input').value = data.question || '';
@@ -1029,8 +1084,17 @@ function toggleSidebar() {
     s.classList.add('open');
     bd.classList.add('visible');
     document.body.style.overflow = 'hidden';
+    loadHistory();
   }
 }
+
+// Enter-tangent i pwd-fältet skickar formuläret
+document.addEventListener('DOMContentLoaded', function() {
+  var inp = document.getElementById('hist-pwd-input');
+  if (inp) inp.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitHistPwd();
+  });
+});
 
 // ── EXPORT ────────────────────────────────────────────────────────────────────
 function downloadText() {
@@ -1069,7 +1133,8 @@ document.getElementById('question-input').addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.metaKey) runAnalysis();
 });
 
-loadHistory();
+// Förladda historik bara om pwd redan finns i sessionStorage
+if (getHistPwd()) loadHistory();
 
 // ── iOS 18 SSE RECONNECT FIX ─────────────────────────────────────────────────
 var _activeEventSource = null;

@@ -360,8 +360,17 @@ def get_result(job_id):
 
 # ── HISTORY ───────────────────────────────────────────────────────────────────
 
+HISTORY_PASSWORD = os.environ.get("HISTORY_PASSWORD", "sanningsmaskinen")
+
+
+def _check_history_pwd():
+    return (request.args.get("pwd") or "") == HISTORY_PASSWORD
+
+
 @app.route("/history", methods=["GET"])
 def history():
+    if not _check_history_pwd():
+        return jsonify({"error": "forbidden"}), 403
     entries = []
     history_dir = os.path.join(_BASE, "history")
     if os.path.isdir(history_dir):
@@ -384,6 +393,8 @@ def history():
 
 @app.route("/history/<path:filename>", methods=["GET"])
 def load_history(filename):
+    if not _check_history_pwd():
+        return jsonify({"error": "forbidden"}), 403
     from urllib.parse import unquote
     filename = unquote(filename)
     history_dir = os.path.join(_BASE, "history")
