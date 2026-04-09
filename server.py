@@ -8,7 +8,7 @@ Sanningsmaskinen — Flask backend
 from flask import Flask, request, jsonify, Response, stream_with_context
 import sys, os, json, re, time, sqlite3, threading, uuid
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date
+from datetime import date, datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from engine import (
@@ -572,8 +572,10 @@ def _save_history(question, result, session_id="anon"):
     history_dir = os.path.join(_BASE, "history")
     os.makedirs(history_dir, exist_ok=True)
     ts = date.today().strftime("%Y%m%d")
+    hms = datetime.now().strftime("%H%M%S")
+    uuid8 = uuid.uuid4().hex[:8]
     safe_q = re.sub(r"[^\w\s-]", "", question)[:40].strip().replace(" ", "_")
-    filename = ts + "_" + session_id[:8] + "_" + safe_q + ".json"
+    filename = ts + "_" + hms + "_" + uuid8 + "_" + session_id[:8] + "_" + safe_q + ".json"
     result["question"] = question
     result["timestamp"] = ts
     result["session_id"] = session_id
