@@ -730,6 +730,15 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
             f"Behåll alla källänkar från originalet — sök inte nya källor, "
             f"omstrukturera baserat på Red Teams kritik."
         )
+        + "\n\nFORMAT — KRITISKT: Börja DIREKT med analysen. "
+        + "Skriv ALDRIG om din process, vad du planerar att söka, "
+        + "vad du tänker göra eller hur du tolkar uppgiften. "
+        + "Bara resultatet — som om du redan är klar med arbetet. "
+        + "INGEN meta-text. INGEN inledning som 'Jag börjar med att...' eller "
+        + "'Låt mig först söka...'. Hoppa rakt in i [REVIDERAD VERSION]-rubriken."
+        + "\n\nKRITISK LÄNKREGEL: VARJE faktapåstående MÅSTE ha en klickbar "
+        + "länk i format [Källnamn](https://url). Inga påståenden utan länk "
+        + "är tillåtna. Om du inte har en URL, skriv inte påståendet."
     )
     kwargs = {
         "model": "claude-opus-4-6",
