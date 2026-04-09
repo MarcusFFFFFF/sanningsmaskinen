@@ -300,13 +300,16 @@ def _stream_response(question):
 
             try:
                 _save_history(question, result)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[save_history error] {type(e).__name__}: {e}", flush=True)
 
             yield sse("result", _serialize(result))
 
         except Exception as e:
-            yield sse("error", {"message": str(e)})
+            import traceback
+            print(f"[stream_response error] question={question!r} {type(e).__name__}: {e}", flush=True)
+            traceback.print_exc()
+            yield sse("error", {"message": f"{type(e).__name__}: {e}"})
 
     return Response(
         stream_with_context(generate()),
