@@ -256,7 +256,37 @@ def safe_encode(text: str) -> str:
     return text
 
 
-def openai_with_retry(model, max_tokens, messages, max_retries=3):
+def _log_usage(step: str, model: str, response) -> None:
+    """
+    Logga token-användning från API-svar. Hanterar både Anthropic
+    (input_tokens, cache_creation_input_tokens, cache_read_input_tokens,
+    output_tokens) och OpenAI (prompt_tokens, completion_tokens, total_tokens).
+    Skrivs till stdout med [usage]-prefix så Railway-loggen kan grep:as.
+    """
+    try:
+        u = getattr(response, "usage", None)
+        if u is None:
+            return
+        parts = [f"step={step}", f"model={model}"]
+        for attr in (
+            "input_tokens", "output_tokens",
+            "cache_creation_input_tokens", "cache_read_input_tokens",
+            "prompt_tokens", "completion_tokens", "total_tokens",
+        ):
+            v = getattr(u, attr, None)
+            if v is not None:
+                parts.append(f"{attr}={v}")
+        server_tools = getattr(u, "server_tool_use", None)
+        if server_tools:
+            web_searches = getattr(server_tools, "web_search_requests", None)
+            if web_searches is not None:
+                parts.append(f"web_searches={web_searches}")
+        print("[usage] " + " ".join(parts), flush=True)
+    except Exception as e:
+        print(f"[usage] step={step} log_error={type(e).__name__}: {e}", flush=True)
+
+
+def openai_with_retry(model, max_tokens, messages, max_retries=3, step="openai"):
     for attempt in range(max_retries):
         try:
             r = openai_client.chat.completions.create(
@@ -265,6 +295,7 @@ def openai_with_retry(model, max_tokens, messages, max_retries=3):
                 messages=messages,
                 timeout=60,
             )
+            _log_usage(step, model, r)
             parts = [
                 c.message.content for c in r.choices
                 if hasattr(c.message, "content") and c.message.content
@@ -342,6 +373,7 @@ def event_reality_check(question: str) -> dict:
             messages=[{"role": "user", "content": prompt}],
             tools=tools,
         )
+        _log_usage("reality_check", "claude-sonnet-4-6", response)
         text = "".join(
             b.text for b in response.content
             if hasattr(b, "type") and b.type == "text"
@@ -420,6 +452,7 @@ def get_breaking_context(question: str, status: str) -> str:
             messages=[{"role": "user", "content": search_prompt}],
             tools=tools,
         )
+        _log_usage("breaking_context", "claude-sonnet-4-6", r)
         result = "".join(
             b.text for b in r.content
             if hasattr(b, "type") and b.type == "text"
@@ -497,6 +530,7 @@ officiella dokument (gov, parliament, un.org, europarl.eu).
         messages=[{"role": "user", "content": question + rc_note + breaking}],
         tools=tools,
     )
+    _log_usage("ask_claude", "claude-opus-4-6", response)
     return "".join(
         b.text for b in response.content
         if hasattr(b, "type") and b.type == "text"
@@ -581,7 +615,8 @@ def ask_gpt_critic(question: str, claude_answer: str, reality_status: str) -> st
                 f"Aldrig generell. Om du kritiserar linsbalansen, nämn vilken hypotes som fick fel behandling."
             )},
             {"role": "user", "content": safe_encode(prompt)}
-        ]
+        ],
+        step="gpt_critic",
     )
 
 
@@ -606,6 +641,7 @@ def analyze_conflicts(claude_answer: str, gpt_answer: str) -> str:
             messages=[{"role": "user", "content": prompt}],
             tools=tools,
         )
+        _log_usage("analyze_conflicts", "claude-sonnet-4-6", r)
         return "".join(
             b.text for b in r.content
             if hasattr(b, "type") and b.type == "text"
@@ -666,7 +702,8 @@ def run_red_team(question: str, claude_answer: str, conflict_report: str) -> tup
                 f"din träningsdata är inte aktuell. Skriv på svenska."
             )},
             {"role": "user", "content": safe_encode(prompt)}
-        ]
+        ],
+        step="red_team",
     )
     should_rewrite = any(x in result.upper() for x in ["KOLLAPSAR", "IFRÅGASATT", "UTMANAD", "MODIFIERAS"])
     return result, should_rewrite
@@ -709,6 +746,7 @@ def auto_rewrite(question: str, claude_answer: str, red_team_report: str) -> str
 
     try:
         r = anthropic_client.messages.create(**kwargs)
+        _log_usage("auto_rewrite", "claude-opus-4-6", r)
         return "".join(
             b.text for b in r.content
             if hasattr(b, "type") and b.type == "text"
@@ -760,6 +798,7 @@ def generate_article(question: str, final_analysis: str, ranked: list) -> str:
             system=f"Du är en erfaren grävjournalist. Datum: {TODAY}. Skriv klar, faktabaserad journalistik.",
             messages=[{"role": "user", "content": prompt}],
         )
+        _log_usage("generate_article", "claude-sonnet-4-6", response)
         return "".join(
             b.text for b in response.content
             if hasattr(b, "type") and b.type == "text"
