@@ -343,6 +343,19 @@ function hideHeroDeco() {
   });
 }
 
+function newAnalysis() {
+  // Återställ till start-vy: göm result, visa input igen, rensa textarea, skrolla upp
+  const result = document.getElementById('result');
+  if (result) result.style.display = 'none';
+  const inputBlock = document.getElementById('input-block');
+  if (inputBlock) inputBlock.style.display = '';
+  const ta = document.getElementById('question-input');
+  if (ta) { ta.value = ''; ta.focus(); }
+  const btn = document.getElementById('analyze-btn');
+  if (btn) btn.disabled = false;
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
 async function runAnalysis() {
   const q = document.getElementById('question-input').value.trim();
   if (!q) return;
@@ -552,9 +565,17 @@ function renderResult(r) {
   // Footer
   html += `<div class="footer">Sanningsmaskinen v8.44 · ${today} · ${esc(r.status || 'KLAR')}<br><span style="color:var(--border-show);">Claude Opus 4.6 + GPT-4o · Fyra granskningssteg · Källgradering E1–E5</span></div>`;
 
+  html += `
+  <div style="text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid var(--border);">
+    <button onclick="newAnalysis()" style="background:var(--text);color:var(--bg);border:none;border-radius:8px;padding:14px 28px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.12em;cursor:pointer;min-height:44px;">NY ANALYS →</button>
+  </div>`;
+
   const el = document.getElementById('result');
   el.innerHTML = html;
   el.style.display = 'block';
+  // Göm fråge-input + Analysera-knapp när resultatet visas
+  const inputBlock = document.getElementById('input-block');
+  if (inputBlock) inputBlock.style.display = 'none';
   el.scrollIntoView({behavior:'smooth'});
 }
 
