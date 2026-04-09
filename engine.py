@@ -263,6 +263,7 @@ def openai_with_retry(model, max_tokens, messages, max_retries=3):
                 model=model,
                 max_tokens=max_tokens,
                 messages=messages,
+                timeout=60,
             )
             parts = [
                 c.message.content for c in r.choices
@@ -567,7 +568,7 @@ def ask_gpt_critic(question: str, claude_answer: str, reality_status: str) -> st
         f"DOM: En skarp mening — håller analysen eller inte, och varför?"
     )
     return openai_with_retry(
-        model="gpt-4o-search-preview",
+        model="gpt-4o",
         max_tokens=900,
         messages=[
             {"role": "system", "content": (
@@ -635,7 +636,7 @@ def run_red_team(question: str, claude_answer: str, conflict_report: str) -> tup
         f"ALTERNATIV RANKING: Om din modell är korrekt, hur borde H1/H2/H3 rankas?"
     )
     result = openai_with_retry(
-        model="gpt-4o-search-preview",
+        model="gpt-4o",
         max_tokens=1200,
         messages=[
             {"role": "system", "content": (
