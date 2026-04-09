@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN v8.43 — STREAMLIT UI
+SANNINGSMASKINEN v8.44 — STREAMLIT UI
 Ändring från v8.17b:
   - Primäranalys renderas som formatterad artikel (markdown → HTML)
   - Tabeller, rubrikhierarki, TES/BEVIS/MOTARG i färgkodade sektioner
@@ -15,8 +15,16 @@ import streamlit as st
 from dotenv import load_dotenv
 load_dotenv()
 
-st.set_page_config(page_title="Sanningsmaskinen", page_icon="◎", layout="wide",
-                   initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Sanningsmaskinen", page_icon="◎", layout="centered",
+                   initial_sidebar_state="expanded")
+
+st.warning(
+    "**Sanningsmaskinen har flyttat!** "
+    "Besök den nya versionen på "
+    "[sanningsmaskinen-production.up.railway.app]"
+    "(https://sanningsmaskinen-production.up.railway.app)",
+    icon="⚠️",
+)
 
 st.markdown("""
 <style>
@@ -24,7 +32,7 @@ st.markdown("""
 footer{display:none !important;}
 [data-testid="stDecoration"]{display:none !important;}
 [data-testid="stStatusWidget"]{display:none !important;}
-@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;600&family=Libre+Franklin:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
 :root{
   --bg:#0a0b0d; --bg1:#0f1115; --bg2:#141821; --bg3:#1b2230;
   --border:#242c3a; --border2:#303a4c;
@@ -35,9 +43,9 @@ footer{display:none !important;}
   --blu:#6eb6ff; --blu-bg:#0a1220; --blu-dim:#23486d;
   --mono:'JetBrains Mono',monospace; --serif:'Spectral',serif; --sans:'Libre Franklin',sans-serif;
 }
-html,body,[class*="css"]{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+html,body,[class*="css"]{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;font-weight:300;-webkit-font-smoothing:antialiased}
 *,*::before,*::after{box-sizing:border-box}
-.main .block-container{max-width:1060px;padding:0 1.5rem 5.3rem;margin:0 auto}
+.main .block-container{max-width:720px!important;padding:52px 28px 80px!important;margin:0 auto!important}
 div[data-testid="stAppViewContainer"]{background:#0a0b0d}
 
 /* ── Sidebar — mörk editorial design med hårdkodade färger ── */
@@ -197,12 +205,12 @@ pre,code,.analysis-text{white-space:pre-wrap!important;overflow-wrap:anywhere!im
 div.stMarkdown p{margin:0}
 .stCaption{color:var(--ink4)!important}
 
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 0 .75rem;border-bottom:1px solid var(--border);margin-bottom:1.15rem}
+.topbar{height:50px;border-bottom:1px solid var(--border);padding:0 0 0 0;display:flex;align-items:center;gap:14px;position:sticky;top:0;background:rgba(7,7,10,.97);backdrop-filter:blur(20px);z-index:100;margin-bottom:0;}.topbar-ring{width:22px;height:22px;border-radius:50%;border:1.5px solid #B08808;display:flex;align-items:center;justify-content:center;flex-shrink:0;}.topbar-ring::after{content:'';width:7px;height:7px;background:#B08808;border-radius:50%;}
 .topbar-left{display:flex;align-items:baseline;gap:1rem}
-.topbar-mark{font-family:var(--mono);font-size:.58rem;font-weight:600;letter-spacing:.35em;color:var(--ink3);text-transform:uppercase}
-.topbar-title{font-family:var(--serif);font-size:1.03rem;font-weight:600;color:var(--ink)}
-.topbar-right{font-family:var(--mono);font-size:.58rem;color:var(--ink3);letter-spacing:.08em}
-.topbar-sub{font-family:var(--mono);font-size:.6rem;color:var(--ink3);letter-spacing:.07em;padding:.4rem 0 .9rem;border-bottom:1px solid var(--border);margin-bottom:1rem;line-height:1.7}
+.topbar-mark{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.24em;color:#A88020;text-transform:uppercase}
+.topbar-title{font-style:italic;font-size:13px;color:#585868;font-weight:300;}
+.topbar-right{font-family:var(--mono);font-size:9px;color:#585868;letter-spacing:.08em;margin-left:auto;}
+.topbar-sub{display:none;}
 
 .stTextArea textarea{background:var(--bg2)!important;border:1px solid var(--border2)!important;border-radius:2px!important;color:var(--ink)!important;font-family:var(--serif)!important;font-size:1rem!important;line-height:1.6!important;padding:.78rem 1rem!important;resize:none!important;overflow:hidden!important;box-shadow:none!important}
 .stTextArea textarea:focus{border-color:var(--blu)!important;box-shadow:none!important;outline:none!important}
@@ -554,6 +562,205 @@ div[data-testid="stExpander"] button{background:transparent!important}
 .zone-blu{border-left:3px solid #4a90d9;}
 .zone-hdr{font-size:0.65rem;letter-spacing:0.12em;color:var(--ink3);font-family:var(--mono);font-weight:600;margin-bottom:0.6rem;}
 .footer{font-size:0.7rem;color:var(--ink3);font-family:var(--mono);margin-top:2rem;padding-top:0.8rem;border-top:1px solid var(--border);}
+
+/* ═══════════ V9 DESIGN SYSTEM ═══════════ */
+.v9-sec{font-family:var(--mono);font-size:.55rem;letter-spacing:.24em;color:#7A7888;
+  text-transform:uppercase;font-weight:500;margin:2.4rem 0 1rem;
+  display:flex;align-items:center;gap:.75rem;}
+.v9-sec::after{content:'';flex:1;height:1px;background:#2E2E3A;}
+.v9-q{margin-bottom:2rem;padding-bottom:1.8rem;position:relative;}
+.v9-q::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#2E2E3A 0%,transparent 100%);border-radius:2px;}
+.v9-q-lbl{font-family:var(--mono);font-size:.45rem;letter-spacing:.28em;color:#44444E;
+  text-transform:uppercase;margin-bottom:.6rem;display:flex;align-items:center;gap:.55rem;}
+.v9-qmode{font-family:var(--mono);font-size:.45rem;letter-spacing:.12em;padding:2px 7px;
+  border-radius:3px;background:rgba(54,166,96,.07);color:#36A660;
+  border:1px solid rgba(54,166,96,.2);}
+.v9-q-text{font-family:'Instrument Serif',serif;font-size:1.22rem;
+  line-height:1.4;color:#868280;font-style:italic;}
+.v9-answer{margin-bottom:1.4rem;}
+.v9-answer-main{font-family:'Instrument Serif',serif;font-size:1.6rem;
+  line-height:1.45;color:#EDEAE0;margin-bottom:.7rem;letter-spacing:-.01em;}
+.v9-answer-sub{font-size:.88rem;color:#868280;font-style:italic;line-height:1.65;
+  margin-bottom:.7rem;padding-left:.75rem;border-left:2px solid #2E2E3A;}
+.v9-answer-meta{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;
+  padding-top:.75rem;border-top:1px solid #2E2E3A;}
+.v9-conf{display:flex;align-items:center;gap:.5rem;}
+.v9-segs{display:flex;gap:3px;}
+.v9-seg{width:18px;height:3px;border-radius:2px;background:#2E2E3A;}
+.v9-seg.on{background:#36A660;}
+.v9-conf-lbl{font-family:var(--mono);font-size:.52rem;color:#36A660;letter-spacing:.1em;}
+.v9-chain{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.v9-cs{font-family:var(--mono);font-size:.45rem;letter-spacing:.1em;color:#36A660;
+  padding:2px 6px;background:rgba(54,166,96,.07);border:1px solid rgba(54,166,96,.18);border-radius:2px;}
+.v9-ca{font-size:.52rem;color:#2E2E3A;}
+.v9-finding{background:rgba(72,168,212,.06);border:1px solid rgba(72,168,212,.2);
+  border-left:3px solid #48A8D4;border-radius:6px;padding:1rem 1.1rem;margin-bottom:1.8rem;}
+.v9-finding-lbl{font-family:var(--mono);font-size:.45rem;font-weight:600;
+  letter-spacing:.22em;color:#48A8D4;text-transform:uppercase;margin-bottom:.5rem;
+  display:flex;align-items:center;gap:.4rem;}
+.v9-f-dot{width:5px;height:5px;border-radius:50%;background:#48A8D4;
+  animation:v9pulse 2s infinite;flex-shrink:0;}
+.v9-finding-text{font-size:.88rem;line-height:1.75;color:#C4C0B6;}
+.v9-article{font-size:.93rem;line-height:1.82;color:#C4C0B6;margin-bottom:.4rem;}
+.v9-article p{margin-bottom:.8rem;}
+.v9-article p:last-child{margin-bottom:0;}
+.v9-article strong{color:#EDEAE0;font-weight:500;}
+.v9-src{display:inline-flex;align-items:center;gap:2px;font-family:var(--mono);
+  font-size:.48rem;padding:2px 6px;border-radius:3px;background:#131317;
+  border:1px solid #2E2E3A;color:#9A9690;text-decoration:none;
+  vertical-align:middle;margin:0 1px;white-space:nowrap;}
+.v9-src-hi{border-color:rgba(54,166,96,.3)!important;color:#1E5C38!important;}
+.v9-src-md{border-color:rgba(54,166,96,.15)!important;}
+.v9-src-g{opacity:.45;font-size:.4rem;}
+.v9-hyp{display:flex;align-items:stretch;border:1px solid #2E2E3A;border-radius:8px;
+  margin-bottom:6px;background:#0D0D11;position:relative;overflow:hidden;}
+.v9-hyp.high{border-color:rgba(54,166,96,.28);}
+.v9-hyp.med{border-color:rgba(212,108,32,.22);}
+.v9-hyp::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.v9-hyp.high::before{background:#36A660;}
+.v9-hyp.med::before{background:#D46C20;}
+.v9-pct-wrap{padding:1rem 1rem 1rem 1.2rem;display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-start;gap:4px;min-width:68px;flex-shrink:0;}
+.v9-pct{font-family:'Instrument Serif',serif;font-size:1.7rem;line-height:1;}
+.v9-pct.hi{color:#36A660;}
+.v9-pct.md{color:#D46C20;}
+.v9-rank{font-family:var(--mono);font-size:.45rem;letter-spacing:.1em;color:#44444E;}
+.v9-hdiv{width:1px;background:#2E2E3A;flex-shrink:0;margin:.7rem 0;}
+.v9-hcontent{flex:1;min-width:0;padding:1rem .85rem 1rem 1rem;}
+.v9-htitle{font-size:.93rem;font-weight:400;color:#EDEAE0;line-height:1.5;margin-bottom:.35rem;}
+.v9-hev{font-size:.8rem;color:#868280;line-height:1.6;margin-bottom:.5rem;font-style:italic;}
+.v9-hbot{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;}
+.v9-hverd{font-family:var(--mono);font-size:.48rem;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;padding:2px 7px;border-radius:3px;display:inline-flex;}
+.v9-verd-h{background:rgba(54,166,96,.08);color:#36A660;border:1px solid rgba(54,166,96,.2);}
+.v9-verd-p{background:rgba(212,108,32,.08);color:#D46C20;border:1px solid rgba(212,108,32,.2);}
+.v9-rt{background:linear-gradient(135deg,rgba(212,108,32,.08) 0%,transparent 60%);
+  border:1px solid rgba(212,108,32,.22);border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:.4rem;}
+.v9-rt-top{display:flex;align-items:flex-start;gap:.9rem;}
+.v9-rt-bwrap{flex-shrink:0;text-align:center;}
+.v9-rt-badge{font-family:var(--mono);font-size:.48rem;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;padding:3px 10px;border-radius:3px;display:block;
+  background:rgba(212,108,32,.1);color:#D46C20;border:1px solid rgba(212,108,32,.2);margin-bottom:3px;}
+.v9-rt-word{font-family:'Instrument Serif',serif;font-size:1.8rem;
+  color:#D46C20;line-height:1;display:block;text-align:center;margin-bottom:3px;}
+.v9-rt-word.grn{color:#36A660;}
+.v9-rt-word.red{color:#C43030;}
+.v9-rt-q{font-family:var(--mono);font-size:.42rem;color:#44444E;letter-spacing:.08em;display:block;}
+.v9-rt-title{font-size:.93rem;font-weight:400;color:#EDEAE0;margin-bottom:.35rem;line-height:1.5;}
+.v9-rt-sub{font-size:.85rem;color:#868280;line-height:1.7;margin-bottom:.55rem;}
+.v9-rt-chain{display:flex;align-items:center;flex-wrap:wrap;gap:4px;}
+.v9-rt-step{font-family:var(--mono);font-size:.45rem;letter-spacing:.1em;color:#D46C20;
+  padding:2px 6px;background:rgba(212,108,32,.08);border:1px solid rgba(212,108,32,.18);border-radius:2px;}
+.v9-rt-step.done{color:#36A660;background:rgba(54,166,96,.07);border-color:rgba(54,166,96,.18);}
+.v9-rt-fhead{font-family:var(--mono);font-size:.48rem;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:#D46C20;margin:10px 0 5px;}
+.v9-rt-ftxt{font-size:.82rem;color:#C4C0B6;line-height:1.75;margin-bottom:7px;}
+.v9-rt-ftxt:last-child{margin-bottom:0;}
+.v9-rt-ftxt strong{color:#EDEAE0;font-weight:500;}
+.v9-rt-ftxt em{color:#D46C20;font-style:normal;}
+.v9-rt-ftxt .held{color:#36A660;}
+.fi-f{font-family:var(--mono);font-size:.48rem;font-weight:600;letter-spacing:.1em;
+  padding:1px 5px;border-radius:2px;text-transform:uppercase;vertical-align:middle;margin-right:4px;
+  background:rgba(54,166,96,.08);color:#36A660;border:1px solid rgba(54,166,96,.2);}
+.fi-i{font-family:var(--mono);font-size:.48rem;font-weight:600;letter-spacing:.1em;
+  padding:1px 5px;border-radius:2px;text-transform:uppercase;vertical-align:middle;margin-right:4px;
+  background:rgba(176,136,8,.08);color:#A88020;border:1px solid rgba(176,136,8,.18);}
+.fi-d{font-family:var(--mono);font-size:.48rem;font-weight:600;letter-spacing:.1em;
+  padding:1px 5px;border-radius:2px;text-transform:uppercase;vertical-align:middle;margin-right:4px;
+  background:rgba(196,48,48,.07);color:#C43030;border:1px solid rgba(196,48,48,.18);}
+.v9-gold-warn{background:rgba(196,48,48,.07);border:1px solid rgba(196,48,48,.22);
+  border-radius:7px;padding:.6rem .85rem;margin-bottom:.75rem;font-size:.82rem;
+  color:#8B3030;line-height:1.65;display:flex;align-items:flex-start;gap:.45rem;}
+.v9-gold{background:#F9F2D8;border:1px solid rgba(176,136,8,.2);
+  border-left:4px solid #B08808;border-radius:10px;
+  padding:1.5rem 1.6rem 1.6rem;margin-bottom:2.5rem;}
+.v9-gold-ey{font-family:var(--mono);font-size:.48rem;font-weight:600;letter-spacing:.24em;
+  color:#7A6000;text-transform:uppercase;margin-bottom:.7rem;
+  display:flex;align-items:center;gap:.45rem;}
+.v9-gold-dot{width:6px;height:6px;border-radius:50%;background:#B08808;
+  box-shadow:0 0 6px rgba(176,136,8,.5);flex-shrink:0;}
+.v9-gold-h{font-family:'Instrument Serif',serif;font-size:1.35rem;
+  line-height:1.35;color:#181408;font-weight:700;margin-bottom:.95rem;letter-spacing:-.01em;}
+.v9-gold-body{font-size:.9rem;line-height:1.82;color:#181408;opacity:.88;}
+.v9-gold-body p{margin-bottom:.72rem;}
+.v9-gold-body p:last-child{margin-bottom:0;}
+.v9-gold-body strong{color:#181408;opacity:1;font-weight:500;}
+.v9-gsrc{display:inline-flex;align-items:center;gap:2px;font-family:var(--mono);
+  font-size:.48rem;padding:2px 5px;border-radius:2px;background:rgba(176,136,8,.1);
+  border:1px solid rgba(176,136,8,.28);color:#7A6000;text-decoration:none;
+  vertical-align:middle;margin:0 1px;white-space:nowrap;}
+.v9-gsrc-g{opacity:.5;font-size:.4rem;}
+.v9-gold-rev{margin-top:.75rem;padding:.5rem .7rem;background:rgba(212,108,32,.08);
+  border-left:2px solid #D46C20;border-radius:3px;font-size:.8rem;
+  color:#5A3008;line-height:1.65;font-style:italic;}
+.v9-gold-rev strong{font-weight:500;color:#3A2008;font-style:normal;}
+.v9-gold-action{margin-top:.75rem;padding:.5rem .7rem;background:rgba(176,136,8,.08);
+  border-left:2px solid #B08808;border-radius:3px;font-size:.82rem;
+  color:#3A2A08;line-height:1.7;font-style:italic;}
+.v9-hd-row{display:flex;gap:.7rem;padding:.55rem 0;border-bottom:1px solid #1E1E26;font-size:.85rem;line-height:1.75;}
+.v9-hd-row:last-child{border-bottom:none;padding-bottom:0;}
+.v9-hd-lbl{font-family:var(--mono);font-size:.48rem;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;flex-shrink:0;width:68px;padding-top:2px;}
+.v9-lbl-tes{color:#585868;}
+.v9-lbl-bev{color:#36A660;}
+.v9-lbl-mot{color:#D46C20;}
+.v9-lbl-fal{color:#C43030;}
+.v9-hd-txt{flex:1;color:#9A9690;}
+.v9-sb-wrap{display:flex;align-items:center;gap:.55rem;padding:.4rem 0 .65rem;
+  border-bottom:1px solid #1E1E26;}
+.v9-sb-lbl{font-family:var(--mono);font-size:.45rem;letter-spacing:.12em;
+  color:#585868;text-transform:uppercase;width:68px;flex-shrink:0;}
+.v9-sb-track{flex:1;height:4px;background:#2E2E3A;border-radius:2px;overflow:hidden;}
+.v9-sb-fill{height:100%;border-radius:2px;}
+.v9-sb-hi{background:#36A660;}
+.v9-sb-md{background:#D46C20;}
+.v9-sb-val{font-family:var(--mono);font-size:.52rem;width:28px;text-align:right;flex-shrink:0;}
+.v9-sval-hi{color:#36A660;}
+.v9-sval-md{color:#D46C20;}
+.v9-cf-row{border:1px solid #2E2E3A;border-radius:6px;margin-bottom:9px;overflow:hidden;}
+.v9-cf-head{padding:.55rem .85rem;background:#0D0D11;border-bottom:1px solid #2E2E3A;
+  font-size:.88rem;color:#EDEAE0;display:flex;align-items:center;gap:.6rem;}
+.v9-cf-num{font-family:'Instrument Serif',serif;font-size:1.35rem;color:#2E2E3A;line-height:1;}
+.v9-cf-sides{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;padding:.6rem .85rem;}
+.v9-cf-side{padding:.5rem .65rem;border-radius:5px;font-size:.8rem;line-height:1.65;}
+.v9-cf-claude{background:rgba(72,168,212,.05);border:1px solid rgba(72,168,212,.18);color:#C4C0B6;}
+.v9-cf-gpt{background:rgba(212,108,32,.05);border:1px solid rgba(212,108,32,.18);color:#C4C0B6;}
+.v9-cf-slbl{font-family:var(--mono);font-size:.45rem;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;margin-bottom:.3rem;display:block;}
+.v9-cf-slbl-c{color:#48A8D4;}
+.v9-cf-slbl-g{color:#D46C20;}
+.v9-cf-res{padding:.45rem .85rem;background:#0D0D11;border-top:1px solid #2E2E3A;
+  font-size:.8rem;color:#7A7888;line-height:1.65;}
+.v9-cf-rlbl{font-family:var(--mono);font-size:.45rem;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:#36A660;margin-right:.35rem;}
+.v9-nerd-row{display:flex;gap:.85rem;padding:.55rem 0;border-bottom:1px solid #1E1E26;
+  font-size:.8rem;color:#7A7888;line-height:1.65;}
+.v9-nerd-row:last-child{border-bottom:none;padding-bottom:0;}
+.v9-nerd-step{font-family:var(--mono);font-size:.48rem;letter-spacing:.12em;
+  color:#585868;flex-shrink:0;width:58px;padding-top:2px;}
+.v9-nerd-step.done{color:#36A660;}
+.v9-nerd-step.active{color:#D46C20;}
+div[data-testid="stExpander"]{background:#0D0D11!important;border:1px solid #2E2E3A!important;
+  border-radius:7px!important;margin-bottom:6px!important;}
+div[data-testid="stExpander"] > div:first-child{
+  background:#0D0D11!important;border-radius:6px!important;
+  font-family:'JetBrains Mono',monospace!important;font-size:.58rem!important;
+  color:#7A7888!important;letter-spacing:.08em!important;padding:.7rem 1rem!important;}
+div[data-testid="stExpander"] > div:first-child:hover{color:#EDEAE0!important;background:#131317!important;}
+div[data-testid="stExpander"] > div:last-child{background:#0D0D11!important;
+  border-top:1px solid #2E2E3A!important;padding:.75rem 1rem!important;}
+@keyframes v9pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* Clear button — small, unobtrusive */
+button[data-testid="baseButton-secondary"]{
+  background:transparent!important;border:none!important;
+  color:#585868!important;font-family:'JetBrains Mono',monospace!important;
+  font-size:.55rem!important;letter-spacing:.12em!important;
+  padding:.2rem .4rem!important;text-transform:uppercase!important;
+  opacity:.6!important;box-shadow:none!important;
+}
+button[data-testid="baseButton-secondary"]:hover{opacity:1!important;color:#9A9690!important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -1576,6 +1783,583 @@ def _link_chip_with_status(url: str, label: str = "") -> str:
         f'<a class="link-chip" href="{url}" target="_blank" rel="noopener">'
         f'{_safe(disp[:35])}{badge}</a>'
     )
+# ═══════════════════════════════════════════════════════════════
+# V9 RENDER HELPERS
+# ═══════════════════════════════════════════════════════════════
+
+def _v9_sec(label):
+    return '<div class="v9-sec">' + _safe(label) + '</div>'
+
+
+def _v9_q_block(question, today_str, mode="Gravande journalistik"):
+    return (
+        '<div class="v9-q">'
+        '<div class="v9-q-lbl">Fraga &nbsp;<span class="v9-qmode">&#9678; ' + _safe(mode) + '</span></div>'
+        '<div class="v9-q-text">' + _safe(question) + '</div>'
+        '</div>'
+    )
+
+
+def _v9_answer_block(answer_main, answer_sub, conf_segs, verdict_cls):
+    segs_html = "".join(
+        '<div class="v9-seg' + (" on" if i < conf_segs else "") + '"></div>'
+        for i in range(4)
+    )
+    conf_labels = {4: "Mycket hog", 3: "Hog", 2: "Medel", 1: "Lag"}
+    conf_lbl = conf_labels.get(conf_segs, "Medel")
+    chain_items = ["Primaranalys", "GPT-kritik", "Konflikt", "Red Team", "Reviderad"]
+    chain_parts = []
+    for i, s in enumerate(chain_items):
+        chain_parts.append('<span class="v9-cs">' + _safe(s) + '</span>')
+        if i < len(chain_items) - 1:
+            chain_parts.append('<span class="v9-ca">&#8594;</span>')
+    chain_html = "".join(chain_parts)
+    return (
+        '<div class="v9-answer">'
+        '<div class="v9-answer-main">' + _safe(answer_main) + '</div>'
+        '<div class="v9-answer-sub">' + _safe(answer_sub) + '</div>'
+        '<div class="v9-answer-meta">'
+        '<div class="v9-conf"><div class="v9-segs">' + segs_html + '</div>'
+        '<span class="v9-conf-lbl">' + _safe(conf_lbl) + ' tillforlitlighet</span></div>'
+        '<div class="v9-chain">' + chain_html + '</div>'
+        '</div></div>'
+    )
+
+
+def _v9_finding_block(text):
+    return (
+        '<div class="v9-finding">'
+        '<div class="v9-finding-lbl"><div class="v9-f-dot"></div> '
+        'Nytt fynd — framkom ej i primärkällornas ursprungliga granskning</div>'
+        '<div class="v9-finding-text">' + _safe(text) + '</div>'
+        '</div>'
+    )
+
+
+def _v9_hyp_card(h, idx, uid=''):
+    pct = min(100, int(h.get("conf_pct", h.get("conf", 0.5) * 100)))
+    key = h.get("key", "")
+    label = h.get("label", "")
+    title = h.get("title", "") or label
+    if title in ("Primär hypotes", "Sekundär hypotes", "Tertiär hypotes", "Ej tillgänglig"):
+        title = label
+    tes = (h.get("tes", "") or "")[:160]
+    styrka = (h.get("styrka") or "MEDEL").upper()
+    is_high = idx == 0
+    pct_cls = "hi" if is_high else "md"
+    card_cls = "high" if is_high else "med"
+    verd_txt = "Håller" if is_high else ("Delvis stöd" if styrka != "LÅG" else "Svag evidens")
+    verd_cls = "v9-verd-h" if is_high else "v9-verd-p"
+    return (
+        '<div class="v9-hyp ' + card_cls + '" onclick="toggleVHyp(\'' + uid + '\')" style="cursor:pointer;">'
+        '<div class="v9-pct-wrap">'
+        '<div class="v9-pct ' + pct_cls + '">' + str(pct) + '%</div>'
+        '<div class="v9-rank">#' + str(idx+1) + '</div>'
+        '</div>'
+        '<div class="v9-hdiv"></div>'
+        '<div class="v9-hcontent">'
+        '<div class="v9-htitle"><strong>' + _safe(key) + ' [' + _safe(label) + ']</strong> &mdash; ' + _safe(title) + '</div>'
+        '<div class="v9-hev">' + (_safe(tes) if tes else "Se detaljer nedan.") + '</div>'
+        '<div class="v9-hbot"><span class="v9-hverd ' + verd_cls + '">' + _safe(verd_txt) + '</span></div>'
+        '<div style="font-family:var(--mono);font-size:9px;color:#585868;margin-top:7px;letter-spacing:.06em;">'
+        '▶ Visa TES · BEVIS · FALSIFIERAS OM</div>'
+        '</div>'
+        '<div style="padding:0 14px;display:flex;align-items:center;color:#3A3A4A;font-size:18px;">›</div>'
+        '</div>'
+    )
+
+
+def _v9_hyp_detail_html(h, url_pool=None):
+    key = h.get("key", "")
+    pct = min(100, int(h.get("conf_pct", h.get("conf", 0.5) * 100)))
+    styrka = (h.get("styrka") or "MEDEL").upper()
+    tes = h.get("tes", "") or ""
+    bevs = [b for b in (h.get("bevis") or [])[:4] if b and len(b) > 8]
+    mots = [m for m in (h.get("motarg") or [])[:3] if m and len(m) > 8]
+    fals = h.get("falsifiering", "") or ""
+    # Derive strength from pct when styrka field is unreliable
+    _effective_hi = pct >= 65 or any(x in styrka for x in ("H\u00d6G", "HOG", "MEDEL-H\u00d6G", "MEDEL-HOG", "HIGH"))
+    _effective_med = 35 <= pct < 65 or styrka in ("MEDEL", "MEDEL-L\u00c5G")
+    is_hi = _effective_hi
+    sb_cls = "v9-sb-hi" if _effective_hi else "v9-sb-md"
+    sv_cls = "v9-sval-hi" if _effective_hi else "v9-sval-md"
+    sb_lbl = "H\u00d6G" if pct >= 65 else ("MEDEL" if pct >= 35 else "L\u00c5G")
+    bev_rows = "".join(
+        '<div style="margin-bottom:.35rem;"><span class="fi-f">Fakta</span> ' + _safe(b) + '</div>'
+        for b in bevs
+    ) if bevs else '<div style="color:#585868;font-style:italic;font-size:.82rem;">Bevis ej specificerade.</div>'
+    mot_rows = "".join(
+        '<div style="margin-bottom:.35rem;"><span class="fi-d">Motarg</span> ' + _safe(m) + '</div>'
+        for m in mots
+    ) if mots else '<div style="color:#585868;font-style:italic;font-size:.82rem;">Inga motargument.</div>'
+    urls = (url_pool or {}).get(key, (url_pool or {}).get("global", []))[:4]
+    chips = " ".join(
+        '<a href="' + u + '" target="_blank" class="v9-src">' + _safe(_domain_label(u)) + '</a>'
+        for u in urls if u
+    )
+    fals_html = (
+        '<div class="v9-hd-row">'
+        '<span class="v9-hd-lbl v9-lbl-fal">Falsif om</span>'
+        '<div class="v9-hd-txt"><span class="fi-d">Debatterat</span> ' + _safe(fals) + '</div>'
+        '</div>'
+    ) if fals else ""
+    chip_div = ('<div style="margin-top:.5rem;">' + chips + '</div>') if chips else ""
+    return (
+        '<div class="v9-sb-wrap">'
+        '<span class="v9-sb-lbl">Bevisstyrka</span>'
+        '<div class="v9-sb-track"><div class="v9-sb-fill ' + sb_cls + '" style="width:' + str(pct) + '%"></div></div>'
+        '<span class="v9-sb-val ' + sv_cls + '">' + sb_lbl + '</span>'
+        '</div>'
+        '<div class="v9-hd-row"><span class="v9-hd-lbl v9-lbl-tes">TES</span>'
+        '<div class="v9-hd-txt">' + (_safe(tes) if tes else "—") + '</div></div>'
+        '<div class="v9-hd-row"><span class="v9-hd-lbl v9-lbl-bev">Bevis</span>'
+        '<div class="v9-hd-txt">' + bev_rows + '</div></div>'
+        '<div class="v9-hd-row"><span class="v9-hd-lbl v9-lbl-mot">Motarg</span>'
+        '<div class="v9-hd-txt">' + mot_rows + '</div></div>'
+        + fals_html + chip_div
+    )
+
+
+def _v9_rt_block(verdict_cls, verdict_word, summary):
+    word_cls = {"grn": "grn", "red": "red"}.get(verdict_cls, "")
+    steps = (
+        '<span class="v9-rt-step done">Primäranalys</span>'
+        '<span class="v9-ca">&#8594;</span>'
+        '<span class="v9-rt-step done">GPT-kritik</span>'
+        '<span class="v9-ca">&#8594;</span>'
+        '<span class="v9-rt-step done">Konfliktanalys</span>'
+        '<span class="v9-ca">&#8594;</span>'
+        '<span class="v9-rt-step">Red Team &#10003;</span>'
+        '<span class="v9-ca">&#8594;</span>'
+        '<span class="v9-rt-step done">Reviderad</span>'
+    )
+    return (
+        '<div class="v9-rt"><div class="v9-rt-top">'
+        '<div class="v9-rt-bwrap">'
+        '<span class="v9-rt-badge">Red Team</span>'
+        '<span class="v9-rt-word ' + word_cls + '">' + _safe(verdict_word) + '</span>'
+        '<span class="v9-rt-q">Försökte motbevisa</span>'
+        '</div>'
+        '<div>'
+        '<div class="v9-rt-title">En oberoende AI försökte aktivt förstöra analysen.</div>'
+        '<div class="v9-rt-sub">' + _safe((summary or "")[:280]) + '</div>'
+        '<div class="v9-rt-chain">' + steps + '</div>'
+        '</div></div></div>'
+    )
+
+
+def _v9_rt_full_html(rr_text):
+    if not rr_text:
+        return "<p style='color:#585868;font-size:.82rem;'>Ingen Red Team-rapport.</p>"
+    lines = re.sub(r"\*+|#+", "", rr_text).splitlines()
+    out = []
+    for line in lines:
+        s = line.strip()
+        if not s:
+            continue
+        if re.match(r"^(UPPDRAG|VAD SOM|ANGRIPET|STARKASTE|SLUTSATS|VERDICT|RED TEAM)", s, re.I):
+            out.append('<div class="v9-rt-fhead">' + _safe(s) + "</div>")
+        else:
+            out.append('<div class="v9-rt-ftxt">' + _safe(s) + "</div>")
+    return "".join(out) if out else ('<div class="v9-rt-ftxt">' + _safe(rr_text[:2000]) + "</div>")
+
+
+def _v9_conflict_html(cf_text):
+    if not cf_text or len(cf_text) < 50:
+        return "<p style='color:#585868;font-size:.82rem;'>Ingen konfliktanalys.</p>"
+
+    def _cln(s):
+        s = re.sub(r"\*{1,3}", "", s)
+        s = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", s)
+        s = re.sub(r"^\s*\|\s*", "", s)
+        return s.strip()
+
+    blocks = re.split(r"(?:KONFLIKT\s*\d+[:\s]|##\s*Konflikt\s*\d+)", cf_text, flags=re.IGNORECASE)
+    blocks = [b.strip() for b in blocks if b.strip() and len(b.strip()) > 20]
+    if not blocks:
+        lines = [_cln(l) for l in cf_text.splitlines() if l.strip()]
+        return "".join(
+            '<div style="font-size:.82rem;color:#9A9690;line-height:1.7;margin-bottom:.4rem;">' + _safe(l) + "</div>"
+            for l in lines[:30] if l
+        )
+    html_parts = []
+    for i, block in enumerate(blocks[:5]):
+        raw_lines = [l.strip() for l in block.splitlines() if l.strip()]
+        if not raw_lines:
+            continue
+        topic = re.sub(r"^\s*:?\s*|\*+|#+", "", _cln(raw_lines[0])).strip()[:90]
+        body_lines = raw_lines[1:]
+        claude_lines, gpt_lines, res_lines = [], [], []
+        section = "neutral"
+        for l in body_lines:
+            lc = _cln(l)
+            if not lc:
+                continue
+            lu = lc.upper()
+            if re.match(r"CLAUDE|PRIM.RANALYS", lu):
+                section = "claude"
+                rest = re.sub(r"^[^:]+:\s*", "", lc)
+                if rest: claude_lines.append(rest)
+            elif re.match(r"GPT|KRITIKER|DESTRUKTIV", lu):
+                section = "gpt"
+                rest = re.sub(r"^[^:]+:\s*", "", lc)
+                if rest: gpt_lines.append(rest)
+            elif re.match(r"UTFALL|L.SNING|RESULTAT|AVGJ.RANDE", lu):
+                section = "res"
+                rest = re.sub(r"^[^:]+:\s*", "", lc)
+                if rest: res_lines.append(rest)
+            elif section == "claude":
+                claude_lines.append(lc)
+            elif section == "gpt":
+                gpt_lines.append(lc)
+            elif section == "res":
+                res_lines.append(lc)
+            else:
+                if len(claude_lines) <= len(gpt_lines):
+                    claude_lines.append(lc)
+                else:
+                    gpt_lines.append(lc)
+        c_txt = re.sub(r"\*+|#{1,3}|\|", "", " ".join(claude_lines[:3])).strip()
+        g_txt = re.sub(r"\*+|#{1,3}|\|", "", " ".join(gpt_lines[:3])).strip()
+        r_txt = re.sub(r'\*+|#{1,3}|_{1,2}', '', " ".join(res_lines[:2])).strip()
+        if not c_txt and not g_txt and body_lines:
+            mid = max(1, len(body_lines) // 2)
+            c_txt = " ".join(_cln(l) for l in body_lines[:mid] if _cln(l))
+            g_txt = " ".join(_cln(l) for l in body_lines[mid:] if _cln(l))
+        no_c = "<em style='color:#585868'>Ej specificerat</em>"
+        no_g = "<em style='color:#585868'>Ej specificerat</em>"
+        res_block = (
+            "<div class='v9-cf-res'><span class='v9-cf-rlbl'>Utfall</span>" + _safe(r_txt[:300]) + "</div>"
+        ) if r_txt else ""
+        html_parts.append(
+            '<div class="v9-cf-row">'
+            '<div class="v9-cf-head"><span class="v9-cf-num">0' + str(i + 1) + "</span> " + _safe(topic) + "</div>"
+            '<div class="v9-cf-sides">'
+            '<div class="v9-cf-side v9-cf-claude"><span class="v9-cf-slbl v9-cf-slbl-c">Claude Opus</span>'
+            + (_safe(c_txt[:300]) if c_txt else no_c) + "</div>"
+            '<div class="v9-cf-side v9-cf-gpt"><span class="v9-cf-slbl v9-cf-slbl-g">GPT-4o</span>'
+            + (_safe(g_txt[:300]) if g_txt else no_g) + "</div>"
+            "</div>" + res_block + "</div>"
+        )
+    return "".join(html_parts)
+
+
+def _v9_extract_gold_paragraphs(text, max_paras=5):
+    """Extract clean analytical paragraphs — skip all meta/breaking-news content."""
+    if not text:
+        return []
+
+    SKIP = re.compile(
+        r"^("
+        r"datum:|status:|pag.ende|pagaende"
+        r"|pipeline-incident|incident serbien|incident ungern"
+        r"|kontext:|\u26a0|ingen ny|inga nya|ingen uppdatering"
+        r"|\.?pag.nde|\[pag|\| status"
+        r"|jag s|jag b|l.t mig|let me|search|sanningsmaskinen v"
+        r"|H[1-4]\s*[\[(]|###\s*H[1-4]|TES:|BEVIS:|MOTARG|STYRKA:|FALSIF"
+        r"|\[?reviderad|steg \d|konflikt \d|verdict:|konfidensgrad"
+        r"|red team|GPT-4|prim.ranalys|instruk"
+        r"|nord stream-sabotaget:\s*vem"
+        r"|20\d\d-\d\d-\d\d:|breaking|senaste timm"
+        r")",
+        re.IGNORECASE,
+    )
+    STRIP_INLINE = re.compile(
+        r"\[[^\]]{1,60}\]\(https?://[^)]+\)|\[E[1-5][^\]]*\]"
+        r"|\[FAKTA\]|\[INFERENS\]|\[DEBATTERAT[^\]]*\]"
+        r"|\[PAG.NDE\]|\[PAGAENDE\]|\[PÅGÅENDE\]"
+    )
+    STRIP_TRAIL = re.compile(r"\s*\|\s*\|\s*$")
+
+    paras = []
+    current = []
+    for line in text.splitlines():
+        s = re.sub(r"\*+|#+|_{1,2}", "", line).strip()
+        # Strip trailing || markers
+        s = STRIP_TRAIL.sub("", s).strip()
+        if not s:
+            if current:
+                joined = " ".join(current)
+                joined = STRIP_INLINE.sub("", joined).strip()
+                if len(joined) > 60 and not SKIP.match(joined):
+                    paras.append(joined)
+                current = []
+        elif not SKIP.match(s):
+            s2 = STRIP_INLINE.sub("", s).strip()
+            if s2:
+                current.append(s2)
+    if current:
+        joined = " ".join(current)
+        joined = STRIP_INLINE.sub("", joined).strip()
+        if len(joined) > 60 and not SKIP.match(joined):
+            paras.append(joined)
+
+    # Secondary filter: skip paragraphs that are still breaking-news context
+    PARA_SKIP = re.compile(
+        r"(pipeline-incident|orbán|fidesz|tisza|valet \d|vučić|serbien fann|"
+        r"ingen ny utveckling|senaste 24|de senaste|breaking context|"
+        r"\| \||status: \[|\u26a0)",
+        re.IGNORECASE,
+    )
+    clean = [p for p in paras if not PARA_SKIP.search(p)]
+
+    # If nothing clean, fall back to all paras
+    result = clean if clean else paras
+    return [p for p in result if len(p) > 60][:max_paras]
+
+
+def _v9_gold_block(r, ranked):
+    status = (r.get("status", "") or "").upper()
+    fa = (r.get("final_analysis", "") or "").strip()
+    ca = (r.get("claude_answer", "") or "").strip()
+    # For paragraph extraction: prefer claude_answer (structured, no breaking news prefix)
+    # Final_analysis may have breaking news context at top from engine rewrite
+    paras_from_ca = _v9_extract_gold_paragraphs(ca, max_paras=4) if ca else []
+    paras_from_fa = _v9_extract_gold_paragraphs(fa, max_paras=4) if fa else []
+    # Use final_analysis paras only if they are cleaner (more than ca paras)
+    paras = paras_from_fa if (len(paras_from_fa) >= len(paras_from_ca) and paras_from_fa) else paras_from_ca
+    analysis_text = fa if status in ("REVIDERAD", "DEGRADERAD") and fa else ca
+    if not paras and ranked:
+        tes = ranked[0].get("tes", "") or ""
+        if tes:
+            paras = [tes]
+    # Use H1 TES as gold heading — sharpest analytical sentence
+    if ranked and (ranked[0].get("tes","") or "").strip():
+        gold_heading = (ranked[0].get("tes","") or "").strip()[:280]
+    else:
+        gold_heading = paras[0][:220] if paras else "Analys ej tillgänglig."
+    body_paras = paras[1:] if len(paras) > 1 else []
+    body_html = "".join("<p>" + _safe(p) + "</p>" for p in body_paras)
+    sources = _extract_sources_with_elevel(analysis_text)
+    src_html = "".join(
+        '<a href="' + _safe(s[0]) + '" target="_blank" class="v9-gsrc">'
+        + _safe(_domain_label(s[0]))
+        + (' <span class="v9-gsrc-g">' + _safe(s[2]) + "</span>" if len(s) > 2 and s[2] else "")
+        + "</a>"
+        for s in sources[:5] if s and len(s) >= 2
+    )
+    if status == "KLAR":
+        eyebrow = "Primäranalys — passerade oberoende granskning"
+        warn = ""
+        rev = ""
+    elif status == "REVIDERAD":
+        eyebrow = "Reviderad analys — destillatet av fyra granskningssteg"
+        warn = ""
+        rev = (
+            '<div class="v9-gold-rev"><strong>Reviderad:</strong> '
+            "Primäranalysen justerades av Red Team-granskningen. "
+            "Kärnsvaret kvarstår — se konfliktanalysen för detaljer.</div>"
+        )
+    else:
+        eyebrow = "Reviderad analys — primäranalysen kollapsade"
+        warn = (
+            '<div class="v9-gold-warn"><span>&#9888;</span>'
+            '<span><strong style="'
+            'font-family:var(--mono);font-size:.48rem;letter-spacing:.14em;'
+            'text-transform:uppercase;display:block;margin-bottom:3px;color:#C43030;">'
+            'Prim\u00e4ranalysen kollapsade</strong>'
+            ' Red Team hittade ett fundamentalt fel. Reviderad analys nedan ers\u00e4tter den helt.</span></div>'
+        )
+        rev = ""
+    src_block = (
+        '<div style="margin-top:.8rem;padding-top:.7rem;border-top:1px solid rgba(176,136,8,.18);'
+        'display:flex;flex-wrap:wrap;gap:5px;">' + src_html + "</div>"
+    ) if src_html else ""
+    return (
+        warn
+        + '<div class="v9-gold">'
+        '<div class="v9-gold-ey"><div class="v9-gold-dot"></div> ' + eyebrow + "</div>"
+        '<div class="v9-gold-h">' + _safe(gold_heading) + "</div>"
+        '<div class="v9-gold-body">' + body_html + "</div>"
+        + rev + src_block + "</div>"
+    )
+
+
+def _v9_build_pdf_html(r, ranked):
+    """Generate 3-page HTML for PDF download (open in browser, Ctrl+P to save as PDF)."""
+    q = _safe(r.get("question", ""))
+    status = (r.get("status", "") or "KLAR").upper()
+    fa = (r.get("final_analysis", "") or "").strip()
+    ca = (r.get("claude_answer", "") or "").strip()
+    analysis_text = fa if status in ("REVIDERAD", "DEGRADERAD") and fa else ca
+    verdict_cls, _, _ = _verdict_from_red(r.get("red_team_report", ""))
+    verdict_lbl = {"red": "KOLLAPSAR", "amb": "MODIFIERAS", "grn": "HÅLLER"}.get(verdict_cls, "HÅLLER")
+    paras = _v9_extract_gold_paragraphs(analysis_text, max_paras=5)
+    # Gold heading: always use H1 TES — sharpest analytical sentence
+    if ranked and (ranked[0].get("tes", "") or "").strip():
+        gold_h = (ranked[0].get("tes", "") or "").strip()[:280]
+        gold_body = "".join("<p>" + _safe(p) + "</p>" for p in paras[:3])
+    else:
+        gold_h = paras[0] if paras else ""
+        gold_body = "".join("<p>" + _safe(p) + "</p>" for p in paras[1:])
+    answer_bluf = ranked[0].get("tes", "") if ranked else (paras[0] if paras else "")
+    today = _date.today().strftime("%Y-%m-%d")
+    hyp_rows = ""
+    for h in ranked[:3]:
+        pct = min(100, int(h.get("conf_pct", h.get("conf", 0.5) * 100)))
+        tes = h.get("tes", "") or ""
+        bevs = [b for b in (h.get("bevis") or [])[:3] if b and len(b) > 8]
+        mots = [m for m in (h.get("motarg") or [])[:2] if m and len(m) > 8]
+        fals = h.get("falsifiering", "") or ""
+        bev_html = "".join("<div>" + _safe(b[:150]) + "</div>" for b in bevs) or "<em>Ej specificerade</em>"
+        mot_html = "".join("<div>" + _safe(m[:150]) + "</div>" for m in mots) or "<em>Inga</em>"
+        pct_c = "#2A7A4A" if pct >= 60 else "#C06018"
+        hyp_rows += (
+            "<div style='border:1px solid #E4DCCC;border-radius:6px;margin-bottom:10px;overflow:hidden;'>"
+            "<div style='padding:9px 14px;background:#F5F0E4;border-bottom:1px solid #E4DCCC;"
+            "display:flex;align-items:center;gap:10px;'>"
+            "<span style='font-size:20px;color:" + pct_c + ";line-height:1;'>" + str(pct) + "%</span>"
+            "<span style='font-size:13px;color:#1A1610;flex:1;'>"
+            + _safe(h.get("key", "")) + " — " + _safe((h.get("title", "") or h.get("label", ""))[:60])
+            + "</span></div>"
+            "<div style='padding:8px 14px;font-size:12px;line-height:1.72;color:#3A3020;'>"
+            "<div style='margin-bottom:6px;'><strong>TES:</strong> " + _safe(tes[:200]) + "</div>"
+            "<div style='margin-bottom:6px;'><strong>Bevis:</strong> " + bev_html + "</div>"
+            "<div>" + ("<strong>Falsif om:</strong> " + _safe(fals[:200]) if fals else "<strong>Motarg:</strong> " + mot_html) + "</div>"
+            "</div></div>"
+        )
+    sources = _extract_sources_with_elevel(analysis_text)
+    src_rows = "".join(
+        "<div style='display:flex;gap:10px;padding:4px 0;border-bottom:1px solid rgba(176,136,8,.1);"
+        "font-size:11px;color:#5A4A20;'>"
+        "<span style='font-size:8px;color:#7A5800;font-weight:600;width:24px;'>"
+        + _safe(s[2] if len(s) > 2 else "") + "</span>"
+        "<span style='min-width:120px;'>" + _safe(_domain_label(s[0])) + "</span>"
+        "<span style='color:#9A8840;word-break:break-all;'>" + _safe(s[0]) + "</span>"
+        "</div>"
+        for s in sources[:6] if s and len(s) >= 1
+    )
+    return (
+        "<!DOCTYPE html><html lang='sv'><head><meta charset='UTF-8'>"
+        "<title>Sanningsmaskinen — Intelligence Brief " + today + "</title>"
+        "<style>"
+        "body{background:#E8E4DC;font-family:Georgia,serif;padding:32px 20px 60px;}"
+        ".page{width:794px;min-height:1123px;margin:0 auto 28px;background:#FFFEF9;"
+        "box-shadow:0 4px 32px rgba(0,0,0,.18);border-radius:3px;position:relative;"
+        "overflow:hidden;page-break-after:always;}"
+        ".ts{height:4px;background:linear-gradient(90deg,#B08808 0%,#D4A820 60%,transparent 100%);}"
+        ".gs{height:6px;background:linear-gradient(90deg,#8A6800 0%,#C4A020 50%,#E8C840 100%);}"
+        ".hdr{padding:20px 44px 16px;border-bottom:1px solid #E8E2D4;"
+        "display:flex;align-items:center;justify-content:space-between;}"
+        ".logo{font-size:11px;font-weight:700;letter-spacing:.18em;color:#8A6800;text-transform:uppercase;}"
+        ".meta{text-align:right;font-size:10px;color:#B0A890;}"
+        ".body{padding:28px 44px 56px;}"
+        ".sec{font-size:9px;letter-spacing:.24em;color:#A09880;text-transform:uppercase;"
+        "margin:20px 0 10px;display:flex;align-items:center;gap:8px;}"
+        ".sec::after{content:'';flex:1;height:1px;background:#E4DCCC;}"
+        ".pftr{position:absolute;bottom:0;left:0;right:0;padding:10px 44px;"
+        "border-top:1px solid #EDE8DC;display:flex;align-items:center;"
+        "justify-content:space-between;font-size:9px;color:#B0A890;background:#FFFEF9;}"
+        ".gpg .body{background:#FAF2D8;} .gpg .hdr{background:#FAF2D8;border-bottom-color:#D4C8A0;}"
+        ".gpg .pftr{background:#FAF2D8;border-top-color:#D4C8A0;}"
+        "</style></head><body>"
+        "<div class='page'><div class='ts'></div>"
+        "<div class='hdr'><span class='logo'>Sanningsmaskinen</span>"
+        "<div class='meta'>Intelligence Brief · " + today + "</div></div>"
+        "<div class='body'>"
+        "<div style='margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #EDE8DC;'>"
+        "<div style='font-size:9px;letter-spacing:.24em;color:#A09880;text-transform:uppercase;margin-bottom:6px;'>Fråga analyserad</div>"
+        "<div style='font-size:14px;line-height:1.4;color:#6A6050;font-style:italic;'>" + q + "</div>"
+        "</div>"
+        "<div style='font-size:18px;line-height:1.42;color:#1A1610;margin-bottom:12px;'>"
+        + _safe(answer_bluf[:300]) + "</div>"
+        "<div style='display:flex;gap:10px;padding:10px 14px;background:#F5F0E4;"
+        "border-radius:5px;border:1px solid #E4DCCC;margin-bottom:16px;'>"
+        "<span style='font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;"
+        "background:rgba(42,122,74,.1);color:#1A5A2A;'>Hög tillförlitlighet</span>"
+        "<span style='font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;"
+        "background:rgba(212,108,32,.1);color:#7A3808;'>Red Team: " + verdict_lbl + "</span>"
+        "</div>"
+        "<div class='sec' style='margin-top:0;'>Vad vet vi</div>"
+        "<div style='font-size:13px;line-height:1.78;color:#3A3020;'>" + _safe((paras[0] if paras else "")[:600]) + "</div>"
+        "</div>"
+        "<div class='pftr'><span>Sanningsmaskinen · Claude Opus 4.6 + GPT-4o</span><span>Sida 1 av 3</span></div>"
+        "</div>"
+        "<div class='page'><div class='ts'></div>"
+        "<div class='hdr'><span class='logo'>Sanningsmaskinen</span>"
+        "<div class='meta'>Tre förklaringar</div></div>"
+        "<div class='body'><div class='sec' style='margin-top:0;'>Tre konkurrerande förklaringar</div>"
+        + hyp_rows +
+        "</div>"
+        "<div class='pftr'><span>Källgradering E1–E5</span><span>Sida 2 av 3</span></div>"
+        "</div>"
+        "<div class='page gpg'><div class='gs'></div>"
+        "<div class='hdr'><span class='logo' style='color:#7A5800;'>Sanningsmaskinen</span>"
+        "<div class='meta' style='color:#A09060;'>Reviderad analys — destillatet</div></div>"
+        "<div class='body'>"
+        "<div style='font-size:9px;font-weight:700;letter-spacing:.24em;color:#7A6000;"
+        "text-transform:uppercase;margin-bottom:8px;'>Reviderad analys — fyra granskningssteg</div>"
+        "<div style='font-size:20px;line-height:1.35;color:#181408;font-weight:700;margin-bottom:14px;'>"
+        + _safe(gold_h) + "</div>"
+        "<div style='font-size:13.5px;line-height:1.82;color:#2A2010;'>" + gold_body + "</div>"
+        "<div style='margin-top:20px;padding-top:16px;border-top:1px solid #D4C8A0;'>"
+        "<div style='font-size:9px;letter-spacing:.2em;color:#9A8840;text-transform:uppercase;margin-bottom:8px;'>Källförteckning</div>"
+        + src_rows +
+        "</div></div>"
+        "<div class='pftr' style='background:#FAF2D8;border-top-color:#D4C8A0;'>"
+        "<span style='color:#A09060;'>Sanningsmaskinen · " + today + "</span>"
+        "<span style='color:#A09060;'>Sida 3 av 3</span></div>"
+        "</div></body></html>"
+    )
+
+
+def _v9_build_textbriefing(r, ranked):
+    today = _date.today().strftime("%Y-%m-%d")
+    q = r.get("question", "")
+    status = (r.get("status", "") or "KLAR").upper()
+    fa = (r.get("final_analysis", "") or "").strip()
+    ca = (r.get("claude_answer", "") or "").strip()
+    analysis_text = fa if status in ("REVIDERAD", "DEGRADERAD") and fa else ca
+    cf = (r.get("conflict_report", "") or "").strip()
+    rr = (r.get("red_team_report", "") or "").strip()
+    verdict_cls, _, _ = _verdict_from_red(rr)
+    verdict_lbl = {"red": "KOLLAPSAR", "amb": "MODIFIERAS", "grn": "HALLER"}.get(verdict_cls, "HALLER")
+    paras = _v9_extract_gold_paragraphs(analysis_text, max_paras=6)
+    sources = _extract_sources_with_elevel(analysis_text)
+    L = []
+    L += ["SANNINGSMASKINEN -- INTELLIGENCE BRIEF", "Datum: " + today,
+          "Status: " + status + " | Red Team: " + verdict_lbl, "=" * 60, ""]
+    L += ["01 | FRAGA", "-" * 40, q, ""]
+    answer = ranked[0].get("tes", "") if ranked else (paras[0] if paras else "")
+    L += ["02 | SVAR (BLUF)", "-" * 40, answer, ""]
+    L += ["03 | VAD VET VI", "-" * 40]
+    for p in paras[:3]:
+        L += [p, ""]
+    L += ["04 | TRE FORKLARINGAR", "-" * 40]
+    for h in ranked[:3]:
+        pct = min(100, int(h.get("conf_pct", h.get("conf", 0.5) * 100)))
+        key = h.get("key", ""); label = h.get("label", ""); title = h.get("title", "") or label
+        styrka = (h.get("styrka") or "MEDEL").upper()
+        tes = h.get("tes", "") or ""
+        bevs = [b for b in (h.get("bevis") or [])[:4] if b and len(b) > 8]
+        mots = [m for m in (h.get("motarg") or [])[:3] if m and len(m) > 8]
+        fals = h.get("falsifiering", "") or ""
+        L += ["", key + " [" + label + "] " + str(pct) + "% -- " + title,
+              "Bevisstyrka: " + styrka, "TES: " + tes]
+        if bevs:
+            L.append("BEVIS:")
+            L += ["  [FAKTA/INFERENS] " + b for b in bevs]
+        if mots:
+            L.append("MOTARGUMENT:")
+            L += ["  " + m for m in mots]
+        if fals:
+            L.append("FALSIFIERAS OM: [DEBATTERAT] " + fals)
+    L += ["", "05 | KONFLIKTANALYS (Claude vs GPT-4o)", "-" * 40]
+    L.append(re.sub(r"\*+|#+", "", cf)[:3000] if cf else "Ingen konfliktanalys.")
+    L += ["", "06 | RED TEAM", "-" * 40, "Verdict: " + verdict_lbl]
+    if rr:
+        L.append(re.sub(r"\*+|#+", "", rr)[:3000])
+    L += ["", "07 | REVIDERAD ANALYS", "-" * 40]
+    for p in paras:
+        L += [p, ""]
+    L += ["08 | KALLFORTECKNING", "-" * 40]
+    L += [(s[2] if len(s)>2 else "?") + "  " + _domain_label(s[0]) + "  " + s[0] for s in sources[:8]]
+    L += ["", "METADATA", "-" * 40,
+          "Primarmodell: Claude Opus 4.6", "Kritik + Red Team: GPT-4o",
+          "Granskningssteg: 4 av 4", "Status: " + status + " | Red Team: " + verdict_lbl,
+          "Datum: " + today, "", "Sanningsmaskinen -- Vet vad du kan bevisa."]
+    return "\n".join(L)
+
 
 # ── Sidebar — Historikbibliotek ────────────────────────────────────────────────
 with st.sidebar:
@@ -1929,14 +2713,10 @@ Vad är status Iran vs USA/Israel?
 today_str = _date.today().strftime("%Y-%m-%d")
 st.markdown(f"""
 <div class="topbar">
-  <div class="topbar-left">
-    <span class="topbar-mark">◎ Sanningsmaskinen</span>
-    <span class="topbar-title">Epistemiskt analysverktyg</span>
-  </div>
-  <div class="topbar-right">v8.43 · Claude Opus + GPT-4o · {today_str}</div>
-</div>
-<div class="topbar-sub">
-  Analyserar komplexa frågor genom att väga konkurrerande hypoteser, granska evidens och falsifiera svagare förklaringar.
+  <div class="topbar-ring"></div>
+  <span class="topbar-mark">Sanningsmaskinen</span>
+  <span class="topbar-title">Vet vad du kan bevisa.</span>
+  <div class="topbar-right">v8.44 · Claude Opus 4.6 + GPT-4o · {today_str}</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -2196,307 +2976,159 @@ else:
     rc_pill_cls, rc_pill_lbl = REALITY_PILL.get(rc_status, ("dim", rc_status))
     st_pill_cls, st_pill_lbl = STATUS_PILL.get(res_status, ("dim", res_status))
 
-    # ── 1. FRÅGA + STATUS ─────────────────────────────────────────────────────
-    st.markdown(f"""
-<div class="fraga-box">
-  <div style="font-size:0.7rem;letter-spacing:0.12em;color:var(--ink3);font-family:var(--mono);margin-bottom:0.4rem;">FRÅGA -  {_date.today().strftime('%Y-%m-%d')}</div>
-  <div style="font-size:1.25rem;font-weight:700;color:var(--ink);line-height:1.4;margin-bottom:0.6rem;">{_safe(r.get('question',''))}</div>
-  <span class="pill pill-{rc_pill_cls}">{rc_pill_lbl}</span>
-  <span class="pill pill-{st_pill_cls}">{st_pill_lbl}</span>
-</div>
-""", unsafe_allow_html=True)
+    # ── V9 RENDER ─────────────────────────────────────────────────────────────
+    today_str = _date.today().strftime("%Y-%m-%d")
+    verdict_cls, _, verdict_raw = _verdict_from_red(r.get("red_team_report", ""))
+    verdict_word = {"red": "KOLLAPSAR", "amb": "MODIFIERAS", "grn": "HALLER"}.get(verdict_cls, "HALLER")
+    verdict_word_sv = {"red": "KOLLAPSAR", "amb": "MODIFIERAS", "grn": "H\u00c5LLER"}.get(verdict_cls, "H\u00c5LLER")
 
-    # ── Ny analys-knapp + historik-prompt ─────────────────────────────────────
-    st.markdown("""
-<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;
-     font-family:var(--mono);font-size:0.6rem;color:#57c78a;letter-spacing:0.08em;">
-</div>""", unsafe_allow_html=True)
-    if st.button("✕ Ny analys — rensa", key="clear_btn"):
+    conf_segs = 3  # default Hog
+    if verdict_cls == "red":
+        conf_segs = 2
+    elif verdict_cls == "grn":
+        conf_segs = 3
+
+    # ── Ny analys-knapp ────────────────────────────────────────────────────────
+    if st.button("\u2715 ny analys", key="clear_btn", type="secondary"):
         st.session_state.result = None
         st.session_state.running = False
         st.session_state.url_check_done = False
         st.rerun()
 
-    # ── 2. EXECUTIVE SUMMARY — WOW på 5 sekunder ──────────────────────────────
-    # Hämta slutsats och nyckelinsikt
-    analysis_text = r.get("final_analysis","") or r.get("claude_answer","")
-    clean_text = re.sub(r'\*+|#+|_{1,2}|\[REVIDERAD VERSION\]|\[FAKTA\]|\[INFERENS\]|\[PÅGÅENDE\]', '', analysis_text, flags=re.I)
+    # ── FRAGEBLOCKT ────────────────────────────────────────────────────────────
+    st.markdown(_v9_q_block(r.get("question", ""), today_str), unsafe_allow_html=True)
 
-    # Slutsats — alltid TES från starkaste hypotesen (samma princip som nyckelinsikt)
-    slutsats = ""
+    # ── SVAR ───────────────────────────────────────────────────────────────────
+    answer_main = ""
+    answer_sub = ""
     if ranked:
-        slutsats = (ranked[0].get("tes","") or "")[:300]
+        answer_main = (ranked[0].get("tes", "") or "")[:280]
+        answer_sub = (ranked[0].get("title", "") or ranked[0].get("label", ""))[:200]
+    if not answer_main:
+        briefing = _extract_briefing(r.get("final_analysis", "") or r.get("claude_answer", "") or "", ranked)
+        answer_main = briefing.get("syntes", "")[:280]
+    if answer_main:
+        st.markdown(_v9_answer_block(answer_main, answer_sub, conf_segs, verdict_cls), unsafe_allow_html=True)
 
-    # Nyckelinsikt — alltid TES från starkaste hypotesen (skarpaste meningen i analysen)
-    nyckelinsikt = ""
-    if ranked:
-        nyckelinsikt = (ranked[0].get("tes", "") or "")[:200]
+    # ── NYTT FYND ──────────────────────────────────────────────────────────────
+    briefing_data = _extract_briefing(r.get("claude_answer", "") or "", ranked)
+    nyckelFakta = briefing_data.get("nyckelFakta", [])
+    if nyckelFakta:
+        finding_txt = nyckelFakta[0]
+        st.markdown(_v9_finding_block(finding_txt), unsafe_allow_html=True)
 
-    # Breaking news — extrahera direkt i app.py, oberoende av engine
-    def _app_extract_breaking(result):
-        # Hoeg prioritet: strukturerat falt fran engine
-        items = result.get("breaking_items") or []
-        if items:
-            return items
-
-        # Fallback: skanna claude_answer och final_analysis direkt har
-        META = ["jag soker","jag borjar","lat mig","sanningsmaskinen v",
-                "konfidensgrad","red team","motarg","falsifieras",
-                "tes:","bevis","styrka:","let me","searching","steg 1",
-                "steg 2","steg 3","steg 4","steg 5",
-                "typ:","| källa:","| source:"]
-
-        def _ok(s):
-            sl = s.lower()
-            return not any(w in sl for w in META)
-
-        def _clean(s):
-            s = re.sub(r'\[([^\]]+)\]\([^)]+\)', '', s)
-            s = re.sub(r'\*+|#+', '', s)
-            return s.strip()
-
-        found = []
-        seen = set()
-
-        for src_key in ["claude_answer", "final_analysis"]:
-            src = result.get(src_key, "") or ""
-            if not src:
-                continue
-            for line in src.splitlines():
-                s = line.strip()
-                if not s:
-                    continue
-                bullet = s.startswith('-') or s.startswith('*') or s.startswith(chr(8226))
-                has_yr = '2026' in s or '2025' in s
-                if bullet and has_yr and len(s) > 50 and _ok(s):
-                    item = _clean(s.lstrip('-*' + chr(8226) + '> '))
-                    if len(item) > 40 and item not in seen:
-                        seen.add(item)
-                        found.append(item[:150])
-                if len(found) >= 4:
-                    return found
-            if found:
-                return found
-
-        # Sista utvaeg: meningar med inbakat datum
-        for src_key in ["claude_answer", "final_analysis"]:
-            src = result.get(src_key, "") or ""
-            for line in src.splitlines():
-                s = line.strip()
-                if len(s) > 60 and ('2026' in s or '2025' in s) and _ok(s):
-                    if re.search(r'\d{1,2}\s+\w+\s+202[56]', s):
-                        item = _clean(s)
-                        if len(item) > 40 and item not in seen:
-                            seen.add(item)
-                            found.append(item[:150])
-                if len(found) >= 4:
-                    return found
-
-        return found[:4]
-
-    breaking_items = _app_extract_breaking(r)
-
-    breaking_html = "".join(
-        f'<div class="breaking-item">◆ {_safe(b)}</div>'
-        for b in breaking_items[:4]
-    ) if breaking_items else '<div class="breaking-item" style="color:var(--ink3)">Inga breaking news de senaste 24 timmarna.</div>'
-
-    # Red team verdict
-    verdict_tuple = _verdict_from_red(r.get("red_team_report",""))
-    verdict_cls = verdict_tuple[0] or "grn"
-    verdict_raw = verdict_tuple[2] or "HÅLLER"
-    verdict_lbl = {"red": "KOLLAPSAR", "amb": "MODIFIERAS", "grn": "HÅLLER"}.get(verdict_cls, "HÅLLER")
-
-    # Vinnarhypotes badge
-    winner = ranked[0] if ranked else None
-    winner_html = ""
-    if winner:
-        wpct  = int(winner.get("conf_pct", int(winner.get("conf",0.5)*100)))
-        wkey  = winner.get("key","")
-        wlbl  = winner.get("label","")
-        wcol  = {"HÖG":"var(--grn)","MEDEL":"var(--amb)","LÅG":"var(--red)"}.get(
-            (winner.get("styrka") or "MEDEL").upper(), "var(--grn)")
-        winner_html = f"""<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.75rem;padding-bottom:0.65rem;border-bottom:1px solid var(--border);">
-  <div style="font-family:var(--mono);font-size:0.48rem;letter-spacing:0.25em;color:var(--ink4);">#1 STARKAST</div>
-  <div style="font-family:var(--mono);font-size:0.75rem;font-weight:700;color:{wcol};">{_safe(wkey)}</div>
-  <div style="font-family:var(--mono);font-size:0.6rem;color:var(--ink3);">{_safe(wlbl)}</div>
-  <div style="margin-left:auto;font-family:var(--mono);font-size:1.1rem;font-weight:700;color:{wcol};">{wpct}%</div>
-</div>"""
-
-    # Verdict-driven accent color för exec-summary border
-    verdict_accent = {"red":"var(--red)","amb":"var(--amb)","grn":"var(--grn)"}.get(verdict_cls,"var(--grn)")
-
-    st.markdown(f"""
-<div class="exec-summary" style="border-left:4px solid {verdict_accent};">
-  <div class="exec-left">
-    <div class="exec-label">◆ Breaking — senaste timmarna</div>
-    {breaking_html}
-  </div>
-  <div class="exec-right">
-    {winner_html}
-    <div class="exec-label">Analytisk bedömning &nbsp;<span style="color:var(--ink4);font-size:0.48rem;letter-spacing:0.05em;font-weight:400;">Inte ett svar — väger evidens för tre konkurrerande förklaringar</span></div>
-    <div class="exec-slutsats">{_safe(slutsats) if slutsats else (_safe((ranked[0].get("tes","") or "")[:200]) if ranked else "Se hypoteserna nedan.")}</div>
-    {'<div class="exec-nyckel">' + _safe(nyckelinsikt) + '</div>' if nyckelinsikt and nyckelinsikt.strip() else ''}
-    <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-      <div style="font-family:var(--mono);font-size:0.48rem;letter-spacing:0.25em;color:var(--ink4);white-space:nowrap;">RED TEAM VERDICT</div>
-      <span class="pill pill-{verdict_cls}" style="font-size:0.62rem;padding:0.22rem 0.85rem;letter-spacing:0.12em;">{verdict_lbl}</span>
-      <span style="font-family:var(--sans);font-size:0.78rem;color:var(--ink3);line-height:1.3;">{_safe(verdict_raw[:90]) if verdict_raw else ''}</span>
-    </div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
-
-    # ── 3. HYPOTES-DASHBOARD ───────────────────────────────────────────────────
-    st.markdown(_hyp_dashboard_html(ranked, url_pool), unsafe_allow_html=True)
-
-    # ── 4. PRIMÄRANALYS — on demand ───────────────────────────────────────────
-    with st.expander("▸ Visa fullständig primäranalys — evidens, hypoteser, sourcing"):
-        primary_text = r.get("claude_answer","")
-        if primary_text:
-            st.markdown(_render_primary_analysis(primary_text, ranked, _date.today().strftime("%Y-%m-%d"), url_pool), unsafe_allow_html=True)
-
-    # ── 5. REALITY CHECK ──────────────────────────────────────────────────────
-    rc_txt = (rc.get("text","") or "").strip()
-    if rc_txt:
-        rc_items = _parse_rc_structured(rc_txt)
-        if rc_items:
-            st.markdown(f"""
-<div class="section-zone zone-blu">
-  <div class="zone-hdr">REALITY CHECK <span class="pill pill-{rc_pill_cls}">{rc_pill_lbl}</span></div>
-  {_rc_table_html(rc_items)}
-</div>
-""", unsafe_allow_html=True)
-
-    # ── 6. HYPOTES-DETALJER med klickbara källor ──────────────────────────────
-    if ranked:
-        st.markdown('<div style="font-size:0.7rem;letter-spacing:0.1em;color:var(--ink3);font-family:var(--mono);margin:1.5rem 0 0.5rem 0;border-top:1px solid var(--border);padding-top:0.8rem;">HYPOTES-DETALJER - TES - EVIDENS - MOTARGUMENT - FALSIFIERING</div>', unsafe_allow_html=True)
-        for h in ranked:
-            pct = min(100, int(h.get("conf_pct", h.get("conf", 0) * 100)))
-            key = h.get("key","H?")
-            label = h.get("label","")
-            title = h.get("title","")
-            if title in ("Sekundär hypotes","Tertiär hypotes","Primär hypotes","Ej tillgänglig"):
-                title = label
-            tes   = h.get("tes","")
-            bevs  = [b for b in (h.get("bevis") or [])[:3] if b and len(b) > 10]
-            mots  = [m for m in (h.get("motarg") or [])[:2] if m and len(m) > 10]
-            fals  = h.get("falsifiering","")
-
-            # Källchips för den här hypotesen
-            hyp_urls = url_pool.get(key, url_pool.get("global", []))[:4]
-            chips_html = " ".join(
-                f'<a href="{u}" target="_blank" class="src-chip">{_domain_label(u)}</a>'
-                for u in hyp_urls if u
-            )
-
-            bev_html = "".join(f'<div class="detail-bev">◆ {_safe(b)}</div>' for b in bevs) if bevs else '<div class="detail-empty">Evidens ej specificerad.</div>'
-            mot_html = "".join(f'<div class="detail-mot">↳ {_safe(m)}</div>' for m in mots) if mots else '<div class="detail-empty">Inga identifierade motargument.</div>'
-
-            col_cls = "hyp-det-h1" if key=="H1" else "hyp-det-h2" if key=="H2" else "hyp-det-h3"
-            with st.expander(f"{key} [{label}] {pct}% — {title[:60]}"):
-                st.markdown(f"""
-<div class="{col_cls}">
-  <div class="detail-section"><div class="detail-lbl">TES</div><div class="detail-txt">{_safe(tes) if tes else _safe(title)}</div></div>
-  <div class="detail-section"><div class="detail-lbl grn-lbl">BEVIS</div>{bev_html}</div>
-  <div class="detail-section"><div class="detail-lbl amb-lbl">MOTARGUMENT</div>{mot_html}</div>
-  {'<div class="detail-section"><div class="detail-lbl">FALSIFIERAS OM</div><div class="detail-txt">' + _safe(fals) + '</div></div>' if fals else ''}
-  <div style="margin-top:0.6rem;">{chips_html}</div>
-</div>
-""", unsafe_allow_html=True)
-
-    # ── HELPER: renderar råtext som kompakt HTML, filtrerar process-text ────────
-    def _render_report(txt, max_chars=3500):
-        """Konverterar råtext till tät, luftfri HTML. Filtrerar process-text."""
-        PROCESS_START = re.compile(
-            r'^(?:jag söker|jag börjar|jag ska|låt mig|let me|searching|'
-            r'nord stream-sabotaget —|sanningsmaskinen v\d|'
-            r'iran-usa-israel:|dag \d+\s*—|reviderad statusrapport|'
-            r'konfidensgrad:|inkorporerar red team)',
-            re.IGNORECASE
+    # ── VAD VET VI — hämta nyckelFakta från primäranalysen (ej reviderad) ──────
+    st.markdown(_v9_sec("Vad vet vi"), unsafe_allow_html=True)
+    _ca_for_briefing = r.get("claude_answer", "") or ""
+    _briefing = _extract_briefing(_ca_for_briefing, ranked)
+    _nyckel = _briefing.get("nyckelFakta", [])
+    if not _nyckel:
+        # Fallback: extract från claude_answer
+        _nyckel_paras = _v9_extract_gold_paragraphs(_ca_for_briefing, max_paras=3)
+        _nyckel = _nyckel_paras
+    if _nyckel:
+        article_html = (
+            '<div class="v9-article">' +
+            "".join("<p>" + _safe(p[:400]) + "</p>" for p in _nyckel[:3]) +
+            '</div>'
         )
-        lines = re.sub(r'\*+|#+|_{1,2}', '', txt).splitlines()
-        out = []
-        skip_blanks = 0   # konsekutiva tomrader att hoppa över
-        for line in lines:
-            s = line.strip()
-            # Filtrera process-text i början
-            if not out and PROCESS_START.match(s):
-                continue
-            if not s:
-                skip_blanks += 1
-                if skip_blanks <= 1:   # max EN tomrad i rad
-                    out.append('<div style="height:0.4rem"></div>')
-                continue
-            skip_blanks = 0
-            # Rubrik-rader
-            if re.match(r'^(STEG \d|KONFLIKT \d|VERDICT|TRE GENUINA|ALT-TES|ALT-BEVIS|SAMMANSÄTTNING)', s, re.I):
-                out.append(f'<div style="font-size:0.7rem;letter-spacing:0.12em;color:var(--ink3);margin:0.6rem 0 0.2rem;font-family:var(--mono);">{_safe(s)}</div>')
-            # Länkrader
-            elif re.search(r'https?://', s):
-                out.append(f'<div style="font-size:0.78rem;color:var(--ink2);margin-bottom:0.15rem;">{_safe_links(s)}</div>')
-            # Vanlig rad
-            else:
-                out.append(f'<div style="font-size:0.82rem;color:var(--ink2);line-height:1.58;margin-bottom:0.1rem;">{_safe(s)}</div>')
-        return "".join(out[:max_chars//40])  # ungefär rätt antal rader
+        st.markdown(article_html, unsafe_allow_html=True)
 
-    # ── 7. KONFLIKTANALYS ─────────────────────────────────────────────────────
-    cf_txt = (r.get("conflict_report","") or "").strip()
-    if cf_txt and len(cf_txt) > 100:
-        with st.expander("▸ Konfliktanalys — Claude vs GPT-4"):
-            st.markdown(_render_report(cf_txt), unsafe_allow_html=True)
+    # ── TRE FORKLARINGAR ───────────────────────────────────────────────────────
+    st.markdown(_v9_sec("Tre f\u00f6rklaringar \u2014 vad h\u00e5ller"), unsafe_allow_html=True)
+    for idx, h in enumerate(ranked[:3]):
+        uid = "vhyp" + str(idx)
+        st.markdown(_v9_hyp_card(h, idx, uid), unsafe_allow_html=True)
+        with st.expander("▶ Visa TES / BEVIS / FALSIFIERAS OM"):
+            st.markdown(_v9_hyp_detail_html(h, url_pool), unsafe_allow_html=True)
 
-    # ── 8. RED TEAM — FULLT RAPPORT ───────────────────────────────────────────
-    rr_txt = (r.get("red_team_report","") or "").strip()
-    if rr_txt:
-        verdict_display = re.sub(r'\*+','', verdict_raw).strip()
-        with st.expander(f"▸ Red Team — {verdict_display[:80]}"):
-            st.markdown(
-                f'<div style="border-left:3px solid var(--red-dim);padding-left:0.8rem;">' +
-                _render_report(rr_txt) + '</div>',
-                unsafe_allow_html=True)
 
-    # ── 9. REVIDERAD ANALYS ───────────────────────────────────────────────────
-    fa_txt = (r.get("final_analysis","") or "").strip()
-    if fa_txt and r.get("red_team_ok"):
-        with st.expander("▸ Reviderad analys — efter Red Team-kritik"):
-            st.markdown(
-                f'<div style="border-left:3px solid var(--grn-dim);padding-left:0.8rem;">' +
-                _render_report(fa_txt, max_chars=5000) + '</div>',
-                unsafe_allow_html=True)
+    # ── RED TEAM ───────────────────────────────────────────────────────────────
+    st.markdown(_v9_sec("Red Team \u2014 oberoende granskning"), unsafe_allow_html=True)
+    rr_txt = (r.get("red_team_report", "") or "").strip()
+    verdict_summary = (verdict_raw or "")[:300]
+    st.markdown(_v9_rt_block(verdict_cls, verdict_word_sv, verdict_summary), unsafe_allow_html=True)
+    with st.expander("\u25b6 L\u00e4s hela Red Team-analysen \u2014 vad den f\u00f6rs\u00f6kte motbevisa och hur"):
+        st.markdown(_v9_rt_full_html(rr_txt), unsafe_allow_html=True)
 
-    # ── 10. EXPORT ────────────────────────────────────────────────────────────
-        st.markdown('<div style="font-size:0.7rem;letter-spacing:0.1em;color:var(--ink3);font-family:var(--mono);margin:1.5rem 0 0.5rem 0;border-top:1px solid var(--border);padding-top:0.8rem;">HYPOTES-DETALJER - TES - EVIDENS - MOTARGUMENT - FALSIFIERING</div>', unsafe_allow_html=True)
+    # ── VISA ARBETET ───────────────────────────────────────────────────────────
+    st.markdown(_v9_sec("Visa arbetet"), unsafe_allow_html=True)
+    cf_txt = (r.get("conflict_report", "") or "").strip()
+    with st.expander("\u25b6 Konfliktanalys \u2014 var Claude och GPT-4o var oense"):
+        st.markdown(_v9_conflict_html(cf_txt), unsafe_allow_html=True)
+    with st.expander("\u25b6 Analysteknisk information \u2014 hur analysen byggdes"):
+        nerd_html = (
+            '<div class="v9-nerd-row"><span class="v9-nerd-step done">Steg 1</span>'
+            '<span>Prim\u00e4ranalys av Claude Opus 4.6 med tre konkurrerande hypoteser (H1/H2/H3), '
+            'FAKTA/INFERENS/DEBATTERAT-m\u00e4rkning och E1\u2013E5 k\u00e4llgradering.</span></div>'
+            '<div class="v9-nerd-row"><span class="v9-nerd-step done">Steg 2</span>'
+            '<span>Destruktiv kritik av GPT-4o \u2014 instruerat att aktivt s\u00f6ka svagheter och alternativa f\u00f6rklaringar.</span></div>'
+            '<div class="v9-nerd-row"><span class="v9-nerd-step done">Steg 3</span>'
+            '<span>Konfliktanalys \u2014 meningsskiljaktigheter mellan Claude och GPT-4o identifierades och v\u00e4gdes.</span></div>'
+            '<div class="v9-nerd-row"><span class="v9-nerd-step active">Steg 4</span>'
+            '<span>Red Team-granskning: ' + _safe(verdict_word_sv) + '. '
+            + (_safe(verdict_summary[:200]) if verdict_summary else "Se Red Team-rapporten.") +
+            '</span></div>'
+            '<div class="v9-nerd-row"><span class="v9-nerd-step done">Steg 5</span>'
+            '<span>Auto-rewrite genomf\u00f6rd om KOLLAPSAR/MODIFIERAS. '
+            'Status: ' + _safe((r.get("status", "") or "KLAR")) + '.</span></div>'
+        )
+        st.markdown(nerd_html, unsafe_allow_html=True)
 
+    # ── GULDET ─────────────────────────────────────────────────────────────────
+    st.markdown('<div style="height:2.5rem"></div>', unsafe_allow_html=True)
+    st.markdown(_v9_gold_block(r, ranked), unsafe_allow_html=True)
+
+    # ── EXPORT ─────────────────────────────────────────────────────────────────
+    st.markdown('<div style="padding-top:1rem;border-top:1px solid #2E2E3A;"></div>', unsafe_allow_html=True)
+    _q = r.get("question", "analys")
+    _slug = re.sub(r"[^a-z0-9]+", "_", _q.lower()
+        .replace("\u00e5", "a").replace("\u00e4", "a").replace("\u00f6", "o"))[:40]
     col1, col2, col3 = st.columns(3)
     with col1:
         try:
-            pdf_bytes = _build_pdf_v9(r, ranked)
-            if pdf_bytes:
-                _q = r.get("question","analys")
-                _slug = re.sub(r'[^a-z0-9]+','_', _q.lower().replace('å','a').replace('ä','a').replace('ö','o'))[:40]
-                st.download_button("⬇ PDF — Intelligence Brief", pdf_bytes,
-                    file_name=f"sanningsmaskinen_{_date.today()}_{_slug}.pdf",
-                    mime="application/pdf", use_container_width=True)
+            pdf_html = _v9_build_pdf_html(r, ranked)
+            st.download_button(
+                "\u2193 PDF \u2014 Intelligence Brief",
+                pdf_html.encode("utf-8"),
+                file_name="sanningsmaskinen_" + today_str + "_" + _slug + ".html",
+                mime="text/html",
+                use_container_width=True,
+            )
         except Exception as e:
-            st.warning(f"PDF-export: {e}")
+            st.warning("PDF: " + str(e))
     with col2:
-        export_txt = f"Fråga: {r.get('question','')}\n\nAnalys:\n{r.get('final_analysis','') or r.get('claude_answer','')}\n\nRed Team:\n{r.get('red_team_report','')}"
-        st.download_button("⬇ Textbriefing", export_txt,
-            file_name=f"sanningsmaskinen_{_date.today()}.txt",
-            mime="text/plain", use_container_width=True)
+        try:
+            briefing_txt = _v9_build_textbriefing(r, ranked)
+            st.download_button(
+                "\u2193 Textbriefing \u2014 komplett analys",
+                briefing_txt.encode("utf-8"),
+                file_name="sanningsmaskinen_" + today_str + "_" + _slug + ".txt",
+                mime="text/plain",
+                use_container_width=True,
+            )
+        except Exception as e:
+            st.warning("Textbriefing: " + str(e))
     with col3:
-        rc_export = (rc.get("text","") or "")
-        st.download_button("⬇ Reality Check", rc_export,
-            file_name=f"reality_check_{_date.today()}.txt",
-            mime="text/plain", use_container_width=True)
+        rc_export = (rc.get("text", "") or "")
+        st.download_button(
+            "\u2193 Reality Check",
+            rc_export,
+            file_name="reality_check_" + today_str + ".txt",
+            mime="text/plain",
+            use_container_width=True,
+        )
 
-    # ── Footer ─────────────────────────────────────────────────────────────────
-    st.markdown(f"""
-<div class="footer">
-  Sanningsmaskinen v8.43 - {_date.today()} - {rc_pill_lbl} - {st_pill_lbl}
-  <span style="color:var(--ink3)">Sanningen favoriserar ingen sida.</span>
-</div>
-""", unsafe_allow_html=True)
+    # ── FOOTER ─────────────────────────────────────────────────────────────────
+    rc_pill_cls, rc_pill_lbl = REALITY_PILL.get((rc.get("status", "") or "").upper(), ("dim", ""))
+    st_pill_cls, st_pill_lbl = STATUS_PILL.get((r.get("status", "") or "").upper(), ("dim", ""))
+    st.markdown(
+        '<div class="footer">Sanningsmaskinen v8.44 \u2014 ' + today_str
+        + " \u2014 " + _safe(rc_pill_lbl) + " \u2014 " + _safe(st_pill_lbl)
+        + '<span style="color:var(--ink3)"> Sanningen favoriserar ingen sida.</span></div>',
+        unsafe_allow_html=True,
+    )
+
 
 # ── Input längst ned om resultat finns ─────────────────────────────────────────
 if st.session_state.result:
