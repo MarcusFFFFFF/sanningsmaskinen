@@ -258,11 +258,11 @@ def _get_hero(r):
                 break
         return " ".join(out).strip()
 
-    # Try article first — first status-affirming sentence + 1-2 follow-up sentences
-    art = r.get("article","")
-    if art:
-        # Hitta första status-meningen och följ med 1-2 till
-        sents = list(_sentences(art, 35, 220))
+    # ANALYTISK BEDÖMNING läser FRÅN final_analysis eller claude_answer.
+    # Aldrig från article — det är BREAKING-källan (_get_breaking).
+    src_text = r.get("final_analysis", "") or r.get("claude_answer", "")
+    if src_text:
+        sents = list(_sentences(src_text, 35, 220))
         for i, s in enumerate(sents):
             if not AVOID.match(s) and STATUS_WORDS.search(s):
                 chosen = [s]
@@ -279,8 +279,8 @@ def _get_hero(r):
         if s:
             return _trunc(s, 380)
 
-    # Fallback: collect 2-3 clean sentences
-    for src in [art, r.get("insight",""), r.get("final_analysis","")]:
+    # Fallback: collect 2-3 clean sentences (fortfarande aldrig från article)
+    for src in [r.get("final_analysis",""), r.get("claude_answer",""), r.get("insight","")]:
         s = _collect(src, 380)
         if s:
             return _trunc(s, 380)
