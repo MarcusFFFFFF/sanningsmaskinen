@@ -200,7 +200,11 @@ textarea::placeholder{color:var(--text-muted);}
 .pipeline-steps li.active .step-icon .spinner{display:inline-block;}
 .step-check{color:var(--green);}
 .step-wait{color:var(--text-muted);}
-.pipeline-current{font-size:clamp(9px,2.2vw,10px);letter-spacing:.14em;color:var(--text-dim);margin-bottom:20px;display:flex;align-items:center;}
+.pipeline-current{font-size:clamp(9px,2.2vw,10px);letter-spacing:.14em;color:var(--text-dim);margin-bottom:8px;display:flex;align-items:center;}
+.pipeline-explain{font-style:italic;color:var(--text-dim);font-size:clamp(13px,2.8vw,14px);line-height:1.6;margin:0 0 18px 28px;max-width:560px;transition:opacity .3s;}
+.pipeline-quote{margin-top:clamp(24px,5vw,40px);padding:18px 22px;background:var(--surface);border-left:2px solid var(--amber);border-radius:4px;max-width:560px;transition:opacity .4s;}
+.pipeline-quote .quote-text{font-family:'Instrument Serif',serif;font-size:clamp(15px,3.5vw,17px);font-style:italic;color:var(--text-body);line-height:1.55;margin-bottom:10px;}
+.pipeline-quote .quote-author{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);}
 
 /* HISTORY SIDEBAR */
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:min(280px,85vw);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:clamp(60px,12vw,70px) 16px 40px;transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);z-index:200;padding-bottom:env(safe-area-inset-bottom,20px);}
@@ -281,6 +285,7 @@ textarea::placeholder{color:var(--text-muted);}
     <div class="pipeline-current" id="pipeline-current">
       <span class="spinner"></span><span id="pipeline-label">Startar analys...</span>
     </div>
+    <div class="pipeline-explain" id="pipeline-explain">Förbereder pipelinen...</div>
     <ul class="pipeline-steps" id="pipeline-steps">
       <li id="ps-0"><span class="step-icon step-wait">○</span>Verifierar frågan</li>
       <li id="ps-1"><span class="step-icon step-wait">○</span>Claude Opus · Primäranalys med H1/H2/H3</li>
@@ -289,6 +294,10 @@ textarea::placeholder{color:var(--text-muted);}
       <li id="ps-4"><span class="step-icon step-wait">○</span>Red Team · HÅLLER / MODIFIERAS / KOLLAPSAR</li>
       <li id="ps-5" style="display:none"><span class="step-icon step-wait">○</span>Auto-rewrite baserat på Red Team</li>
     </ul>
+    <div class="pipeline-quote" id="pipeline-quote">
+      <div class="quote-text"></div>
+      <div class="quote-author"></div>
+    </div>
   </div>
 
   <!-- RESULT -->
@@ -299,6 +308,74 @@ textarea::placeholder{color:var(--text-muted);}
 <script>
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let currentResult = null;
+
+// ── PIPELINE EXPLAIN + EPISTEMIC QUOTES ───────────────────────────────────────
+const STEP_EXPLAIN = {
+  0: "Kontrollerar om frågan rör en bekräftad händelse, pågående konflikt eller hypotes...",
+  1: "Bygger tre konkurrerande hypoteser och testar dem mot tillgängliga källor...",
+  2: "En oberoende AI försöker aktivt hitta svagheter i analysen...",
+  3: "Identifierar var de två AI-systemen är genuint oense...",
+  4: "Försöker falsifiera den starkaste hypotesen — HÅLLER / MODIFIERAS / KOLLAPSAR...",
+  5: "Skriver om analysen baserat på Red Teams kritik..."
+};
+
+const QUOTES = [
+  { text: "Allt liv är problemlösning.",
+    author: "Karl Popper" },
+  { text: "Vi bör vara mer intresserade av frågan än av svaret.",
+    author: "Karl Popper" },
+  { text: "Vi kan vara blinda för det uppenbara — och vi är också blinda för vår egen blindhet.",
+    author: "Daniel Kahneman" },
+  { text: "Ett pålitligt sätt att få människor att tro på lögner är frekvent upprepning. Förtrogenhet är inte lätt att skilja från sanning.",
+    author: "Daniel Kahneman" },
+  { text: "Frånvaro av bevis är inte bevis för frånvaro.",
+    author: "Nassim Nicholas Taleb" },
+  { text: "Det vi kallar en svart svan har tre egenskaper: sällsynthet, extrem påverkan och retrospektiv förutsägbarhet.",
+    author: "Nassim Nicholas Taleb" },
+  { text: "Den första principen är att du inte får lura dig själv — och du är den lättaste personen att lura.",
+    author: "Richard Feynman" },
+  { text: "Jag föredrar frågor som inte kan besvaras framför svar som inte kan ifrågasättas.",
+    author: "Richard Feynman" }
+];
+
+let _quoteInterval = null;
+let _quoteIdx = -1;
+
+function showRandomQuote() {
+  const el = document.getElementById('pipeline-quote');
+  if (!el) return;
+  let next;
+  do { next = Math.floor(Math.random() * QUOTES.length); }
+  while (next === _quoteIdx && QUOTES.length > 1);
+  _quoteIdx = next;
+  const q = QUOTES[next];
+  el.style.opacity = '0';
+  setTimeout(() => {
+    el.querySelector('.quote-text').textContent = '"' + q.text + '"';
+    el.querySelector('.quote-author').textContent = '— ' + q.author;
+    el.style.opacity = '1';
+  }, 200);
+}
+
+function startQuoteRotation() {
+  showRandomQuote();
+  if (_quoteInterval) clearInterval(_quoteInterval);
+  _quoteInterval = setInterval(showRandomQuote, 15000);
+}
+
+function stopQuoteRotation() {
+  if (_quoteInterval) { clearInterval(_quoteInterval); _quoteInterval = null; }
+}
+
+function updateExplainText(step) {
+  const el = document.getElementById('pipeline-explain');
+  if (!el || STEP_EXPLAIN[step] === undefined) return;
+  el.style.opacity = '0';
+  setTimeout(() => {
+    el.textContent = STEP_EXPLAIN[step];
+    el.style.opacity = '1';
+  }, 200);
+}
 
 // ── ANALYSE med SSE-streaming ─────────────────────────────────────────────────
 function setPipelineStep(step, doneList) {
@@ -326,6 +403,7 @@ function setPipelineStep(step, doneList) {
       icon.innerHTML = '<span class="step-wait">○</span>';
     }
   }
+  updateExplainText(step);
 }
 
 function fillExample(btn) {
@@ -365,6 +443,7 @@ async function runAnalysis() {
   document.getElementById('loading').classList.add('visible');
   document.getElementById('result').style.display = 'none';
   document.getElementById('pipeline-label').textContent = 'Startar analys...';
+  startQuoteRotation();
 
   // Återställ steg-ikoner
   for (let i = 0; i <= 5; i++) {
@@ -409,6 +488,7 @@ async function runAnalysis() {
       document.getElementById('result').innerHTML = '<p style="color:var(--red);padding:20px;">Fel: Kunde inte tolka svar.</p>';
       document.getElementById('result').style.display = 'block';
     }
+    stopQuoteRotation();
     document.getElementById('analyze-btn').disabled = false;
     document.getElementById('loading').classList.remove('visible');
   });
@@ -416,6 +496,7 @@ async function runAnalysis() {
   es.addEventListener('error', function(e) {
     es.close();
     _activeEventSource = null;
+    stopQuoteRotation();
     var msg = 'Analysfel';
     try { msg = JSON.parse(e.data).message || msg; } catch(err) {}
     document.getElementById('result').innerHTML = '<p style="color:var(--red);padding:20px;">Fel: ' + msg + '</p>';
@@ -428,6 +509,7 @@ async function runAnalysis() {
     if (es.readyState === EventSource.CLOSED) return;
     es.close();
     _activeEventSource = null;
+    stopQuoteRotation();
     document.getElementById('result').innerHTML = '<p style="color:var(--red);padding:20px;">Fel: Anslutningen bröts.</p>';
     document.getElementById('result').style.display = 'block';
     document.getElementById('analyze-btn').disabled = false;
