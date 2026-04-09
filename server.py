@@ -157,8 +157,10 @@ def _run_pipeline(question, on_step=None, sid="anon"):
 
     try:
         _save_history(question, result, sid)
-    except Exception:
-        pass
+    except Exception as e:
+        import traceback
+        print(f"[save_history error in _run_pipeline] {type(e).__name__}: {e}", flush=True)
+        traceback.print_exc()
 
     return result
 
@@ -575,8 +577,10 @@ def _save_history(question, result, session_id="anon"):
     result["question"] = question
     result["timestamp"] = ts
     result["session_id"] = session_id
-    with open(os.path.join(history_dir, filename), "w", encoding="utf-8") as f:
+    path = os.path.join(history_dir, filename)
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(_serialize(result), f, ensure_ascii=False, indent=2)
+    print(f"[save_history] saved={filename} bytes={os.path.getsize(path)} sid={session_id[:8]}", flush=True)
 
 
 def _serialize(obj):
