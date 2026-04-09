@@ -631,6 +631,9 @@ def analyze_conflicts(claude_answer: str, gpt_answer: str) -> str:
         f"KONFLIKT 2: [samma format]\n"
         f"KONFLIKT 3: [samma format]\n"
         f"SAMSTÄMMIGHET: [vad de faktiskt är överens om — max 2 meningar]"
+        f"\n\nFORMAT — KRITISKT: Börja DIREKT med 'KONFLIKT 1'. "
+        f"Skriv INTE 'Här är en strikt konfliktanalys' eller någon annan inledning. "
+        f"Inga metakommentarer. Bara KONFLIKT 1, KONFLIKT 2, KONFLIKT 3, SAMSTÄMMIGHET — i den ordningen."
     )
     tools = [{"type": "web_search_20250305", "name": "web_search", "max_uses": 1}]
     try:

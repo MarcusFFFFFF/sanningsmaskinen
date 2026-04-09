@@ -861,13 +861,15 @@ function renderGold(r, ranked) {
   const heading = ranked[0] ? ranked[0].tes : '';
   const body = extractGoldBody(r);  // linkify körs inuti extractGoldBody
   const revised = r.status === 'REVIDERAD';
+  const verdict = getVerdict(r.red_team_report || '');
+  const collapsed = verdict.word === 'KOLLAPSAR';
   return `
   <div class="gold-spacer"></div>
   <div class="gold-block">
     <div class="gold-eyebrow"><div class="gold-dot"></div>Reviderad analys — destillatet av fyra granskningssteg</div>
     <div class="gold-h">${esc(heading)}</div>
     <div class="gold-body">${body}</div>
-    ${revised ? '<div class="gold-rev"><strong>Reviderad:</strong> Primäranalysen justerades av Red Team-granskningen. Kärnsvaret kvarstår — se konfliktanalysen för detaljer.</div>' : ''}
+    ${revised ? `<div class="gold-rev"><strong>Reviderad:</strong> ${collapsed ? 'Analysen omskriven från grunden efter Red Team-kollaps.' : 'Primäranalysen justerades av Red Team-granskningen. Kärnsvaret kvarstår — se konfliktanalysen för detaljer.'}</div>` : ''}
   </div>`;
 }
 
@@ -966,7 +968,8 @@ function cleanEngineText(s) {
     'statusbedömning:','situationsöversikt','⚡','senaste timmarnas',
     'tvåveckors vapenvila','vapenvila meddelad','kriget pausat',
     'verifierade kärnpåståenden','claim ','dag ','eldupphör annonserat',
-    'eldupphör —','pågående]','[pågående'
+    'eldupphör —','pågående]','[pågående',
+    '🚨','lägesrapport','iran vs usa — lägesrapport'
   ];
   return (s || '')
     .replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6}\s*/g,'')
