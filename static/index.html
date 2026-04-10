@@ -552,7 +552,7 @@ async function runAnalysisBg() {
     const resp = await fetch('/analyze-bg', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({question: q})
+      body: JSON.stringify({question: q, sid: localStorage.getItem('sid') || 'anon'})
     });
     if (!resp.ok) throw new Error('Server svarade ' + resp.status);
     const body = await resp.json();

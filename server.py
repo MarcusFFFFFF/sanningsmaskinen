@@ -325,13 +325,13 @@ def _stream_response(question, sid="anon"):
 
 # ── BACKGROUND JOBS ───────────────────────────────────────────────────────────
 
-def _run_bg(job_id, question):
+def _run_bg(job_id, question, sid="anon"):
     """Kor pipeline i bakgrundstrad, uppdaterar SQLite."""
     def on_step(step):
         _update_job(job_id, current_step=step, status='running')
 
     try:
-        result = _run_pipeline(question, on_step=on_step)
+        result = _run_pipeline(question, on_step=on_step, sid=sid)
         _update_job(job_id, status='complete', result=json.dumps(_serialize(result), ensure_ascii=False), completed_at=time.time())
     except Exception as e:
         _update_job(job_id, status='failed', error=str(e))
@@ -342,6 +342,7 @@ def analyze_bg():
     """Starta bakgrundsjobb. Returnerar job_id omedelbart."""
     data = request.get_json()
     question = (data.get("question") or "").strip()
+    sid = re.sub(r"[^a-f0-9\-]", "", (data.get("sid") or "anon"))[:36] or "anon"
     if not question:
         return jsonify({"error": "Ingen fraga"}), 400
 
@@ -354,7 +355,7 @@ def analyze_bg():
     db.commit()
     db.close()
 
-    t = threading.Thread(target=_run_bg, args=(job_id, question), daemon=True)
+    t = threading.Thread(target=_run_bg, args=(job_id, question, sid), daemon=True)
     t.start()
 
     return jsonify({"job_id": job_id}), 202
