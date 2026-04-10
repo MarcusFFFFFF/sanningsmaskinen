@@ -262,7 +262,7 @@ textarea::placeholder{color:var(--text-muted);}
     <div class="input-block" id="input-block">
       <div class="input-wrap">
         <textarea id="question-input" placeholder="Skriv din fråga..." rows="2"></textarea>
-        <button class="analyze-btn" id="analyze-btn" onclick="runAnalysis()">ANALYSERA →</button>
+        <button class="analyze-btn" id="analyze-btn" onclick="runAnalysisBg()">ANALYSERA →</button>
       </div>
     </div>
 
@@ -525,6 +525,46 @@ async function runAnalysis() {
     document.getElementById('loading').classList.remove('visible');
   };
   // Returnera — EventSource callbacks hanterar resten
+}
+
+async function runAnalysisBg() {
+  const q = document.getElementById('question-input').value.trim();
+  if (!q) return;
+
+  hideHeroDeco();
+  document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('pipeline-label').textContent = 'Startar analys...';
+  startQuoteRotation();
+
+  // Återställ steg-ikoner
+  for (let i = 0; i <= 5; i++) {
+    const li = document.getElementById('ps-' + i);
+    if (li) {
+      li.className = '';
+      li.querySelector('.step-icon').innerHTML = '<span class="step-wait">○</span>';
+      if (i === 5) li.style.display = 'none';
+    }
+  }
+
+  try {
+    const resp = await fetch('/analyze-bg', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question: q})
+    });
+    if (!resp.ok) throw new Error('Server svarade ' + resp.status);
+    const body = await resp.json();
+    localStorage.setItem('pendingJob', body.job_id);
+    startJobPolling(body.job_id);
+  } catch(err) {
+    stopQuoteRotation();
+    document.getElementById('loading').classList.remove('visible');
+    document.getElementById('analyze-btn').disabled = false;
+    document.getElementById('result').innerHTML = '<p style="color:var(--red);padding:20px;">Fel: Kunde inte starta analys — ' + err.message + '</p>';
+    document.getElementById('result').style.display = 'block';
+  }
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
@@ -1306,35 +1346,57 @@ document.addEventListener('visibilitychange', function() {
 var _pollInterval = null;
 
 function startJobPolling(jobId) {
-  var banner = document.getElementById('job-banner');
-  var bannerText = document.getElementById('job-banner-text');
-  banner.classList.add('visible');
-  document.getElementById('loading').classList.remove('visible');
-  document.getElementById('analyze-btn').disabled = false;
-
   var stepNames = ['Verklighetscheck','Primäranalys','Destruktiv kritik','Konfliktanalys','Red Team','Omskrivning'];
+  var prevStep = -1;
+
+  // Visa loading-state (kan redan vara synlig från runAnalysisBg, eller dold vid page-reload)
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('analyze-btn').disabled = true;
+  if (!_quoteTimer) startQuoteRotation();
 
   _pollInterval = setInterval(function() {
     fetch('/result/' + jobId).then(function(r){ return r.json(); }).then(function(data) {
       if (data.status === 'pending' || data.status === 'running') {
         var step = data.current_step || 0;
-        bannerText.textContent = 'Steg ' + step + '/5: ' + (stepNames[step] || '') + '...';
+        document.getElementById('pipeline-label').textContent = stepNames[step] || 'Arbetar...';
+
+        // Uppdatera steg-ikoner
+        if (step !== prevStep) {
+          for (var i = 0; i < step; i++) {
+            var done = document.getElementById('ps-' + i);
+            if (done) { done.className = 'done'; done.querySelector('.step-icon').innerHTML = '<span class="step-check">✓</span>'; }
+          }
+          var active = document.getElementById('ps-' + step);
+          if (active) { active.className = 'active'; active.querySelector('.step-icon').innerHTML = '<span class="step-spin">◌</span>'; }
+          prevStep = step;
+        }
+
       } else if (data.status === 'complete') {
         clearInterval(_pollInterval);
         localStorage.removeItem('pendingJob');
-        banner.classList.remove('visible');
+        stopQuoteRotation();
+        // Alla steg klara
+        for (var i = 0; i <= 4; i++) {
+          var li = document.getElementById('ps-' + i);
+          if (li) { li.className = 'done'; li.querySelector('.step-icon').innerHTML = '<span class="step-check">✓</span>'; }
+        }
+        document.getElementById('loading').classList.remove('visible');
+        document.getElementById('analyze-btn').disabled = false;
         currentResult = data.result;
         renderResult(data.result);
         loadHistory();
+
       } else if (data.status === 'failed') {
         clearInterval(_pollInterval);
         localStorage.removeItem('pendingJob');
-        banner.classList.remove('visible');
+        stopQuoteRotation();
+        document.getElementById('loading').classList.remove('visible');
+        document.getElementById('analyze-btn').disabled = false;
         document.getElementById('result').innerHTML = '<p style="color:var(--red);padding:20px;">Fel: ' + (data.error || 'Analysen misslyckades') + '</p>';
         document.getElementById('result').style.display = 'block';
       }
     }).catch(function() {
-      // Nätverksfel - försök igen nästa poll
+      // Nätverksfel — försök igen nästa poll
     });
   }, 3000);
 }
