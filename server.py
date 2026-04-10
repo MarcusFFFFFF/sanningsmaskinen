@@ -410,8 +410,8 @@ def history():
                     }
                     if is_admin or not sid or entry["session_id"] == sid:
                         entries.append(entry)
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[history error] {f}: {type(e).__name__}: {e}", flush=True)
     return jsonify(entries)
 
 
@@ -563,8 +563,8 @@ def admin_page():
                         "reality": d.get("reality_check", {}).get("status", ""),
                         "session_id": d.get("session_id", "anon")
                     })
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[admin error] {f}: {type(e).__name__}: {e}", flush=True)
     rows = ""
     for e in entries:
         rows += f"""<tr onclick="location.href='/admin?pwd={admin_pwd}&file={e['filename']}'" style="cursor:pointer">
