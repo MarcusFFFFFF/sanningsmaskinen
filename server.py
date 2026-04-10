@@ -626,7 +626,15 @@ def _serialize(obj):
 
 # ── START ─────────────────────────────────────────────────────────────────────
 
-_init_db()
+for _attempt in range(5):
+    try:
+        _init_db()
+        break
+    except sqlite3.OperationalError:
+        if _attempt < 4:
+            time.sleep(0.5 * (_attempt + 1))
+        else:
+            raise
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5001))
