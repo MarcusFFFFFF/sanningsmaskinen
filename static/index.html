@@ -1404,9 +1404,25 @@ function startJobPolling(jobId) {
 // Återuppta polling vid sidladdning om jobb väntade
 (function() {
   var pending = localStorage.getItem('pendingJob');
-  if (pending) {
-    startJobPolling(pending);
-  }
+  if (!pending) return;
+  fetch('/result/' + pending).then(function(r) {
+    if (!r.ok) { localStorage.removeItem('pendingJob'); return; }
+    return r.json();
+  }).then(function(data) {
+    if (!data) return;
+    if (data.status === 'failed') {
+      localStorage.removeItem('pendingJob');
+      document.getElementById('result').innerHTML = '<p style="color:var(--red);padding:20px;">Fel: ' + (data.error || 'Analysen misslyckades') + '</p>';
+      document.getElementById('result').style.display = 'block';
+    } else if (data.status === 'complete') {
+      localStorage.removeItem('pendingJob');
+      currentResult = data.result;
+      renderResult(data.result);
+      loadHistory();
+    } else {
+      startJobPolling(pending);
+    }
+  }).catch(function() { localStorage.removeItem('pendingJob'); });
 })();
 </script>
 </body>
