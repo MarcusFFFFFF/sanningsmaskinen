@@ -1352,7 +1352,7 @@ function startJobPolling(jobId) {
   // Visa loading-state (kan redan vara synlig från runAnalysisBg, eller dold vid page-reload)
   document.getElementById('loading').classList.add('visible');
   document.getElementById('analyze-btn').disabled = true;
-  if (!_quoteTimer) startQuoteRotation();
+  if (!_quoteInterval) startQuoteRotation();
 
   _pollInterval = setInterval(function() {
     fetch('/result/' + jobId).then(function(r){ return r.json(); }).then(function(data) {
