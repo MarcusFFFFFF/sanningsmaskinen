@@ -18,8 +18,38 @@ from engine import (
 )
 from pdf_export import build_pdf
 
+# Rate limiting — kräver flask-limiter. Om paketet saknas blir endpoints
+# obegränsade men servern startar fortfarande (utvecklingsläge).
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+    _HAS_LIMITER = True
+except ImportError:
+    _HAS_LIMITER = False
+    print("[security] WARNING: flask-limiter saknas. Kör: pip install flask-limiter", flush=True)
+    print("[security] Tills paketet är installerat är /analyze-* obegränsade.", flush=True)
+
 _BASE = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=os.path.join(_BASE, "static"))
+
+if _HAS_LIMITER:
+    limiter = Limiter(
+        app=app,
+        key_func=get_remote_address,
+        default_limits=["200 per hour", "30 per minute"],
+        storage_uri="memory://",
+    )
+else:
+    limiter = None
+
+
+def rate_limit(*args, **kwargs):
+    """Decorator som no-op:ar om flask-limiter saknas."""
+    def deco(fn):
+        if limiter is None:
+            return fn
+        return limiter.limit(*args, **kwargs)(fn)
+    return deco
 
 # SQLite for background jobs
 DB_PATH = os.environ.get('DB_PATH', os.path.join(_BASE, 'data', 'jobs.db'))
@@ -147,7 +177,8 @@ def _run_pipeline(question, on_step=None, sid="anon"):
     if article_source and len(article_source) > 200:
         try:
             result["article"] = generate_article(question, article_source, result.get("ranked", []))
-        except Exception:
+        except Exception as e:
+            print(f"[generate_article error in _run_pipeline] {type(e).__name__}: {e}", flush=True)
             result["article"] = ""
 
     result["depth_recommendation"] = assess_depth_recommendation(result)
@@ -174,6 +205,7 @@ def index():
 
 
 @app.route("/analyze-stream", methods=["GET"])
+@rate_limit("10 per minute; 50 per hour")
 def analyze_stream_get():
     """EventSource GET — Safari/iOS-kompatibelt."""
     question = (request.args.get("q") or "").strip()
@@ -186,6 +218,7 @@ def analyze_stream_get():
 
 
 @app.route("/analyze-stream", methods=["POST"])
+@rate_limit("10 per minute; 50 per hour")
 def analyze_stream_post():
     """POST fallback for icke-Safari-klienter."""
     data = request.get_json()
@@ -279,7 +312,8 @@ def _stream_response(question, sid="anon"):
             if article_source and len(article_source) > 200:
                 try:
                     article = generate_article(question, article_source, ranked)
-                except Exception:
+                except Exception as e:
+                    print(f"[generate_article error in _stream_response] {type(e).__name__}: {e}", flush=True)
                     article = ""
 
             result = {
@@ -338,6 +372,7 @@ def _run_bg(job_id, question, sid="anon"):
 
 
 @app.route("/analyze-bg", methods=["POST"])
+@rate_limit("10 per minute; 50 per hour")
 def analyze_bg():
     """Starta bakgrundsjobb. Returnerar job_id omedelbart."""
     data = request.get_json()
@@ -379,11 +414,45 @@ def get_result(job_id):
 
 # ── HISTORY ───────────────────────────────────────────────────────────────────
 
-HISTORY_PASSWORD = os.environ.get("HISTORY_PASSWORD", "sanningsmaskinen")
+import secrets
+
+_pwd_from_env = os.environ.get("HISTORY_PASSWORD")
+if _pwd_from_env:
+    HISTORY_PASSWORD = _pwd_from_env
+else:
+    # Ingen default-trivial — generera per-session så systemet är låst utan miljövar
+    HISTORY_PASSWORD = secrets.token_urlsafe(24)
+    print("[security] WARNING: HISTORY_PASSWORD-miljövariabel inte satt.", flush=True)
+    print(f"[security] Tillfälligt genererat lösenord för denna session: {HISTORY_PASSWORD}", flush=True)
+    print("[security] Sätt HISTORY_PASSWORD i Railway env-vars för persistent åtkomst.", flush=True)
 
 
 def _check_history_pwd():
-    return (request.args.get("pwd") or "") == HISTORY_PASSWORD
+    """
+    Validerar access till history-endpoints.
+    Föredragen: Authorization: Bearer <pwd> eller X-Auth-Token: <pwd>
+    Bakåtkompat: ?pwd=<pwd> URL-parameter — loggas som varning, ta bort när
+    frontend uppdaterats att skicka header istället.
+    """
+    # 1. Authorization: Bearer <token>
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        if auth[7:].strip() == HISTORY_PASSWORD:
+            return True
+
+    # 2. X-Auth-Token: <token>  (enklare för fetch())
+    token = request.headers.get("X-Auth-Token", "")
+    if token and token == HISTORY_PASSWORD:
+        return True
+
+    # 3. ?pwd=<token>  (DEPRECATED — loggar varning)
+    url_pwd = request.args.get("pwd")
+    if url_pwd and url_pwd == HISTORY_PASSWORD:
+        print(f"[security] DEPRECATED: ?pwd= URL-parameter använd på {request.path} "
+              f"(ip={request.remote_addr}). Flytta klient till Authorization-header.", flush=True)
+        return True
+
+    return False
 
 
 @app.route("/history", methods=["GET"])
@@ -422,8 +491,12 @@ def load_history(filename):
         return jsonify({"error": "forbidden"}), 403
     from urllib.parse import unquote
     filename = unquote(filename)
-    history_dir = os.path.join(_BASE, "history")
-    path = os.path.join(history_dir, filename)
+    # Path traversal-skydd: bara JSON-filer, ingen "/" eller ".." i sökvägen,
+    # och basname måste matcha hela filename (dvs ingen mapp-prefix)
+    safe = os.path.basename(filename)
+    if not safe.endswith(".json") or "/" in filename or ".." in filename or safe != filename:
+        return jsonify({"error": "invalid filename"}), 400
+    path = os.path.join(_BASE, "history", safe)
     if not os.path.exists(path):
         return jsonify({"error": "Hittades inte"}), 404
     with open(path, encoding="utf-8") as f:
@@ -482,7 +555,8 @@ def admin_page():
             from normalizer import normalize_claude_answer, normalize_red_team
             hyps = normalize_claude_answer(d.get("claude_answer", "")).get("hypotheses", [])
             red_norm = normalize_red_team(d.get("red_team_report", ""))
-        except Exception:
+        except Exception as e:
+            print(f"[normalizer error in admin view] {type(e).__name__}: {e}", flush=True)
             hyps = []
             red_norm = {"verdict": ""}
 

@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-SANNINGSMASKINEN — NORMALIZER v1.4
-Förbättringar från v1.3:
-- Utökad BEVIS-parser: matchar "- BEVIS 1: text", "BEVIS 1 [E4]: text",
-  numrerade listor (1. text), bullet-listor (- text) inuti BEVIS-block
-- normalize_references körs ALDRIG före normalize_claude_answer internt
-- Robustare motarg-parser
+SANNINGSMASKINEN — NORMALIZER v1.5
+Förbättringar från v1.4:
+- STYRKA-substring-bugg fixad: längsta nyckel ("MEDEL-HÖG") testas före "HÖG"
+  i båda parsningsstegen. Tidigare blev STYRKA: MEDEL-HÖG felaktigt klassificerat
+  som HÖG eftersom "HÖG" är substring i "MEDEL-HÖG".
+- Conf-formel omviktad (0.45/0.25/0.30 vs 0.50/0.20/0.30) och STYRKA_VAL sänkt
+  så HÖG-hypoteser inte längre klustrar runt 88-92 — de differentieras via bevis
+  och källkvalitet. Clamp breddat till 0.10-0.95.
+- Källkvalitetsdefault differentierad: bevis utan E-taggar (0.40) och tomma
+  hypoteser (0.25) får inte längre default 0.5 (neutralt MEDEL).
+- Diagnostiklogg i normalize_result — varje run skriver vad parsern hittade
+  och vilka conf-värden som genererats. Grep:bart med [normalizer]-prefix.
 """
 
 import math
@@ -21,10 +27,10 @@ _SOURCE_LABELS = {
 }
 
 STYRKA_VAL = {
-    "HÖG": 0.90,
-    "MEDEL-HÖG": 0.70,
-    "MEDEL": 0.50,
-    "LÅG": 0.25,
+    "HÖG": 0.85,        # var 0.90 — sänkt så HÖG kan differentieras via bevis/källkvalitet
+    "MEDEL-HÖG": 0.65,  # var 0.70
+    "MEDEL": 0.45,      # var 0.50
+    "LÅG": 0.20,        # var 0.25
 }
 
 
@@ -63,13 +69,31 @@ def normalize_references(text: str) -> str:
 
 
 def _source_quality_from_bevis(bevis_list: list) -> float:
+    r"""
+    Genomsnittlig E-vikt över alla taggar i bevislistan.
+
+    KRITISK FIX (v1.5): regex använder \b (word boundary) istället för \]
+    eftersom Claude skriver bevisen som [E3 — CSIS](url), INTE [E3]. Gamla
+    regexen `\[(E[1-5]|FAKTA)\]` matchade aldrig något i praktiken — alla
+    bevis fick default-källkvalitet → alla hypoteser klustrade kring samma
+    conf-värde. Detta var rotorsaken till "95/94/20"-symptomet.
+
+    Default-fallback differentierad:
+      - Inga bevis alls         → 0.25 (svag evidens)
+      - Bevis men inga E-taggar → 0.40 (otaggad evidens — varningssignal)
+    """
     weights = []
     for b in bevis_list:
-        for tag in re.findall(r'\[(E[1-5]|FAKTA)\]', b or "", re.IGNORECASE):
+        # \b matchar både [E3] och [E3 — CSIS] och [E3 -- källa]
+        for tag in re.findall(r'\[(E[1-5]|FAKTA)\b', b or "", re.IGNORECASE):
             entry = _SOURCE_LABELS.get(tag.upper())
             if entry:
                 weights.append(entry[1])
-    return sum(weights) / len(weights) if weights else 0.5
+    if weights:
+        return sum(weights) / len(weights)
+    if bevis_list:
+        return 0.40
+    return 0.25
 
 
 def _evidence_count_factor(n: int) -> float:
@@ -79,41 +103,50 @@ def _evidence_count_factor(n: int) -> float:
 
 
 def compute_hypothesis_scores(hypotheses: list) -> list:
+    """
+    Räknar conf per hypotes som VIKTAT GENOMSNITT av tre faktorer.
+
+    Viktning (v1.5 — omviktad för bättre differentiering):
+    - STYRKA (Claudes egen bedömning): 45%
+    - Bevis-kvantitet:                 25%
+    - Källkvalitet (E-nivå):          30%
+
+    Tidigare gav (0.50/0.20/0.30) alla tre HÖG-hypoteser värden runt 88-92
+    — i praktiken oseparerbara. Den nya viktningen, kombinerat med sänkta
+    STYRKA_VAL och differentierade källkvalitets-defaults, ger spannet ~12-93
+    så svaga och starka hypoteser faktiskt syns isär.
+
+    Clamp: 0.10 (var 0.15) till 0.95 (var 0.92). Ingen hypotes är helt sann
+    eller helt falsk, men spannet behöver vara brett nog för att signalera
+    epistemisk skillnad.
+    """
     if not hypotheses:
         return hypotheses
 
-    scored = []
+    out = []
     for idx, h in enumerate(hypotheses):
         styrka = (h.get("styrka") or "MEDEL").upper()
-        ev_strength = STYRKA_VAL.get(styrka, 0.50)
+        ev_strength = STYRKA_VAL.get(styrka, 0.45)
         bevis = h.get("bevis", []) or []
         ev_count_f = _evidence_count_factor(len(bevis))
         src_quality = _source_quality_from_bevis(bevis)
-        raw = ev_strength * ev_count_f * src_quality
-        raw += (len(bevis) * 0.003) + ((3 - min(idx, 3)) * 0.001)
-        scored.append({**h, "conf_raw": raw})
 
-    max_raw = max(s["conf_raw"] for s in scored) or 1.0
-    min_raw = min(s["conf_raw"] for s in scored)
-    span = max_raw - min_raw
+        conf = (
+            0.45 * ev_strength +
+            0.25 * ev_count_f +
+            0.30 * src_quality
+        )
 
-    if span < 1e-9:
-        defaults = [0.68, 0.52, 0.36, 0.24]
-        out = []
-        for i, s in enumerate(scored):
-            conf = defaults[i] if i < len(defaults) else max(0.20, defaults[-1] - 0.04 * (i - len(defaults) + 1))
-            ss = dict(s)
-            ss["conf"] = round(conf, 2)
-            ss["conf_pct"] = int(conf * 100)
-            out.append(ss)
-        return out
+        # Position-tiebreaker — försumbar, bara vid exakt lika conf
+        conf += (3 - min(idx, 3)) * 0.0005
 
-    out = []
-    for s in scored:
-        norm = 0.20 + 0.75 * (s["conf_raw"] - min_raw) / span
-        ss = dict(s)
-        ss["conf"] = round(norm, 2)
-        ss["conf_pct"] = int(norm * 100)
+        # Bredare clamp än v1.4 (0.15-0.92) för att tillåta verklig differentiering
+        conf = max(0.10, min(0.95, conf))
+
+        ss = dict(h)
+        ss["conf_raw"] = conf
+        ss["conf"] = round(conf, 2)
+        ss["conf_pct"] = int(round(conf * 100))
         out.append(ss)
 
     return out
@@ -250,10 +283,10 @@ def _parse_hypothesis_block(block: str, h_key: str) -> dict:
             # Strippa procentprefix
             t = re.sub(r'^\d{1,3}\s*%\s*[—\-]?\s*', '', t).strip()
             hyp["title"] = t
-    # Extrahera styrka
+    # Extrahera styrka — testa längsta keys först så MEDEL-HÖG inte felmatchas som HÖG
     if len(styrka_split) > 1:
         styrka_raw = styrka_split[1].strip().upper()
-        for s in ["HÖG", "MEDEL", "LÅG"]:
+        for s in ["MEDEL-HÖG", "MEDEL", "HÖG", "LÅG"]:
             if s in styrka_raw:
                 hyp["styrka"] = s
                 break
@@ -265,6 +298,14 @@ def _parse_hypothesis_block(block: str, h_key: str) -> dict:
         text = ' '.join(_preserve_urls(l.strip()) for l in current_buf if l.strip())
         if not text:
             return
+        # Rensa markdown-artefakter: ledande/avslutande ** och |
+        text = re.sub(r'^\*{1,3}\s*', '', text)
+        text = re.sub(r'\s*\*{1,3}$', '', text)
+        text = text.strip('| ')
+        # Rensa ** fortfarande kvar i slutet
+        text = re.sub(r'\*\*\s*$', '', text).strip()
+        if not text:
+            return
         if section == "tes":
             hyp["tes"] = text
         elif section == "bevis":
@@ -272,27 +313,39 @@ def _parse_hypothesis_block(block: str, h_key: str) -> dict:
         elif section == "motarg":
             hyp["motarg"].append(text)
         elif section == "falsif":
+            # Filtrera bort platshallare och generiska fraser
+            placeholders = [
+                'sanningen favoriserar ingen sida',
+                'ingen falsifiering',
+                'n/a',
+                'ej tillampligt',
+                'ej aktuellt',
+            ]
+            low = text.lower().strip('*_.,!? ')
+            if any(p in low for p in placeholders) and len(low) < 60:
+                return
             hyp["falsifiering"] = text
 
-    # Utökad BEVIS-matchning
-    # Matchar: "BEVIS 1:", "- BEVIS 1:", "BEVIS 1 [E4]:", "**BEVIS 1**:"
+    # Utökad BEVIS-matchning — hanterar bade numrerad lista och markdown-tabell
+    # Matchar: "BEVIS 1:", "- BEVIS 1:", "BEVIS 1 [E4]:", "**BEVIS 1**:",
+    # och tabellformat: "| **BEVIS 1** | [E5] text |"
     BEVIS_RE = re.compile(
-        r'^[-•\*]?\s*\*{0,2}BEVIS\s*\d*\s*(?:\[[^\]]*\])?\s*:?\s*\*{0,2}\s*(.*)$',
+        r'^\s*\|?\s*[-•\*]?\s*\*{0,2}BEVIS\s*\d*\s*\*{0,2}\s*(?:\[[^\]]*\])?\s*[:|]?\s*(.*?)\s*\|?\s*$',
         re.IGNORECASE
     )
-    # Motarg-matchning — utökad
+    # Motarg-matchning — hanterar bade vanliga och tabellformat
     MOTARG_RE = re.compile(
-        r'^[-•\*]?\s*\*{0,2}MOTARG(?:UMENT)?\s*\d*\s*:?\s*\*{0,2}\s*(.*)$',
+        r'^\s*\|?\s*[-•\*]?\s*\*{0,2}MOTARG(?:UMENT)?\s*\d*\s*\*{0,2}\s*[:|]?\s*(.*?)\s*\|?\s*$',
         re.IGNORECASE
     )
-    # Falsifiering
+    # Falsifiering — hanterar bade vanliga och tabellformat
     FALSIF_RE = re.compile(
-        r'^[-•\*]?\s*\*{0,2}FALSIFIERINGS(?:TEST)?\s*:?\s*\*{0,2}\s*(.*)$',
+        r'^\s*\|?\s*[-•\*]?\s*\*{0,2}FALSIFIERINGS?(?:TEST)?\s*\*{0,2}\s*[:|]?\s*(.*?)\s*\|?\s*$',
         re.IGNORECASE
     )
-    # TES
+    # TES — hanterar bade vanliga och tabellformat
     TES_RE = re.compile(
-        r'^[-•\*]?\s*\*{0,2}TES\s*:?\s*\*{0,2}\s*(.*)$',
+        r'^\s*\|?\s*[-•\*]?\s*\*{0,2}TES\s*\*{0,2}\s*[:|]?\s*(.*?)\s*\|?\s*$',
         re.IGNORECASE
     )
 
@@ -305,11 +358,16 @@ def _parse_hypothesis_block(block: str, h_key: str) -> dict:
             buf = []
             continue
 
+        # Skippa markdown-tabellseparatorer: "| | |", "|---|---|", "| --- | --- |"
+        if re.match(r'^\|[\s\-:|]*\|$', s) or re.match(r'^[\s\|\-:]+$', s):
+            continue
+
         # STYRKA
         if up.startswith("STYRKA") or re.match(r'^[-•\*]?\s*\*{0,2}STYRKA', s, re.I):
             flush_buf(current_section, buf)
             buf = []
-            for key in ["HÖG", "MEDEL-HÖG", "MEDEL", "LÅG"]:
+            # Längsta nyckel först — MEDEL-HÖG måste testas före HÖG annars matchas båda som HÖG
+            for key in ["MEDEL-HÖG", "MEDEL", "HÖG", "LÅG"]:
                 if key in up:
                     hyp["styrka"] = key
                     rest = s[s.upper().find(key) + len(key):].strip(" :—-()")
@@ -479,9 +537,23 @@ def normalize_result(result: dict) -> dict:
     # KRITISKT: normalize_claude_answer körs PÅ RÅTEXTEN, INTE efter normalize_references
     raw_answer = result.get("claude_answer", "")
     claude_norm = normalize_claude_answer(raw_answer)
+
+    # Diagnostik — hur många hypoteser parsern faktiskt hittade i råtexten
+    _parsed_n = len(claude_norm["hypotheses"])
+    _raw_len = len(raw_answer)
+    print(f"[normalizer] parsed_hypotheses={_parsed_n}/3 raw_len={_raw_len}", flush=True)
+    for h in claude_norm["hypotheses"]:
+        print(f"[normalizer]   {h.get('key')} styrka={h.get('styrka')} "
+              f"bevis_n={len(h.get('bevis', []))} motarg_n={len(h.get('motarg', []))}", flush=True)
+
     claude_norm["hypotheses"] = _ensure_three_hypotheses(
         compute_hypothesis_scores(claude_norm["hypotheses"])
     )
+
+    # Logga slutgiltiga conf-värden — så vi vet exakt vad UI får
+    _conf_log = [(h.get('key'), h.get('styrka'), h.get('conf_pct'),
+                  h.get('is_fallback', False)) for h in claude_norm["hypotheses"]]
+    print(f"[normalizer] ranked={_conf_log}", flush=True)
 
     normalized = {
         "claude": claude_norm,
