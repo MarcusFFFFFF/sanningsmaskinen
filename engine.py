@@ -824,7 +824,10 @@ def generate_article(question: str, final_analysis: str, ranked: list) -> str:
             if hasattr(b, "type") and b.type == "text"
         ).strip()
     except Exception as e:
-        return f"[Artikelgenerering misslyckades: {e}]"
+        # Tyst fallback — artikel ar nice-to-have, inte kritiskt
+        # Logga for debug men visa inget for anvandaren
+        print(f"[generate_article failed] {type(e).__name__}: {e}", flush=True)
+        return ""
 
 
 def assess_depth_recommendation(result: dict) -> dict:

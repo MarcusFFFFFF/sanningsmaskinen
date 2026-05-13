@@ -740,13 +740,21 @@ function renderHCard(h, i) {
     <div class="hd-row"><span class="hd-lbl lbl-tes">TES</span><div class="hd-txt">${esc(h.tes || '—')}</div></div>`;
 
   bevs.forEach(b => {
-    detailHtml += `<div class="hd-row"><span class="hd-lbl lbl-bev">BEVIS</span><div class="hd-txt"><span class="fi-f">FAKTA</span>${linkify(b)}</div></div>`;
+    // Parse ut E-niva fran bevis ([E5], [E4] etc) och visa som tagg
+    var eLevelMatch = b.match(/\[(E[1-5])\]/);
+    var eLevel = eLevelMatch ? eLevelMatch[1] : 'FAKTA';
+    // Ta bort [E-niva] fran text men behall [title](url)-lankar
+    var cleanBev = b.replace(/\[E[1-5]\]\s*/, '').replace(/\[E[1-5]\/E[1-5]\]\s*/, '');
+    // Fargkod baserat pa E-niva
+    var eClass = 'fi-f';  // default gron
+    if (eLevel === 'E2' || eLevel === 'E1') eClass = 'fi-d';  // rod for svag kalla
+    detailHtml += `<div class="hd-row"><span class="hd-lbl lbl-bev">BEVIS</span><div class="hd-txt"><span class="${eClass}">${eLevel}</span>${linkify(cleanBev)}</div></div>`;
   });
   mots.forEach(m => {
     detailHtml += `<div class="hd-row"><span class="hd-lbl lbl-mot">MOTARG</span><div class="hd-txt">${esc(m)}</div></div>`;
   });
   if (fals) {
-    detailHtml += `<div class="hd-row"><span class="hd-lbl lbl-fal">FALSIF OM</span><div class="hd-txt"><span class="fi-d">DEBATTERAT</span>${esc(fals)}</div></div>`;
+    detailHtml += `<div class="hd-row"><span class="hd-lbl lbl-fal">FALSIF OM</span><div class="hd-txt">${esc(fals)}</div></div>`;
   }
 
   return `
@@ -760,7 +768,18 @@ function renderHCard(h, i) {
       <div class="exp-title"><strong>${esc(key)} [${esc(lbl)}]</strong> &mdash; ${esc(title)}</div>
       <div class="exp-evidence">${esc(tes)}</div>
       <div class="exp-bottom">${verdHtml}</div>
-      <div class="exp-bottom-links">${(h.bevis||[]).slice(0,3).map(b=>{const m=b.match(/\[([^\]]+)\]\(https?:\/\/([^)]+)\)/);return m?' <a href="https://'+m[2]+'" target="_blank" onclick="event.stopPropagation()" rel="noopener" style="display:inline-flex;font-family:monospace;font-size:8px;padding:2px 6px;border-radius:3px;background:rgba(54,166,96,.07);border:1px solid rgba(54,166,96,.2);color:#36A660;text-decoration:none;margin:0 2px;">'+m[1]+'</a>':''}).join('')}</div>
+      <div class="exp-bottom-links">${(h.bevis||[]).slice(0,3).map(b=>{
+        // Extrahera E-niva fran bevis-texten (om det finns)
+        var eLevelMatch = b.match(/\[(E[1-5])\]/);
+        var eLevel = eLevelMatch ? eLevelMatch[1] : '';
+        // Extrahera forsta lank-label + url
+        var linkMatch = b.match(/\[([^\]]+)\]\(https?:\/\/([^)]+)\)/);
+        if (!linkMatch) return '';
+        var label = linkMatch[1];
+        var url = linkMatch[2];
+        var prefix = eLevel ? eLevel + ' — ' : '';
+        return ' <a href="https://'+url+'" target="_blank" onclick="event.stopPropagation()" rel="noopener" style="display:inline-flex;font-family:monospace;font-size:8px;padding:2px 6px;border-radius:3px;background:rgba(54,166,96,.07);border:1px solid rgba(54,166,96,.2);color:#36A660;text-decoration:none;margin:0 2px;">'+prefix+label+'</a>';
+      }).join('')}</div>
       <div class="exp-hint">&#9658; Visa TES &middot; BEVIS &middot; FALSIFIERAS OM</div>
     </div>
     <div class="exp-chevron-wrap"><span class="exp-chevron">&#8250;</span></div>
@@ -837,15 +856,34 @@ function renderRedTeamDetail(raw) {
   // Splitta på sektionsrubriker
   var parts = txt.split(/(?=^\s*(?:STEG\s+[1-4]|VERDICT|ALTERNATIV\s+RANKING)\b)/im);
 
+  // Korta, lasbara titlar istallet for "STEG 1 — T1-PREMISS:"
+  var titleMap = {
+    'STEG 1': 'Steg 1 · Premiss',
+    'STEG 2': 'Steg 2 · Konkurrerande modell',
+    'STEG 3': 'Steg 3 · Källkritik',
+    'STEG 4': 'Steg 4 · Claim cascade',
+    'VERDICT': 'Verdict',
+    'ALTERNATIV RANKING': 'Alternativ ranking'
+  };
+
   var sections = [];
   for (var i = 0; i < parts.length; i++) {
     var chunk = parts[i].trim();
     if (!chunk) continue;
-    var head = chunk.match(/^(STEG\s+[1-4][^\n]*|VERDICT[^\n]*|ALTERNATIV\s+RANKING[^\n]*)/i);
+    // Matcha ENDAST sjalva nyckelordet — inte hela raden — sa body pa samma rad bevaras
+    var head = chunk.match(/^(STEG\s+[1-4](?:\s*[—\-]\s*T[1-4]-[A-ZÅÄÖ]+)?|VERDICT|ALTERNATIV\s+RANKING)/i);
     if (!head) continue;
-    var title = head[1].replace(/[:\-—]+\s*$/, '').trim();
+    var fullTitle = head[1].trim().toUpperCase();
+    // Bygg kort titel
+    var shortTitle = fullTitle;
+    for (var tk in titleMap) {
+      if (fullTitle.indexOf(tk) === 0) {
+        shortTitle = titleMap[tk];
+        break;
+      }
+    }
     var body = chunk.slice(head[0].length).replace(/^[:\-—\s]+/, '').trim();
-    sections.push({ title: title, body: body, key: title.toUpperCase() });
+    sections.push({ title: shortTitle, body: body, key: fullTitle });
   }
 
   if (!sections.length) {
@@ -911,7 +949,7 @@ function renderRedTeamDetail(raw) {
     var color = colorFor(s.key);
     var html = '<div style="margin-bottom:18px;padding-bottom:18px;' +
                (idx < sections.length - 1 ? 'border-bottom:1px solid var(--border);' : '') + '">';
-    html += '<div style="font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.18em;color:' + color + ';text-transform:uppercase;margin-bottom:10px;">' + esc(s.title) + '</div>';
+    html += '<div style="font-family:JetBrains Mono,monospace;font-size:10px;letter-spacing:.12em;color:' + color + ';margin-bottom:10px;font-weight:600;">' + esc(s.title) + '</div>';
     if (s.key.indexOf('STEG 2') === 0) {
       html += renderStep2(s.body);
     } else {
@@ -930,45 +968,87 @@ function renderConflictReport(raw) {
     return '<p style="color:var(--text-muted);font-size:13px;">Konfliktanalys ej tillgänglig — GPT-kritiken returnerade inget svar.</p>';
   }
 
-  // Dela upp i KONFLIKT-block på ### eller **KONFLIKT
-  var blocks = raw.split(/\n(?=\*\*KONFLIKT\s+\d+|##\s*KONFLIKT\s+\d+)/i).filter(function(b){ return /KONFLIKT/i.test(b); });
-  if (!blocks.length) {
-    return '<p style="font-size:13px;line-height:1.75;color:var(--text-dim);">' + esc(raw.replace(/\*\*/g,'').replace(/\|/g,' ').replace(/---/g,'').trim()) + '</p>';
+  // Plocka ut SAMSTAMMIGHET om det finns (sista delen, efter sista KONFLIKT)
+  var samstam = '';
+  var samMatch = raw.match(/SAMST[AÄ]MMIGHET\s*[:\-]\s*([\s\S]+?)$/i);
+  if (samMatch) {
+    samstam = samMatch[1].trim().replace(/\*+/g, '').replace(/^\s*\|\s*/gm, '').replace(/\s*\|\s*$/gm, '').trim();
   }
 
-  return blocks.map(function(block, i) {
-    // Extrahera titel
-    var titleMatch = block.match(/KONFLIKT\s+\d+[:\s]+([^\n\|]+)/i);
-    var title = titleMatch ? titleMatch[1].replace(/\*\*/g,'').trim() : ('Konflikt ' + (i+1));
+  // Rensa markdown-bold och split pa KONFLIKT N
+  var cleaned = raw.replace(/\*\*(KONFLIKT\s+\d+[^*]*)\*\*/gi, '$1')
+                   .replace(/^#+\s*/gm, '')
+                   .replace(/---+/g, '');
 
-    // Extrahera Claude, GPT, Avgörande från markdown-tabell
+  // Split pa "KONFLIKT N:" — fungerar for bade pipe-separerad och flerradsformat
+  var parts = cleaned.split(/(?=\bKONFLIKT\s+\d+\s*:)/i).filter(function(b){
+    return /KONFLIKT\s+\d+/i.test(b);
+  });
+
+  if (!parts.length) {
+    return '<p style="font-size:13px;line-height:1.75;color:var(--text-dim);">' + esc(cleaned.replace(/\|/g, ' · ').trim()) + '</p>';
+  }
+
+  var html = parts.map(function(block, i) {
+    // Ta bort SAMSTAMMIGHET-delen fran sista blocket
+    var blockClean = block.replace(/SAMST[AÄ]MMIGHET\s*[:\-][\s\S]+$/i, '').trim();
+
+    // Titel: text mellan "KONFLIKT N:" och forsta |
+    var titleMatch = blockClean.match(/KONFLIKT\s+\d+\s*[:\-]\s*([^|]+?)(?:\s*\||$)/i);
+    var title = titleMatch ? titleMatch[1].trim() : ('Konflikt ' + (i+1));
+
+    // Splitta pa | fÃ¶r att fa fallen
+    var segments = blockClean.split(/\s*\|\s*/).map(function(s){ return s.trim(); }).filter(Boolean);
+
+    // Hitta Claude, GPT, Avgorande via segmenten
     var claude = '', gpt = '', avg = '';
-    var lines = block.split('\n');
-    for (var j = 0; j < lines.length; j++) {
-      var line = lines[j];
-      // Matcha | **Claude:** | text | eller | Claude: | text |
-      var cm = line.match(/\|\s*\*{0,2}Claude[:\s*]{1,3}\*{0,2}\s*\|\s*(.+?)\s*\|?\s*$/i);
-      var gm = line.match(/\|\s*\*{0,2}GPT[:\s*]{1,3}\*{0,2}\s*\|\s*(.+?)\s*\|?\s*$/i);
-      var am = line.match(/\|\s*\*{0,2}Avg[öo]rande[:\s*]{1,3}\*{0,2}\s*\|\s*(.+?)\s*\|?\s*$/i);
-      if (cm) claude = cm[1].replace(/\*+/g,'').trim();
-      if (gm) gpt = gm[1].replace(/\*+/g,'').trim();
-      if (am) avg = am[1].replace(/\*+/g,'').trim();
-    }
+    segments.forEach(function(seg) {
+      var cm = seg.match(/^Claude\s*[:\-]\s*(.+)$/i);
+      var gm = seg.match(/^GPT\s*(?:-?\d*o?)?\s*[:\-]\s*(.+)$/i);
+      var am = seg.match(/^Avg[öo]rande\s*[:\-]\s*(.+)$/i);
+      if (cm) claude = cm[1].trim();
+      if (gm) gpt = gm[1].trim();
+      if (am) avg = am[1].trim();
+    });
 
-    // Fallback: visa blocket rensat
+    // Fallback: leta radvis
     if (!claude && !gpt) {
-      var cleaned = block.replace(/\*\*/g,'').replace(/^#+\s*/gm,'').replace(/\|[-| ]+\|/g,'').replace(/\|/g,' ').replace(/---/g,'').trim();
-      return '<div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);"><div style="font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.18em;color:var(--text-label);text-transform:uppercase;margin-bottom:8px;">' + esc(title) + '</div><p style="font-size:13px;line-height:1.7;color:var(--text-dim);">' + esc(cleaned) + '</p></div>';
+      var lines = blockClean.split('\n');
+      lines.forEach(function(line) {
+        var cm = line.match(/Claude\s*[:\-]\s*(.+)/i);
+        var gm = line.match(/GPT\s*(?:-?\d*o?)?\s*[:\-]\s*(.+)/i);
+        var am = line.match(/Avg[öo]rande\s*[:\-]\s*(.+)/i);
+        if (cm && !claude) claude = cm[1].trim();
+        if (gm && !gpt) gpt = gm[1].trim();
+        if (am && !avg) avg = am[1].trim();
+      });
     }
 
-    var html = '<div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">';
-    html += '<div style="font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.18em;color:var(--text-label);text-transform:uppercase;margin-bottom:10px;">Konflikt ' + (i+1) + ' — ' + esc(title) + '</div>';
-    if (claude) html += '<div style="display:flex;gap:10px;margin-bottom:8px;"><div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--green);letter-spacing:.1em;padding-top:2px;min-width:52px;">CLAUDE</div><div style="font-size:13px;line-height:1.65;color:var(--text-body);">' + esc(claude) + '</div></div>';
-    if (gpt) html += '<div style="display:flex;gap:10px;margin-bottom:8px;"><div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--amber);letter-spacing:.1em;padding-top:2px;min-width:52px;">GPT-4O</div><div style="font-size:13px;line-height:1.65;color:var(--text-body);">' + esc(gpt) + '</div></div>';
-    if (avg) html += '<div style="display:flex;gap:10px;"><div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--blue);letter-spacing:.1em;padding-top:2px;min-width:52px;">AVGÖR</div><div style="font-size:13px;line-height:1.65;color:var(--text-dim);font-style:italic;">' + esc(avg) + '</div></div>';
-    html += '</div>';
-    return html;
+    // Sista fallback — radump
+    if (!claude && !gpt && !avg) {
+      var cleanedBlock = blockClean.replace(/\|/g, ' · ').replace(/KONFLIKT\s+\d+\s*[:\-]\s*/i, '').trim();
+      return '<div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">' +
+             '<div style="font-family:JetBrains Mono,monospace;font-size:10px;letter-spacing:.12em;color:var(--text-label);margin-bottom:10px;font-weight:600;">Konflikt ' + (i+1) + ' · ' + esc(title) + '</div>' +
+             '<p style="font-size:13px;line-height:1.7;color:var(--text-dim);">' + esc(cleanedBlock) + '</p></div>';
+    }
+
+    var out = '<div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">';
+    out += '<div style="font-family:JetBrains Mono,monospace;font-size:10px;letter-spacing:.12em;color:var(--text-label);margin-bottom:12px;font-weight:600;">Konflikt ' + (i+1) + ' · ' + esc(title) + '</div>';
+    if (claude) out += '<div style="display:flex;gap:12px;margin-bottom:10px;"><div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--green);letter-spacing:.12em;padding-top:3px;min-width:60px;flex-shrink:0;font-weight:600;">CLAUDE</div><div style="font-size:13px;line-height:1.65;color:var(--text-body);">' + esc(claude) + '</div></div>';
+    if (gpt) out += '<div style="display:flex;gap:12px;margin-bottom:10px;"><div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--amber);letter-spacing:.12em;padding-top:3px;min-width:60px;flex-shrink:0;font-weight:600;">GPT-4O</div><div style="font-size:13px;line-height:1.65;color:var(--text-body);">' + esc(gpt) + '</div></div>';
+    if (avg) out += '<div style="display:flex;gap:12px;"><div style="font-family:JetBrains Mono,monospace;font-size:8px;color:var(--blue);letter-spacing:.12em;padding-top:3px;min-width:60px;flex-shrink:0;font-weight:600;">AVGÖR</div><div style="font-size:13px;line-height:1.65;color:var(--text-dim);font-style:italic;">' + esc(avg) + '</div></div>';
+    out += '</div>';
+    return out;
   }).join('');
+
+  // Lagg till SAMSTAMMIGHET-block om det finns
+  if (samstam && samstam.length > 20) {
+    html += '<div style="margin-top:16px;padding:14px 16px;background:var(--green-glow);border:1px solid var(--green-border);border-radius:6px;">' +
+            '<div style="font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.14em;color:var(--green);margin-bottom:8px;font-weight:600;">SAMSTÄMMIGHET</div>' +
+            '<p style="font-size:13px;line-height:1.7;color:var(--text-body);margin:0;">' + esc(samstam.replace(/\|/g,' ').trim()) + '</p></div>';
+  }
+
+  return html;
 }
 
 
@@ -1072,8 +1152,70 @@ function cleanText(s) {
 }
 
 function cleanRTText(s) {
-  const skip = ['STEG 1','STEG 2','STEG 3','STEG 4','ALT-TES','ALT-BEVIS','VARFÖR CLAUDE','T1-PREMISS','T3-KÄLL','T4-CLAIM'];
-  return (s || '').split('\n').filter(l => !skip.some(k => l.trim().toUpperCase().startsWith(k))).join('\n').replace(/\*+/g,'').replace(/#+/g,'').trim();
+  if (!s) return '';
+  var txt = s.replace(/\*+/g,'').replace(/#+/g,'').trim();
+  var lines = txt.split('\n');
+  var out = [];
+  var headers = {
+    'STEG 1': 'Premiss',
+    'STEG 2': 'Konkurrerande modell',
+    'STEG 3': 'Källkritik',
+    'STEG 4': 'Claim cascade',
+    'ALT-TES': 'Alternativ tes',
+    'ALT-BEVIS 1': 'Alternativt bevis 1',
+    'ALT-BEVIS 2': 'Alternativt bevis 2',
+    'ALT-BEVIS 3': 'Alternativt bevis 3',
+    'ALT-BEVIS1': 'Alternativt bevis 1',
+    'ALT-BEVIS2': 'Alternativt bevis 2',
+    'ALT-BEVIS3': 'Alternativt bevis 3',
+    'VARFÖR CLAUDE HAR FEL': 'Varför Claude har fel',
+    'T1-PREMISS': 'Premiss',
+    'T3-KÄLLKRITIK': 'Källkritik',
+    'T4-CLAIM CASCADE': 'Claim cascade',
+    'VERDICT': 'Verdict',
+    'ALTERNATIV RANKING': 'Alternativ ranking'
+  };
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line) { out.push(''); continue; }
+    var matched = false;
+    for (var k in headers) {
+      var re = new RegExp('^' + k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\s*[—\\-:]\\s*(.*)$', 'i');
+      var m = line.match(re);
+      if (m) {
+        var body = m[1] || '';
+        if (body.length > 10 && body === body.toUpperCase()) {
+          body = toSentenceCase(body);
+        }
+        out.push('**' + headers[k] + ':** ' + body);
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      if (line.length > 20 && line === line.toUpperCase() && /[A-ZÅÄÖ]/.test(line)) {
+        line = toSentenceCase(line);
+      }
+      out.push(line);
+    }
+  }
+  return out.join('\n').trim();
+}
+
+function toSentenceCase(s) {
+  var acronyms = [];
+  (s.match(/\b[A-ZÅÄÖ]{2,5}\b/g) || []).forEach(function(a) {
+    if (!acronyms.includes(a)) acronyms.push(a);
+  });
+  var lower = s.toLowerCase();
+  var result = lower.replace(/(^|[.!?]\s+)([a-zåäö])/g, function(_, p, c) {
+    return p + c.toUpperCase();
+  });
+  acronyms.forEach(function(a) {
+    var re = new RegExp('\\b' + a.toLowerCase() + '\\b', 'g');
+    result = result.replace(re, a);
+  });
+  return result;
 }
 
 function getVerdict(txt) {
@@ -1138,19 +1280,29 @@ function cleanEngineText(s) {
 }
 
 function extractVadVetVi(r) {
-  // Föredra claude_answer för faktainnehåll — final_analysis kan ha breaking-news-prefix
+  // Konkreta faktarader som punktlista — visuellt skild från BREAKING (prosa)
+  // Rader med markdown-länkar släpps alltid igenom — de bär källor.
   const src = r.claude_answer || r.final_analysis || '';
   const lines = cleanEngineText(src);
-  // Ta rader som ser ut som faktameningar (inte hypotes-headers).
-  // Rader med markdown-länkar [label](http...) släpps alltid igenom — de bär källor.
   const paras = lines.filter(l => {
     if (/\]\(https?:/.test(l)) return true;
     const u = l.toUpperCase();
-    return !u.startsWith('H1') && !u.startsWith('H2') && !u.startsWith('H3')
-      && !u.startsWith('TES:') && !u.startsWith('BEVIS:') && !u.startsWith('MOTARG')
-      && !u.startsWith('STYRKA:') && !u.startsWith('FALSIF');
+    if (u.startsWith('H1') || u.startsWith('H2') || u.startsWith('H3')) return false;
+    if (u.startsWith('TES:') || u.startsWith('BEVIS:') || u.startsWith('MOTARG')) return false;
+    if (u.startsWith('STYRKA:') || u.startsWith('FALSIF')) return false;
+    // Filtrera bort narrativ inledning som upprepar BREAKING
+    if (l.length < 40 || l.length > 320) return false;
+    const firstWords = l.toLowerCase().slice(0, 45);
+    if (firstWords.includes('det senaste') || firstWords.includes('på torsdagen') ||
+        firstWords.includes('under torsdagen') || firstWords.includes('kriget som bröt') ||
+        firstWords.includes('spänningarna i') || firstWords.includes('femtio') ||
+        firstWords.includes('fyrtiotvå')) return false;
+    return true;
   }).slice(0, 4);
-  return paras.map(p => `<p>${linkify(p)}</p>`).join('');
+  if (!paras.length) return '';
+  return '<ul style="list-style:none;padding:0;margin:0;">' +
+    paras.map(p => '<li style="padding:10px 0 10px 18px;border-bottom:1px solid var(--border);position:relative;font-size:14px;line-height:1.7;color:var(--text-body);"><span style="position:absolute;left:0;top:18px;width:5px;height:5px;border-radius:50%;background:var(--blue);"></span>' + linkify(p) + '</li>').join('') +
+    '</ul>';
 }
 
 function extractGoldBody(r) {
